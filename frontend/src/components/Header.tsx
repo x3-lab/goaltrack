@@ -3,7 +3,7 @@ import React from 'react';
 import { LogOut, User, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { ConnectionStatus } from './connection-status';
+// import { ConnectionStatus } from './connection-status';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -12,8 +12,8 @@ const Header: React.FC = () => {
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-primary">GoalTrack</h1>
-          <ConnectionStatus />
+          <h1 className="text-2xl font-bold text-primary">X3Goals</h1>
+          {/* <ConnectionStatus /> */}
         </div>
         
         <div className="flex items-center space-x-4">
