@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { SkeletonGoalCard } from '../components/ui/skeleton-loader';
-import { EnhancedGoalForm } from '../components/enhanced-goal-form';
+import { GoalFormModal } from '../components/GoalFormModal';
 import { GoalCard } from '../components/GoalCard';
 import { Plus, Target, TrendingUp, Calendar, Award, Filter } from 'lucide-react';
 import { Goal, ProgressEntry } from '@/types/goal';
@@ -14,7 +14,7 @@ const VolunteerDashboard: React.FC = () => {
   const { toast } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [showGoalModal, setShowGoalModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed'>('all');
 
   // Mock data - in real app, this would come from API
@@ -133,7 +133,6 @@ const VolunteerDashboard: React.FC = () => {
     };
     
     setGoals(prev => [...prev, newGoal]);
-    setShowGoalForm(false);
     
     toast({
       title: "Goal Created",
@@ -221,7 +220,7 @@ const VolunteerDashboard: React.FC = () => {
           <p className="text-gray-600 mt-1">Track your goals and make an impact in your community.</p>
         </div>
         <Button 
-          onClick={() => setShowGoalForm(true)}
+          onClick={() => setShowGoalModal(true)}
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -286,22 +285,6 @@ const VolunteerDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Goal Creation Form */}
-      {showGoalForm && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Create New Goal</h2>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowGoalForm(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-          <EnhancedGoalForm onSubmit={handleCreateGoal} />
-        </div>
-      )}
-
       {/* Goals List */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -343,6 +326,13 @@ const VolunteerDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Goal Creation Modal */}
+      <GoalFormModal
+        isOpen={showGoalModal}
+        onClose={() => setShowGoalModal(false)}
+        onSubmit={handleCreateGoal}
+      />
     </div>
   );
 };

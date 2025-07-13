@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +21,7 @@ interface EnhancedGoalFormProps {
   onSubmit: (goal: any) => Promise<void>;
   initialData?: any;
   templates?: GoalTemplate[];
+  showTemplates?: boolean;
 }
 
 const goalTemplates: GoalTemplate[] = [
@@ -52,7 +51,8 @@ const goalTemplates: GoalTemplate[] = [
 export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   onSubmit,
   initialData,
-  templates = goalTemplates
+  templates = goalTemplates,
+  showTemplates = true
 }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -175,165 +175,165 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          {initialData ? 'Edit Goal' : 'Create New Goal'}
-          {initialData && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={duplicateGoal}
-              className="flex items-center gap-2"
-            >
-              <Copy className="h-4 w-4" />
-              Duplicate
-            </Button>
-          )}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {!initialData && (
-          <div className="space-y-3">
-            <Label>Goal Templates</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {templates.map((template) => (
-                <Button
-                  key={template.id}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => applyTemplate(template)}
-                  className="flex items-center gap-2 h-auto p-3 text-left"
-                >
-                  <Bookmark className="h-4 w-4" />
-                  <div>
-                    <div className="font-medium">{template.name}</div>
-                    <div className="text-xs text-muted-foreground">{template.category}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Goal Title *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Enter goal title"
-              className={errors.title ? 'border-red-500' : ''}
-              aria-describedby={errors.title ? 'title-error' : undefined}
-            />
-            {errors.title && (
-              <p id="title-error" className="text-sm text-red-500" role="alert">
-                {errors.title}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe the goal in detail"
-              className={errors.description ? 'border-red-500' : ''}
-              aria-describedby={errors.description ? 'description-error' : undefined}
-            />
-            {errors.description && (
-              <p id="description-error" className="text-sm text-red-500" role="alert">
-                {errors.description}
-              </p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                placeholder="e.g., Community Service"
-                className={errors.category ? 'border-red-500' : ''}
-              />
-              {errors.category && (
-                <p className="text-sm text-red-500" role="alert">{errors.category}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select 
-                value={formData.priority} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {formData.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 hover:text-red-500"
-                    aria-label={`Remove tag ${tag}`}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                placeholder="Add a tag"
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-              />
-              <Button type="button" onClick={addTag} size="sm">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">Due Date</Label>
-            <Input
-              id="dueDate"
-              type="date"
-              value={formData.dueDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-            />
-          </div>
-
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? (
-              <LoadingSpinner size="sm" className="mr-2" />
-            ) : null}
-            {initialData ? 'Update Goal' : 'Create Goal'}
+    <div className="space-y-6">
+      {/* Header with duplicate button for editing */}
+      {initialData && (
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Edit Goal</h3>
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm" 
+            onClick={duplicateGoal}
+            className="flex items-center gap-2"
+          >
+            <Copy className="h-4 w-4" />
+            Duplicate
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      )}
+
+      {/* Goal Templates */}
+      {!initialData && showTemplates && (
+        <div className="space-y-3">
+          <Label>Quick Start Templates</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {templates.map((template) => (
+              <Button
+                key={template.id}
+                variant="outline"
+                size="sm"
+                onClick={() => applyTemplate(template)}
+                className="flex items-center gap-2 h-auto p-3 text-left justify-start"
+              >
+                <Bookmark className="h-4 w-4 text-blue-500" />
+                <div>
+                  <div className="font-medium text-sm">{template.name}</div>
+                  <div className="text-xs text-muted-foreground">{template.category}</div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="title">Goal Title *</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            placeholder="Enter goal title"
+            className={errors.title ? 'border-red-500' : ''}
+            aria-describedby={errors.title ? 'title-error' : undefined}
+          />
+          {errors.title && (
+            <p id="title-error" className="text-sm text-red-500" role="alert">
+              {errors.title}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">Description *</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Describe the goal in detail"
+            className={errors.description ? 'border-red-500' : ''}
+            aria-describedby={errors.description ? 'description-error' : undefined}
+            rows={3}
+          />
+          {errors.description && (
+            <p id="description-error" className="text-sm text-red-500" role="alert">
+              {errors.description}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="category">Category *</Label>
+            <Input
+              id="category"
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              placeholder="e.g., Community Service"
+              className={errors.category ? 'border-red-500' : ''}
+            />
+            {errors.category && (
+              <p className="text-sm text-red-500" role="alert">{errors.category}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="priority">Priority</Label>
+            <Select 
+              value={formData.priority} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="High">High</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="Low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Tags</Label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {formData.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-1 hover:text-red-500"
+                  aria-label={`Remove tag ${tag}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Add a tag"
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+            />
+            <Button type="button" onClick={addTag} size="sm">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="dueDate">Due Date</Label>
+          <Input
+            id="dueDate"
+            type="date"
+            value={formData.dueDate}
+            onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+          />
+        </div>
+
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? (
+            <LoadingSpinner size="sm" className="mr-2" />
+          ) : null}
+          {initialData ? 'Update Goal' : 'Create Goal'}
+        </Button>
+      </form>
+    </div>
   );
 };
