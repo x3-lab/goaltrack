@@ -71,10 +71,10 @@ const PersonalAnalyticsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={() => navigate(-1)}>
+        {/* <Button variant="outline" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
-        </Button>
+        </Button> */}
         <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
       </div>
 
