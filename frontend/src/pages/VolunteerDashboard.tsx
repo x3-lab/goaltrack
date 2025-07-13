@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
@@ -7,26 +6,16 @@ import { Button } from '../components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { SkeletonGoalCard } from '../components/ui/skeleton-loader';
 import { EnhancedGoalForm } from '../components/enhanced-goal-form';
-import { DragDropGoals } from '../components/drag-drop-goals';
-import { Plus, Target, TrendingUp, Calendar, Award } from 'lucide-react';
-
-interface Goal {
-  id: string;
-  title: string;
-  description: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'pending' | 'in-progress' | 'completed';
-  progress: number;
-  category: string;
-  tags: string[];
-  dueDate?: string;
-}
+import { GoalCard } from '../components/GoalCard';
+import { Plus, Target, TrendingUp, Calendar, Award, Filter } from 'lucide-react';
+import { Goal, ProgressEntry } from '@/types/goal';
 
 const VolunteerDashboard: React.FC = () => {
   const { toast } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed'>('all');
 
   // Mock data - in real app, this would come from API
   useEffect(() => {
@@ -35,7 +24,7 @@ const VolunteerDashboard: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      setGoals([
+      const mockGoals: Goal[] = [
         {
           id: '1',
           title: 'Complete First Aid Training',
@@ -45,7 +34,30 @@ const VolunteerDashboard: React.FC = () => {
           progress: 75,
           category: 'Training & Development',
           tags: ['training', 'certification', 'safety'],
-          dueDate: '2024-07-15'
+          dueDate: '2024-07-15',
+          createdAt: '2024-06-15T10:00:00Z',
+          updatedAt: '2024-07-10T14:30:00Z',
+          notes: 'Completed online modules, need to attend practical session',
+          progressHistory: [
+            {
+              id: '1',
+              timestamp: '2024-06-20T10:00:00Z',
+              progress: 25,
+              notes: 'Started online training modules'
+            },
+            {
+              id: '2',
+              timestamp: '2024-06-25T15:30:00Z',
+              progress: 50,
+              notes: 'Completed theoretical section'
+            },
+            {
+              id: '3',
+              timestamp: '2024-07-10T14:30:00Z',
+              progress: 75,
+              notes: 'Finished online modules, scheduled practical session'
+            }
+          ]
         },
         {
           id: '2',
@@ -56,7 +68,24 @@ const VolunteerDashboard: React.FC = () => {
           progress: 60,
           category: 'Community Service',
           tags: ['community', 'service', 'hours'],
-          dueDate: '2024-07-31'
+          dueDate: '2024-07-31',
+          createdAt: '2024-07-01T09:00:00Z',
+          updatedAt: '2024-07-12T16:00:00Z',
+          notes: 'Completed 12 hours so far, 8 more to go',
+          progressHistory: [
+            {
+              id: '4',
+              timestamp: '2024-07-05T18:00:00Z',
+              progress: 20,
+              notes: 'Completed 4 hours at food bank'
+            },
+            {
+              id: '5',
+              timestamp: '2024-07-12T16:00:00Z',
+              progress: 60,
+              notes: 'Additional 8 hours at community center'
+            }
+          ]
         },
         {
           id: '3',
@@ -67,9 +96,22 @@ const VolunteerDashboard: React.FC = () => {
           progress: 10,
           category: 'Event Planning',
           tags: ['event', 'community', 'outreach'],
-          dueDate: '2024-08-10'
+          dueDate: '2024-08-10',
+          createdAt: '2024-07-08T11:00:00Z',
+          updatedAt: '2024-07-08T11:00:00Z',
+          notes: 'Initial planning phase',
+          progressHistory: [
+            {
+              id: '6',
+              timestamp: '2024-07-08T11:00:00Z',
+              progress: 10,
+              notes: 'Created initial event outline'
+            }
+          ]
         }
-      ]);
+      ];
+      
+      setGoals(mockGoals);
       setLoading(false);
     };
 
@@ -84,7 +126,10 @@ const VolunteerDashboard: React.FC = () => {
       id: Date.now().toString(),
       ...goalData,
       status: 'pending' as const,
-      progress: 0
+      progress: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      progressHistory: []
     };
     
     setGoals(prev => [...prev, newGoal]);
@@ -96,13 +141,51 @@ const VolunteerDashboard: React.FC = () => {
     });
   };
 
-  const handleReorderGoals = (reorderedGoals: Goal[]) => {
-    setGoals(reorderedGoals);
+  const handleUpdateGoal = (goalId: string, updates: Partial<Goal>) => {
+    setGoals(prev => prev.map(goal => 
+      goal.id === goalId 
+        ? { ...goal, ...updates, updatedAt: new Date().toISOString() }
+        : goal
+    ));
+  };
+
+  const handleDeleteGoal = (goalId: string) => {
+    setGoals(prev => prev.filter(goal => goal.id !== goalId));
     toast({
-      title: "Goals Reordered",
-      description: "Your goals have been reordered successfully",
+      title: "Goal Deleted",
+      description: "Goal has been removed from your list",
     });
   };
+
+  const handleProgressUpdate = (goalId: string, progress: number, notes: string) => {
+    const newProgressEntry: ProgressEntry = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      progress,
+      notes
+    };
+
+    setGoals(prev => prev.map(goal => 
+      goal.id === goalId 
+        ? { 
+            ...goal, 
+            progress,
+            progressHistory: [...goal.progressHistory, newProgressEntry],
+            updatedAt: new Date().toISOString()
+          }
+        : goal
+    ));
+
+    toast({
+      title: "Progress Updated",
+      description: `Progress set to ${progress}%`,
+    });
+  };
+
+  const filteredGoals = goals.filter(goal => {
+    if (statusFilter === 'all') return true;
+    return goal.status === statusFilter;
+  });
 
   const completionRate = goals.length > 0 
     ? Math.round((goals.filter(g => g.status === 'completed').length / goals.length) * 100)
@@ -223,15 +306,42 @@ const VolunteerDashboard: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your Goals</h2>
-          <Badge variant="secondary">
-            {goals.length} total goals
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              <option value="all">All Goals</option>
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+            <Badge variant="secondary">
+              {filteredGoals.length} goals
+            </Badge>
+          </div>
         </div>
         
-        <DragDropGoals 
-          goals={goals}
-          onReorder={handleReorderGoals}
-        />
+        <div className="space-y-4">
+          {filteredGoals.map(goal => (
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              onUpdate={handleUpdateGoal}
+              onDelete={handleDeleteGoal}
+              onProgressUpdate={handleProgressUpdate}
+            />
+          ))}
+        </div>
+        
+        {filteredGoals.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p>No goals found. Create your first goal to get started!</p>
+          </div>
+        )}
       </div>
     </div>
   );
