@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User } from 'lucide-react';
+import VolunteerProfile from '@/pages/VolunteerProfile';
 import path from 'path';
 
 const Navigation: React.FC = () => {
@@ -15,6 +16,7 @@ const Navigation: React.FC = () => {
     { path: '/volunteer-dashboard', label: 'Dashboard', icon: Target },
     { path: '/volunteer-dashboard/progress-history', label: 'Progress History', icon: History },
     { path: '/volunteer-dashboard/analytics', label: 'Personal Analytics', icon: BarChart3 },
+    { path: '/volunteer-dashboard/profile', label: 'Profile', icon: User },
   ];
 
   const adminNavItems = [
