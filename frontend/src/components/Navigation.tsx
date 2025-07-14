@@ -2,7 +2,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award } from 'lucide-react';
+import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User } from 'lucide-react';
+import path from 'path';
 
 const Navigation: React.FC = () => {
   const { user } = useAuth();
@@ -20,6 +21,9 @@ const Navigation: React.FC = () => {
     { path: '/admin-dashboard', label: 'Overview', icon: BarChart3 },
     { path: '/admin-dashboard/volunteers', label: 'Volunteers', icon: Users },
     { path: '/admin-dashboard/goals', label: 'All Goals', icon: Target },
+    { path: '/admin-dashboard/goal-templates', label: 'Goal Templates', icon: Target },
+    { path: '/admin-dashboard/analytics', label: 'System Analytics', icon: TrendingUp },
+    { path: '/admin-dashboard/profile', label: 'Profile', icon: User },
     { path: '/admin-dashboard/settings', label: 'Settings', icon: Settings },
   ];
 

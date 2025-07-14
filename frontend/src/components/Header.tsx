@@ -3,17 +3,17 @@ import React from 'react';
 import { LogOut, User, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
-// import { ConnectionStatus } from './connection-status';
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold text-primary">X3Goals</h1>
-          {/* <ConnectionStatus /> */}
         </div>
         
         <div className="flex items-center space-x-4">
@@ -25,9 +25,9 @@ const Header: React.FC = () => {
             </span>
           </div>
           
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Settings
+          <Button variant="outline" size="sm" onClick={() => navigate(`${user?.role === 'admin' ? "/admin-dashboard/profile" : "/volunteer-dashboard/profile"}`)}>
+            <User className="h-4 w-4 mr-2" />
+            Profile
           </Button>
           
           <Button variant="outline" size="sm" onClick={logout}>

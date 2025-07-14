@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,14 +12,16 @@ import Navigation from "./components/Navigation";
 import Login from "./pages/Login";
 import VolunteerDashboard from "./pages/VolunteerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import Volunteers from "./pages/Volunteers";
 import Goals from "./pages/Goals";
 import AdminSettings from "./pages/AdminSettings";
 import ProgressHistoryPage from "./pages/ProgressHistory";
 import PersonalAnalyticsPage from "./pages/PersonalAnalytics";
 import VolunteerProfilePage from "./pages/VolunteerProfile";
 import SystemAnalyticsPage from "./pages/SystemAnalytics";
+import AdminVolunteerManagement from "./pages/AdminVolunteerManagement";
+import AdminGoalTemplates from "./pages/AdminGoalTemplates";
 import { useAuth } from "./contexts/AuthContext";
+import AdminProfilePage from "./pages/AdminProfile";
 
 const queryClient = createQueryClient();
 
@@ -81,14 +82,6 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/admin-dashboard/volunteers"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <Volunteers />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/admin-dashboard/volunteers/:id"
         element={
           <ProtectedRoute requiredRole="admin">
@@ -117,6 +110,38 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requiredRole="admin">
             <AdminSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin-dashboard/volunteers"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminVolunteerManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin-dashboard/goal-templates"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminGoalTemplates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/volunteer-dashboard/profile"
+        element={
+          <ProtectedRoute requiredRole="volunteer">
+            <VolunteerProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin-dashboard/profile"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminProfilePage />
           </ProtectedRoute>
         }
       />

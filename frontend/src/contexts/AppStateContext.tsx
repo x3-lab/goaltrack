@@ -252,22 +252,6 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       dispatch({ type: 'CLEAR_ERROR', payload: key });
     }, []),
 
-    // setOnline: useCallback((online: boolean) => {
-    //   dispatch({ type: 'SET_ONLINE', payload: online });
-    //   if (online) {
-    //     toast({
-    //       title: "Connection Restored",
-    //       description: "You're back online. Data will sync automatically.",
-    //     });
-    //   } else {
-    //     toast({
-    //       title: "Connection Lost",
-    //       description: "You're offline. Changes will sync when connection is restored.",
-    //       variant: "destructive",
-    //     });
-    //   }
-    // }, [toast]),
-
     setLastSync: useCallback((timestamp: string) => {
       dispatch({ type: 'SET_LAST_SYNC', payload: timestamp });
     }, []),
@@ -293,20 +277,6 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       return state.volunteers.filter(volunteer => volunteer.status === 'active');
     }, [state.volunteers]),
   };
-
-  // Online/offline detection
-//   React.useEffect(() => {
-//     const handleOnline = () => actions.setOnline(true);
-//     const handleOffline = () => actions.setOnline(false);
-
-//     window.addEventListener('online', handleOnline);
-//     window.addEventListener('offline', handleOffline);
-
-//     return () => {
-//       window.removeEventListener('online', handleOnline);
-//       window.removeEventListener('offline', handleOffline);
-//     };
-//   }, [actions]);
 
   const value = {
     state,
