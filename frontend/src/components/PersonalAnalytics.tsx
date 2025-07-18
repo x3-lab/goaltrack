@@ -1,43 +1,17 @@
-
 import React from 'react';
 import { TrendingUp, Target, Award, Calendar, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-
-interface AnalyticsData {
-  overallCompletionRate: number;
-  weeklyTrends: Array<{
-    week: string;
-    completionRate: number;
-    goalsCompleted: number;
-    totalGoals: number;
-  }>;
-  performanceScore: number;
-  streakCount: number;
-  achievements: Array<{
-    id: string;
-    title: string;
-    description: string;
-    earnedDate: string;
-    icon: string;
-  }>;
-  categoryStats: Array<{
-    category: string;
-    completionRate: number;
-    totalGoals: number;
-  }>;
-  productiveData: Array<{
-    day: string;
-    completedGoals: number;
-  }>;
-}
+import { type PersonalAnalyticsData } from '../services/api';
 
 interface PersonalAnalyticsProps {
-  data: AnalyticsData;
+  data: PersonalAnalyticsData;
+  onRefresh?: () => void;
+  volunteerId?: string;
 }
 
-const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({ data }) => {
+const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({ data, onRefresh, volunteerId }) => {
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-yellow-600';
@@ -49,6 +23,31 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({ data }) => {
     if (score >= 60) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
   };
+
+  // Check if there's meaningful data to display
+  const hasData = data.weeklyTrends.length > 0 || data.achievements.length > 0 || data.categoryStats.length > 0;
+
+  if (!hasData) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-gray-500 text-lg mb-2">No analytics data available</p>
+            <p className="text-gray-400 mb-4">Complete some goals to see your analytics</p>
+            {onRefresh && (
+              <button 
+                onClick={onRefresh}
+                className="text-indigo-600 hover:text-indigo-800 font-medium"
+              >
+                Refresh Data
+              </button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

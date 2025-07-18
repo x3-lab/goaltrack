@@ -109,6 +109,49 @@ export interface ProgressHistoryFilters {
   search?: string;
 }
 
+// Personal Analytics interfaces
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  earnedDate: string;
+  icon: string;
+}
+
+export interface WeeklyTrend {
+  week: string;
+  completionRate: number;
+  goalsCompleted: number;
+  totalGoals: number;
+}
+
+export interface CategoryStat {
+  category: string;
+  completionRate: number;
+  totalGoals: number;
+}
+
+export interface ProductiveDayData {
+  day: string;
+  completedGoals: number;
+}
+
+export interface PersonalAnalyticsData {
+  overallCompletionRate: number;
+  performanceScore: number;
+  streakCount: number;
+  weeklyTrends: WeeklyTrend[];
+  achievements: Achievement[];
+  categoryStats: CategoryStat[];
+  productiveData: ProductiveDayData[];
+}
+
+export interface PersonalAnalyticsFilters {
+  volunteerId: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 // Helper function to get week boundaries
 const getWeekBoundaries = (date: Date): { start: string; end: string } => {
   const d = new Date(date);
@@ -645,6 +688,12 @@ export const api = {
         overdueGoals: getOverdueGoals(goals).length
       };
     },
+    
+    // Personal Analytics methods
+    getPersonalAnalytics: async (filters: PersonalAnalyticsFilters): Promise<PersonalAnalyticsData> => {
+      const goals = await api.goals.getAll();
+      return calculatePersonalAnalytics(goals, filters.volunteerId);
+    },
     getVolunteerPerformance: async (filters?: any) => {
       const volunteers = await api.volunteers.getAll();
       return volunteers.map(v => ({
@@ -720,6 +769,193 @@ export const calculatePerformanceMetrics = (goals: Goal[]) => {
     overdue,
     averageProgress: Math.round(averageProgress)
   };
+};
+
+// Helper functions for personal analytics
+const calculatePersonalAnalytics = (goals: Goal[], volunteerId: string): PersonalAnalyticsData => {
+  const volunteerGoals = goals.filter(g => g.volunteer === volunteerId || g.volunteerId === volunteerId);
+  
+  if (volunteerGoals.length === 0) {
+    return {
+      overallCompletionRate: 0,
+      performanceScore: 0,
+      streakCount: 0,
+      weeklyTrends: [],
+      achievements: [],
+      categoryStats: [],
+      productiveData: []
+    };
+  }
+
+  // Calculate overall completion rate
+  const completedGoals = volunteerGoals.filter(g => g.status === 'completed').length;
+  const overallCompletionRate = Math.round((completedGoals / volunteerGoals.length) * 100);
+
+  // Calculate performance score (weighted average of completion rate and average progress)
+  const totalProgress = volunteerGoals.reduce((sum, g) => sum + g.progress, 0);
+  const averageProgress = totalProgress / volunteerGoals.length;
+  const performanceScore = Math.round((overallCompletionRate * 0.6) + (averageProgress * 0.4));
+
+  // Calculate weekly trends (last 6 weeks)
+  const weeklyTrends = generateWeeklyTrends(volunteerGoals);
+
+  // Calculate streak count
+  const streakCount = calculateStreakCount(weeklyTrends);
+
+  // Generate achievements
+  const achievements = generateAchievements(volunteerGoals, overallCompletionRate, streakCount);
+
+  // Calculate category statistics
+  const categoryStats = calculateCategoryStats(volunteerGoals);
+
+  // Calculate productive days data
+  const productiveData = calculateProductiveDays(volunteerGoals);
+
+  return {
+    overallCompletionRate,
+    performanceScore,
+    streakCount,
+    weeklyTrends,
+    achievements,
+    categoryStats,
+    productiveData
+  };
+};
+
+const generateWeeklyTrends = (goals: Goal[]): WeeklyTrend[] => {
+  const weeks: WeeklyTrend[] = [];
+  
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - (i * 7));
+    const { start, end } = getWeekBoundaries(date);
+    
+    const weekGoals = goals.filter(g => {
+      const createdDate = new Date(g.createdDate);
+      const weekStartDate = new Date(start);
+      const weekEndDate = new Date(end);
+      return createdDate >= weekStartDate && createdDate <= weekEndDate;
+    });
+    
+    const completedInWeek = weekGoals.filter(g => g.status === 'completed').length;
+    const completionRate = weekGoals.length > 0 ? Math.round((completedInWeek / weekGoals.length) * 100) : 0;
+    
+    weeks.push({
+      week: new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      completionRate,
+      goalsCompleted: completedInWeek,
+      totalGoals: weekGoals.length
+    });
+  }
+  
+  return weeks;
+};
+
+const calculateStreakCount = (weeklyTrends: WeeklyTrend[]): number => {
+  let streak = 0;
+  
+  // Count consecutive weeks with completion rate >= 80%
+  for (let i = weeklyTrends.length - 1; i >= 0; i--) {
+    if (weeklyTrends[i].completionRate >= 80) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  
+  return streak;
+};
+
+const generateAchievements = (goals: Goal[], completionRate: number, streakCount: number): Achievement[] => {
+  const achievements: Achievement[] = [];
+  
+  // Perfect Week achievement
+  if (completionRate === 100) {
+    achievements.push({
+      id: 'perfect-week',
+      title: 'Perfect Week',
+      description: 'Completed 100% of goals in a week',
+      earnedDate: new Date().toISOString().split('T')[0],
+      icon: '🏆'
+    });
+  }
+  
+  // Streak achievements
+  if (streakCount >= 4) {
+    achievements.push({
+      id: 'streak-master',
+      title: 'Streak Master',
+      description: `Maintained ${streakCount}-week completion streak`,
+      earnedDate: new Date().toISOString().split('T')[0],
+      icon: '🔥'
+    });
+  }
+  
+  // Goal quantity achievements
+  if (goals.length >= 10) {
+    achievements.push({
+      id: 'goal-setter',
+      title: 'Goal Setter',
+      description: 'Created 10+ goals',
+      earnedDate: new Date().toISOString().split('T')[0],
+      icon: '🎯'
+    });
+  }
+  
+  // High completion rate achievement
+  if (completionRate >= 90) {
+    achievements.push({
+      id: 'high-achiever',
+      title: 'High Achiever',
+      description: 'Maintained 90%+ completion rate',
+      earnedDate: new Date().toISOString().split('T')[0],
+      icon: '🌟'
+    });
+  }
+  
+  return achievements;
+};
+
+const calculateCategoryStats = (goals: Goal[]): CategoryStat[] => {
+  const categoryMap = new Map<string, { total: number; completed: number }>();
+  
+  goals.forEach(goal => {
+    if (!categoryMap.has(goal.category)) {
+      categoryMap.set(goal.category, { total: 0, completed: 0 });
+    }
+    
+    const stats = categoryMap.get(goal.category)!;
+    stats.total++;
+    if (goal.status === 'completed') {
+      stats.completed++;
+    }
+  });
+  
+  return Array.from(categoryMap.entries()).map(([category, stats]) => ({
+    category,
+    completionRate: stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0,
+    totalGoals: stats.total
+  }));
+};
+
+const calculateProductiveDays = (goals: Goal[]): ProductiveDayData[] => {
+  const dayMap = new Map<string, number>();
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  // Initialize all days
+  dayNames.forEach(day => dayMap.set(day, 0));
+  
+  // Count completed goals by day of week
+  goals.filter(g => g.status === 'completed').forEach(goal => {
+    const dayOfWeek = new Date(goal.updatedAt).getDay();
+    const dayName = dayNames[dayOfWeek];
+    dayMap.set(dayName, (dayMap.get(dayName) || 0) + 1);
+  });
+  
+  return dayNames.map(day => ({
+    day,
+    completedGoals: dayMap.get(day) || 0
+  }));
 };
 
 // Create query client with default options
