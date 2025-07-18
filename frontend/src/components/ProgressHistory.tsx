@@ -20,30 +20,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Input } from './ui/input';
-
-interface HistoricalWeek {
-  weekStart: string;
-  weekEnd: string;
-  goals: Array<{
-    id: number;
-    title: string;
-    status: 'pending' | 'in-progress' | 'completed';
-    progress: number;
-    priority: 'High' | 'Medium' | 'Low';
-    category: string;
-    notes?: string;
-  }>;
-  completionRate: number;
-  totalGoals: number;
-  completedGoals: number;
-  averageProgress: number;
-}
+import { type HistoricalWeek } from '../services/api';
 
 interface ProgressHistoryProps {
   historicalData: HistoricalWeek[];
+  onRefresh?: () => void;
+  volunteerId?: string;
 }
 
-const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData }) => {
+const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRefresh, volunteerId }) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -312,9 +297,16 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData }) => 
             </div>
           )}
 
-          <Button variant="outline" onClick={clearAllFilters}>
-            Clear All Filters
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={clearAllFilters}>
+              Clear All Filters
+            </Button>
+            {onRefresh && (
+              <Button variant="outline" onClick={onRefresh}>
+                Refresh Data
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

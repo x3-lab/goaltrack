@@ -80,6 +80,133 @@ export interface AdminProfile {
 // Type for creating a new volunteer (excludes auto-generated fields)
 export type CreateVolunteerData = Omit<Volunteer, 'id' | 'goalsCount' | 'completionRate' | 'performance' | 'lastActive'>;
 
+// Add interfaces for Progress History
+export interface HistoricalWeek {
+  weekStart: string;
+  weekEnd: string;
+  goals: Array<{
+    id: string;
+    title: string;
+    status: 'pending' | 'in-progress' | 'completed' | 'overdue';
+    progress: number;
+    priority: 'High' | 'Medium' | 'Low';
+    category: string;
+    notes?: string;
+  }>;
+  completionRate: number;
+  totalGoals: number;
+  completedGoals: number;
+  averageProgress: number;
+}
+
+export interface ProgressHistoryFilters {
+  volunteerId?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
+  priority?: string;
+  category?: string;
+  search?: string;
+}
+
+// Helper function to get week boundaries
+const getWeekBoundaries = (date: Date): { start: string; end: string } => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day;
+  
+  const start = new Date(d.setDate(diff));
+  const end = new Date(d.setDate(diff + 6));
+  
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0]
+  };
+};
+
+// Helper function to generate weekly progress data
+const generateWeeklyProgressData = (goals: Goal[], volunteerId: string): HistoricalWeek[] => {
+  const weeklyData: { [key: string]: HistoricalWeek } = {};
+  
+  // Get goals for the specific volunteer
+  const volunteerGoals = goals.filter(g => g.volunteer === volunteerId || g.volunteerId === volunteerId);
+  
+  // Generate historical weeks (last 12 weeks)
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - (i * 7));
+    const { start, end } = getWeekBoundaries(date);
+    
+    const weekGoals = volunteerGoals.filter(g => {
+      const createdDate = new Date(g.createdDate);
+      const weekStartDate = new Date(start);
+      const weekEndDate = new Date(end);
+      return createdDate >= weekStartDate && createdDate <= weekEndDate;
+    });
+    
+    // Convert goals to historical week format
+    const weekGoalData = weekGoals.map(g => ({
+      id: g.id,
+      title: g.title,
+      status: g.status,
+      progress: g.progress,
+      priority: g.priority,
+      category: g.category,
+      notes: g.notes
+    }));
+    
+    // If no goals for this week, create some sample goals for demonstration
+    if (weekGoalData.length === 0 && i > 8) {
+      // Create sample historical goals for recent weeks
+      const sampleGoals = [
+        {
+          id: `hist-${i}-1`,
+          title: `Weekly Task ${12 - i}`,
+          status: Math.random() > 0.7 ? 'completed' : (Math.random() > 0.5 ? 'in-progress' : 'pending') as 'completed' | 'in-progress' | 'pending',
+          progress: Math.floor(Math.random() * 100),
+          priority: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)] as 'High' | 'Medium' | 'Low',
+          category: ['Training & Development', 'Community Service', 'Event Planning', 'Fundraising'][Math.floor(Math.random() * 4)],
+          notes: `Sample notes for week ${12 - i}`
+        }
+      ];
+      
+      if (Math.random() > 0.5) {
+        sampleGoals.push({
+          id: `hist-${i}-2`,
+          title: `Community Goal ${12 - i}`,
+          status: Math.random() > 0.6 ? 'completed' : 'in-progress' as 'completed' | 'in-progress',
+          progress: Math.floor(Math.random() * 100),
+          priority: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)] as 'High' | 'Medium' | 'Low',
+          category: ['Community Service', 'Environmental', 'Administration'][Math.floor(Math.random() * 3)],
+          notes: `Community work for week ${12 - i}`
+        });
+      }
+      
+      weekGoalData.push(...sampleGoals);
+    }
+    
+    const completedGoals = weekGoalData.filter(g => g.status === 'completed').length;
+    const avgProgress = weekGoalData.length > 0 
+      ? Math.round(weekGoalData.reduce((sum, g) => sum + g.progress, 0) / weekGoalData.length)
+      : 0;
+    const completionRate = weekGoalData.length > 0 
+      ? Math.round((completedGoals / weekGoalData.length) * 100)
+      : 0;
+    
+    weeklyData[start] = {
+      weekStart: start,
+      weekEnd: end,
+      goals: weekGoalData,
+      totalGoals: weekGoalData.length,
+      completedGoals,
+      averageProgress: avgProgress,
+      completionRate
+    };
+  }
+  
+  return Object.values(weeklyData).sort((a, b) => new Date(b.weekStart).getTime() - new Date(a.weekStart).getTime());
+};
+
 // Mock data
 export const mockApi = {
   goals: [
@@ -360,6 +487,48 @@ export const mockLocalStorageApi = {
       const updates: Partial<Goal> = { progress };
       if (notes) updates.notes = notes;
       return mockLocalStorageApi.goals.update(id, updates);
+    },
+
+    // Progress History methods
+    getProgressHistory: async (filters?: ProgressHistoryFilters): Promise<HistoricalWeek[]> => {
+      const goals = await mockLocalStorageApi.goals.getAll();
+      const volunteerId = filters?.volunteerId || '1'; // Default to first volunteer
+      
+      let progressData = generateWeeklyProgressData(goals, volunteerId);
+      
+      // Apply filters
+      if (filters) {
+        if (filters.startDate) {
+          progressData = progressData.filter(week => new Date(week.weekStart) >= new Date(filters.startDate!));
+        }
+        if (filters.endDate) {
+          progressData = progressData.filter(week => new Date(week.weekEnd) <= new Date(filters.endDate!));
+        }
+        if (filters.status && filters.status !== 'all') {
+          progressData = progressData.map(week => ({
+            ...week,
+            goals: week.goals.filter(goal => goal.status === filters.status)
+          })).filter(week => week.goals.length > 0);
+        }
+        if (filters.priority && filters.priority !== 'all') {
+          progressData = progressData.map(week => ({
+            ...week,
+            goals: week.goals.filter(goal => goal.priority === filters.priority)
+          })).filter(week => week.goals.length > 0);
+        }
+        if (filters.search) {
+          const searchLower = filters.search.toLowerCase();
+          progressData = progressData.map(week => ({
+            ...week,
+            goals: week.goals.filter(goal => 
+              goal.title.toLowerCase().includes(searchLower) ||
+              goal.category.toLowerCase().includes(searchLower)
+            )
+          })).filter(week => week.goals.length > 0);
+        }
+      }
+      
+      return progressData;
     }
   },
   
@@ -434,6 +603,7 @@ export const api = {
     update: mockLocalStorageApi.goals.update,
     delete: mockLocalStorageApi.goals.delete,
     updateProgress: mockLocalStorageApi.goals.updateProgress,
+    getProgressHistory: mockLocalStorageApi.goals.getProgressHistory,
   },
 
   // Volunteers
