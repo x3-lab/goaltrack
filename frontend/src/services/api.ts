@@ -64,7 +64,6 @@ export interface AdminProfile {
   title: string;
   permissions: string[];
   preferences: {
-    emailNotifications: boolean;
     weeklyReports: boolean;
     systemAlerts: boolean;
     theme: 'light' | 'dark' | 'auto';
@@ -389,10 +388,8 @@ export const mockApi = {
       'view_analytics',
       'system_settings',
       'export_data',
-      'send_notifications'
     ],
     preferences: {
-      emailNotifications: true,
       weeklyReports: true,
       systemAlerts: true,
       theme: 'light' as const,
@@ -716,7 +713,6 @@ export const api = {
       const stored = localStorage.getItem('systemSettings');
       return stored ? JSON.parse(stored) : {
         organizationName: 'X3 Lab',
-        emailNotifications: true,
         weeklyReports: true,
         autoReminders: true
       };

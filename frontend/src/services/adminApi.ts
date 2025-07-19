@@ -14,17 +14,6 @@ export interface GoalTemplate {
   isActive: boolean;
 }
 
-export interface NotificationRule {
-  id: string;
-  name: string;
-  description: string;
-  trigger: 'deadline' | 'overdue' | 'completion' | 'inactivity';
-  conditions: any;
-  actions: any;
-  enabled: boolean;
-  createdAt: string;
-}
-
 export interface AdminGoal {
   id: string;
   title: string;
@@ -508,102 +497,6 @@ export const adminApi = {
       return duplicated;
     } catch (error) {
       console.error('Error duplicating template:', error);
-      throw error;
-    }
-  },
-
-  // Notification management
-  getNotificationRules: async (): Promise<NotificationRule[]> => {
-    try {
-      const rules = JSON.parse(localStorage.getItem('notificationRules') || '[]');
-      
-      // Add some default rules if none exist
-      if (rules.length === 0) {
-        const defaultRules: NotificationRule[] = [
-          {
-            id: '1',
-            name: 'Goal Deadline Reminder',
-            description: 'Send reminder 24 hours before goal deadline',
-            trigger: 'deadline' as const,
-            conditions: { timeBeforeDeadline: 24 },
-            actions: { sendEmail: true, sendNotification: true },
-            enabled: true,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: '2',
-            name: 'Overdue Goal Alert',
-            description: 'Alert when goals become overdue',
-            trigger: 'overdue' as const,
-            conditions: { daysOverdue: 1 },
-            actions: { sendEmail: true, notifyAdmin: true },
-            enabled: true,
-            createdAt: new Date().toISOString()
-          }
-        ];
-        localStorage.setItem('notificationRules', JSON.stringify(defaultRules));
-        return defaultRules;
-      }
-      
-      return rules;
-    } catch (error) {
-      console.error('Error fetching notification rules:', error);
-      return [];
-    }
-  },
-
-  createNotificationRule: async (ruleData: Omit<NotificationRule, 'id' | 'createdAt'>): Promise<NotificationRule> => {
-    try {
-      const rules = await adminApi.getNotificationRules();
-      const newRule: NotificationRule = {
-        ...ruleData,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString()
-      };
-      rules.push(newRule);
-      localStorage.setItem('notificationRules', JSON.stringify(rules));
-      return newRule;
-    } catch (error) {
-      console.error('Error creating notification rule:', error);
-      throw error;
-    }
-  },
-
-  updateNotificationRule: async (id: string, updates: Partial<NotificationRule>): Promise<NotificationRule> => {
-    try {
-      const rules = await adminApi.getNotificationRules();
-      const index = rules.findIndex(r => r.id === id);
-      if (index === -1) throw new Error('Rule not found');
-      
-      rules[index] = { ...rules[index], ...updates };
-      localStorage.setItem('notificationRules', JSON.stringify(rules));
-      return rules[index];
-    } catch (error) {
-      console.error('Error updating notification rule:', error);
-      throw error;
-    }
-  },
-
-  sendManualNotification: async (notificationData: any) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, this would send emails/notifications
-      console.log('Manual notification sent:', notificationData);
-      
-      // Save to notification history
-      const history = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
-      history.push({
-        id: Date.now().toString(),
-        ...notificationData,
-        sentAt: new Date().toISOString(),
-        status: 'sent'
-      });
-      localStorage.setItem('notificationHistory', JSON.stringify(history));
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Error sending manual notification:', error);
       throw error;
     }
   },
