@@ -11,7 +11,7 @@ export interface Goal {
   title: string;
   description: string;
   priority: 'High' | 'Medium' | 'Low';
-  status: 'pending' | 'in-progress' | 'completed';
+  status: 'pending' | 'in-progress' | 'completed' | 'overdue';
   progress: number;
   category: string;
   tags: string[];

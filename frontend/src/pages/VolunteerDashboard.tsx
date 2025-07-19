@@ -15,7 +15,7 @@ const VolunteerDashboard: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showGoalModal, setShowGoalModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed' | 'overdue'>('all');
 
   // Mock data - in real app, this would come from API
   useEffect(() => {
@@ -300,6 +300,7 @@ const VolunteerDashboard: React.FC = () => {
               <option value="pending">Pending</option>
               <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
+              <option value="overdue">Overdue</option>
             </select>
             <Badge variant="secondary">
               {filteredGoals.length} goals

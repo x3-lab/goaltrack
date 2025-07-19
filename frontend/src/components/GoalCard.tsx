@@ -19,7 +19,8 @@ import {
   ChevronDown,
   ChevronUp,
   Save,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { Goal, ProgressEntry } from '@/types/goal';
 
@@ -64,6 +65,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-gray-100 text-gray-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -191,6 +193,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
               <Badge className={`px-2 py-1 text-xs ${getStatusColor(goal.status)}`}>
                 {goal.status === 'completed' ? <Check className="h-3 w-3 mr-1" /> : 
                  goal.status === 'in-progress' ? <Clock className="h-3 w-3 mr-1" /> : 
+                 goal.status === 'overdue' ? <AlertTriangle className="h-3 w-3 mr-1" /> :
                  <Calendar className="h-3 w-3 mr-1" />}
                 {goal.status.replace('-', ' ')}
               </Badge>
