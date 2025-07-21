@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -21,6 +22,7 @@ import * as entities from './database/entities';
     }),
     ScheduleModule.forRoot(),
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

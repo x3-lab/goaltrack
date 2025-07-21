@@ -1,0 +1,87 @@
+// test/test-users.http
+
+### Create a new user (Admin only)
+POST http://localhost:3000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@example.com",
+  "password": "passwo2rd123",
+  "phoneNumber": "+2322211222",
+  "role": "volunteer",
+  "position": "Frontend Developer",
+  "skills": ["React", "TypeScript", "CSS"],
+  "address": "123 Main St, City, State"
+}
+
+### Get all users with filters (Admin only)
+GET http://localhost:3000/users?page=1&limit=10&role=volunteer&status=active&search=jane
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get my profile
+GET http://localhost:3000/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get user by ID
+GET http://localhost:3000/users/USER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get user analytics
+GET http://localhost:3000/users/USER_ID/analytics
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get user performance metrics
+GET http://localhost:3000/users/USER_ID/performance
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Update my profile
+PATCH http://localhost:3000/users/me
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "firstName": "John Updated",
+  "phoneNumber": "9876543210",
+  "position": "Senior Developer",
+  "skills": ["React", "Node.js", "PostgreSQL"]
+}
+
+### Update user (Admin only)
+PATCH http://localhost:3000/users/USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "status": "inactive",
+  "performance": "high"
+}
+
+### Update user status (Admin only)
+PATCH http://localhost:3000/users/USER_ID/status
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+
+### Bulk update user status (Admin only)
+POST http://localhost:3000/users/bulk/status
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "userIds": ["user-id-1", "user-id-2"],
+  "status": "active"
+}
+
+### Export users (Admin only)
+GET http://localhost:3000/users/export?role=volunteer&status=active
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Delete user (Admin only)
+DELETE http://localhost:3000/users/USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN

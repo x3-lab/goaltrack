@@ -23,6 +23,19 @@ Content-Type: application/json
   "role": "volunteer"
 }
 
+
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Fuad",
+  "lastName": "Obatula",
+  "email": "obatulafuad@gmail.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role":"admin"
+}
+
 POST http://localhost:3000/auth/register
 Content-Type: application/json
 
@@ -35,7 +48,18 @@ Content-Type: application/json
   "role": "volunteer"
 }
 
+### Register
+POST http://localhost:3000/auth/register
+Content-Type: application/json
 
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane@smith.com",
+  "password": "password123",
+  "phoneNumber": "0828383838",
+  "role": "admin"
+}
 
 ### Login
 POST http://localhost:3000/auth/login
