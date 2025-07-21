@@ -30,7 +30,7 @@ export class ActivityLog {
     @Column('simple-json', { nullable: true })
     details: Record<string, any>;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn()
     createdAt: Date;
 
     // Relationships

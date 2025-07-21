@@ -10,19 +10,8 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { ProgressHistory } from './progress-history.entity';
+import { GoalStatus, GoalPriority } from '../enums/goals.enums';
 
-export enum GoalStatus {
-    PENDING = 'pending',
-    IN_PROGRESS ='in_progress',
-    COMPLETED = 'completed',
-    OVERDUE = 'overdue',
-}
-
-export enum GoalPriority {
-    HIGH = 'high',
-    MEDIUM = 'medium',
-    LOW = 'low',
-}
 
 @Entity('goals')
 export class Goal {
@@ -56,13 +45,13 @@ export class Goal {
     @Column('simple-json', { nullable: true })
     tags: string[];
 
-    @Column({ nullable: true })
+    @Column( 'simple-array', {nullable: true })
     notes: string[];
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     @ManyToOne(() => User, user => user.goals, { onDelete: 'CASCADE' })

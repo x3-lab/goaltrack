@@ -46,16 +46,16 @@ export class User {
     @Column({ type: 'varchar', length: 15, unique: true })
     phoneNumber: string;
 
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', nullable: true })
     address: string;
 
-    @Column({ type: 'enum', enum: UserRole, default: UserRole.VOLUNTEER })
+    @Column({ enum: UserRole, default: UserRole.VOLUNTEER })
     role: UserRole;
 
-    @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
+    @Column({ enum: UserStatus, default: UserStatus.ACTIVE })
     status: UserStatus;
 
-    @Column({ type: 'enum', enum: Performance, default: Performance.AVERAGE })
+    @Column({ enum: Performance, default: Performance.AVERAGE })
     performance: Performance;
 
     @Column({ type: 'varchar', nullable: true })
@@ -70,7 +70,7 @@ export class User {
     @Column({ default: 0 })
     completionRate: number;
 
-    @Column({ type: 'timestamp'})
+    @Column()
     joinedAt: Date;
 
     @CreateDateColumn()
@@ -79,7 +79,7 @@ export class User {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ nullable: true })
     lastLogin: Date;
 
     // Relationships

@@ -8,7 +8,8 @@ import {
     JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Goal, GoalStatus } from './goal.entity';
+import { Goal } from './goal.entity';
+import { GoalStatus } from '../enums/goals.enums';
 
 
 @Entity('progress_history')
@@ -28,19 +29,19 @@ export class ProgressHistory {
     @Column({ nullable: true})
     notes: string;
 
-    @Column({ type: 'timestamp' })
+    @Column()
     weekStart: Date
 
-    @Column({ type: 'timestamp' })
+    @Column()
     weekEnd: Date;
 
-    @Column({ type: 'enum', enum: GoalStatus, default: GoalStatus.IN_PROGRESS })
+    @Column({ enum: GoalStatus, default: GoalStatus.IN_PROGRESS })
     status: GoalStatus;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     // Relationships

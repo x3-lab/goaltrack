@@ -5,7 +5,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { GoalPriority } from './goal.entity';
+import { GoalPriority } from '../enums/goals.enums';
 
 
 @Entity('goal_templates')
@@ -37,9 +37,9 @@ export class GoalTemplate {
     @Column({ default: true})
     isActive: boolean;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn()
     updatedAt: Date;
 }

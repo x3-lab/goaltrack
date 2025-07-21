@@ -21,9 +21,9 @@ export class SystemSettings {
     @Column({ type: 'text', nullable: true })
     description: string;
 
-    @CreateDateColumn({ type: 'timestamp' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ type: 'timestamp' })
+    @UpdateDateColumn()
     updatedAt: Date;
 }
