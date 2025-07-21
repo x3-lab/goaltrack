@@ -6,7 +6,7 @@ import {
     IsEnum,
     IsDateString,
 } from 'class-validator';
-import { UserRole, UserStatus } from 'src/database/entities/user.entity';
+import { UserRole, UserStatus } from 'src/database/enums/user.enums';
 
 export class CreateUserDto {
     @IsString()

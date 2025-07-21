@@ -9,22 +9,8 @@ import {
 import { Goal } from './goal.entity';
 import { ProgressHistory } from './progress-history.entity';
 import { ActivityLog } from './activity-log.entity';
+import { UserRole, UserStatus, Performance } from '../enums/user.enums';
 
-export enum UserRole {
-    ADMIN = 'admin',
-    VOLUNTEER = 'volunteer',
-}
-
-export enum UserStatus {
-    ACTIVE = 'active',
-    INACTIVE = 'inactive',
-}
-
-export enum Performance {
-    HIGH = 'high',
-    AVERAGE = 'average',
-    LOW = 'low',
-}
 
 @Entity('users')
 export class User {

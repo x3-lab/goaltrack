@@ -1,4 +1,4 @@
-import { User, UserRole } from '../../database/entities/user.entity';
+import { UserRole } from '../../database/enums/user.enums';
 
 
 export interface JwtPayload {
