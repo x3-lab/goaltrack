@@ -17,6 +17,9 @@ export class ProgressHistory {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({ type: 'text' })
+    title: string;
+
     @Column('uuid')
     goalId: string;
 
