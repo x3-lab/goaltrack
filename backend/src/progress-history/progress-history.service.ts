@@ -16,7 +16,7 @@ import { ProgressHistoryResponseDto } from './dto/progress-history-response.dto'
 import { ProgressHistoryFiltersDto } from './dto/progress-history-filters.dto';
 import { VolunteerTrendsDto } from './dto/volunteer-trends.dto';
 import { MonthlySummaryDto } from './dto/monthly-summary.dto';
-import { AnalyticsSummaryDto, HistoricalGoalDto, HistoricalWeekDto, VolunteerWeeklyHistoryDto } from './dto/analytics-summary.dto';
+import { AnalyticsSummaryDto, HistoricalGoalDto, HistoricalWeekDto, VolunteerWeeklyHistoryDto, MostProductiveDayDto } from './dto/analytics-summary.dto';
 
 
 @Injectable()
@@ -542,111 +542,301 @@ export class ProgressHistoryService {
     }
 
     async getVolunteerWeeklyHistory(
-    volunteerId: string,
-    currentUser: User,
-    startDate?: string,
-    endDate?: string,
-    ): Promise<VolunteerWeeklyHistoryDto> {
-    // Check permissions
-    if (currentUser.role !== UserRole.ADMIN && currentUser.id !== volunteerId) {
-        throw new ForbiddenException('You can only view your own weekly history');
-    }
-
-    const volunteer = await this.userRepository.findOne({ where: { id: volunteerId } });
-    if (!volunteer) {
-        throw new NotFoundException('Volunteer not found');
-    }
-
-    // Build date range - default to last 6 months if not specified
-    let dateFrom = startDate ? new Date(startDate) : new Date();
-    let dateTo = endDate ? new Date(endDate) : new Date();
-    
-    if (!startDate) {
-        dateFrom.setMonth(dateFrom.getMonth() - 6);
-        dateFrom.setDate(dateFrom.getDate() - dateFrom.getDay()); // Start of week
-    }
-    if (!endDate) {
-        dateTo.setDate(dateTo.getDate() + (6 - dateTo.getDay())); // End of week
-    }
-
-    // Get all progress history entries for the volunteer in the date range
-    const progressHistory = await this.progressHistoryRepository.find({
-        where: {
-        volunteerId,
-        weekStart: Between(dateFrom, dateTo),
-        },
-        relations: ['goal'],
-        order: { weekStart: 'DESC' },
-    });
-
-    // Group by week (using weekStart as the key)
-    const weeklyMap = new Map<string, typeof progressHistory>();
-    progressHistory.forEach(entry => {
-        const weekKey = entry.weekStart.toISOString();
-        if (!weeklyMap.has(weekKey)) {
-        weeklyMap.set(weekKey, []);
+        volunteerId: string,
+        currentUser: User,
+        startDate?: string,
+        endDate?: string,
+        ): Promise<VolunteerWeeklyHistoryDto> {
+        // Check permissions
+        if (currentUser.role !== UserRole.ADMIN && currentUser.id !== volunteerId) {
+            throw new ForbiddenException('You can only view your own weekly history');
         }
-        weeklyMap.get(weekKey)!.push(entry);
-    });
 
-    // Convert to HistoricalWeekDto array
-    const weeks: HistoricalWeekDto[] = Array.from(weeklyMap.entries())
-        .map(([weekKey, entries]) => {
-        const weekStart = entries[0].weekStart;
-        const weekEnd = entries[0].weekEnd;
+        const volunteer = await this.userRepository.findOne({ where: { id: volunteerId } });
+        if (!volunteer) {
+            throw new NotFoundException('Volunteer not found');
+        }
+
+        // Build date range - default to last 6 months if not specified
+        let dateFrom = startDate ? new Date(startDate) : new Date();
+        let dateTo = endDate ? new Date(endDate) : new Date();
         
-        // Map progress history entries to goals
-        const goals: HistoricalGoalDto[] = entries.map(entry => ({
-            id: entry.goalId, // Use goalId instead of progress history id
-            title: entry.title,
-            status: this.mapGoalStatus(entry.status),
-            progress: entry.progress,
-            priority: this.mapGoalPriority(entry.goal?.priority),
-            category: entry.goal?.category || 'Uncategorized',
-            notes: entry.notes,
-        }));
+        if (!startDate) {
+            dateFrom.setMonth(dateFrom.getMonth() - 6);
+            dateFrom.setDate(dateFrom.getDate() - dateFrom.getDay()); // Start of week
+        }
+        if (!endDate) {
+            dateTo.setDate(dateTo.getDate() + (6 - dateTo.getDay())); // End of week
+        }
 
-        const totalGoals = goals.length;
-        const completedGoals = goals.filter(goal => goal.status === 'completed').length;
-        const totalProgress = goals.reduce((sum, goal) => sum + goal.progress, 0);
-        const averageProgress = totalGoals > 0 ? Math.round(totalProgress / totalGoals) : 0;
-        const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+        // Get all progress history entries for the volunteer in the date range
+        const progressHistory = await this.progressHistoryRepository.find({
+            where: {
+            volunteerId,
+            weekStart: Between(dateFrom, dateTo),
+            },
+            relations: ['goal'],
+            order: { weekStart: 'DESC' },
+        });
+
+        // Group by week (using weekStart as the key)
+        const weeklyMap = new Map<string, typeof progressHistory>();
+        progressHistory.forEach(entry => {
+            const weekKey = entry.weekStart.toISOString();
+            if (!weeklyMap.has(weekKey)) {
+            weeklyMap.set(weekKey, []);
+            }
+            weeklyMap.get(weekKey)!.push(entry);
+        });
+
+        // Convert to HistoricalWeekDto array
+        const weeks: HistoricalWeekDto[] = Array.from(weeklyMap.entries())
+            .map(([weekKey, entries]) => {
+            const weekStart = entries[0].weekStart;
+            const weekEnd = entries[0].weekEnd;
+            
+            // Map progress history entries to goals
+            const goals: HistoricalGoalDto[] = entries.map(entry => ({
+                id: entry.goalId, // Use goalId instead of progress history id
+                title: entry.title,
+                status: this.mapGoalStatus(entry.status),
+                progress: entry.progress,
+                priority: this.mapGoalPriority(entry.goal?.priority),
+                category: entry.goal?.category || 'Uncategorized',
+                notes: entry.notes,
+            }));
+
+            const totalGoals = goals.length;
+            const completedGoals = goals.filter(goal => goal.status === 'completed').length;
+            const totalProgress = goals.reduce((sum, goal) => sum + goal.progress, 0);
+            const averageProgress = totalGoals > 0 ? Math.round(totalProgress / totalGoals) : 0;
+            const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+
+            return {
+                weekStart: weekStart.toISOString(),
+                weekEnd: weekEnd.toISOString(),
+                totalGoals,
+                completedGoals,
+                averageProgress,
+                completionRate,
+                goals,
+            };
+            })
+            .sort((a, b) => new Date(b.weekStart).getTime() - new Date(a.weekStart).getTime());
+
+        const totalWeeks = weeks.length;
+        const totalGoals = weeks.reduce((sum, week) => sum + week.totalGoals, 0);
+        const completedGoals = weeks.reduce((sum, week) => sum + week.completedGoals, 0);
+        const averageProgress = totalWeeks > 0 
+            ? Math.round(weeks.reduce((sum, week) => sum + week.averageProgress, 0) / totalWeeks)
+            : 0;
+        const averageCompletionRate = totalWeeks > 0
+            ? Math.round(weeks.reduce((sum, week) => sum + week.completionRate, 0) / totalWeeks)
+            : 0;
 
         return {
-            weekStart: weekStart.toISOString(),
-            weekEnd: weekEnd.toISOString(),
+            volunteerId,
+            volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
+            totalWeeks,
+            overallStats: {
             totalGoals,
             completedGoals,
             averageProgress,
-            completionRate,
-            goals,
+            averageCompletionRate,
+            },
+            weeks,
         };
-        })
-        .sort((a, b) => new Date(b.weekStart).getTime() - new Date(a.weekStart).getTime());
-
-    const totalWeeks = weeks.length;
-    const totalGoals = weeks.reduce((sum, week) => sum + week.totalGoals, 0);
-    const completedGoals = weeks.reduce((sum, week) => sum + week.completedGoals, 0);
-    const averageProgress = totalWeeks > 0 
-        ? Math.round(weeks.reduce((sum, week) => sum + week.averageProgress, 0) / totalWeeks)
-        : 0;
-    const averageCompletionRate = totalWeeks > 0
-        ? Math.round(weeks.reduce((sum, week) => sum + week.completionRate, 0) / totalWeeks)
-        : 0;
-
-    return {
-        volunteerId,
-        volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
-        totalWeeks,
-        overallStats: {
-        totalGoals,
-        completedGoals,
-        averageProgress,
-        averageCompletionRate,
-        },
-        weeks,
-    };
     }
+
+
+    async getVolunteerMostProductiveDay(
+        volunteerId: string,
+        currentUser: User,
+        ): Promise<MostProductiveDayDto> {
+
+        if (currentUser.role !== UserRole.ADMIN && currentUser.id !== volunteerId) {
+            throw new ForbiddenException('You can only view your own productivity data');
+        }
+
+        const volunteer = await this.userRepository.findOne({ where: { id: volunteerId } });
+        if (!volunteer) {
+            throw new NotFoundException('Volunteer not found');
+        }
+
+
+        const now = new Date();
+        const currentWeekStart = new Date(now);
+        currentWeekStart.setDate(now.getDate() - now.getDay());
+        currentWeekStart.setHours(0, 0, 0, 0);
+        
+        const currentWeekEnd = new Date(currentWeekStart);
+        currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+        currentWeekEnd.setHours(23, 59, 59, 999);
+
+
+        const weeklyActivities = await this.activityLogRepository.find({
+            where: {
+            userId: volunteerId,
+            createdAt: Between(currentWeekStart, currentWeekEnd),
+            resource: In(['goal', 'progress_history']),
+            action: In(['UPDATE_GOAL_PROGRESS', 'UPDATE_GOAL_STATUS', 'CREATE_GOAL', 'UPDATE_GOAL']),
+            },
+            order: { createdAt: 'ASC' },
+        });
+
+        // Also get progress history entries for historical pattern analysis
+        const historicalData = await this.progressHistoryRepository.find({
+            where: {
+            volunteerId,
+            weekStart: Between(
+                new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+                currentWeekEnd
+            ),
+            },
+            relations: ['goal'],
+            order: { createdAt: 'ASC' },
+        });
+
+        // Initialize daily productivity data
+        const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dailyProductivity = daysOfWeek.map((dayName, index) => {
+            const dayDate = new Date(currentWeekStart);
+            dayDate.setDate(currentWeekStart.getDate() + index);
+            
+            return {
+            dayName,
+            dayDate: dayDate.toISOString(),
+            productivityScore: 0,
+            activitiesCount: 0,
+            averageProgress: 0,
+            goalsWorkedOn: 0,
+            };
+        });
+
+        // Analyze current week activities
+        const goalProgressMap = new Map<string, { updates: number; totalProgress: number }>();
+        const dailyGoalCounts = new Array(7).fill(0).map(() => new Set<string>());
+
+        weeklyActivities.forEach(activity => {
+            const activityDay = activity.createdAt.getDay();
+            const dayData = dailyProductivity[activityDay];
+            
+            dayData.activitiesCount++;
+            
+            // Track unique goals worked on per day
+            if (activity.resource === 'goal') {
+                dailyGoalCounts[activityDay].add(activity.resourceId);
+                
+                // Calculate productivity score based on activity type and progress
+                let activityScore = 1;
+                
+                if (activity.action === 'UPDATE_GOAL_PROGRESS') {
+                    const progressChange = activity.details?.newProgress - (activity.details?.oldProgress || 0);
+                    activityScore = Math.max(1, progressChange / 10);
+                    
+                    
+                    const goalId = activity.resourceId;
+                    const existing = goalProgressMap.get(goalId) || { updates: 0, totalProgress: 0 };
+                    existing.updates++;
+                    existing.totalProgress += (activity.details?.newProgress || 0);
+                    goalProgressMap.set(goalId, existing);
+                } else if (activity.action === 'UPDATE_GOAL_STATUS') {
+                    if (activity.details?.newStatus === 'completed') {
+                        activityScore = 10;
+                    } else if (activity.details?.newStatus === 'in_progress') {
+                        activityScore = 3;
+                    }
+                } else if (activity.action === 'CREATE_GOAL') {
+                    activityScore = 2;
+                }
+                
+                dayData.productivityScore += activityScore;
+            }
+        });
+
+        dailyProductivity.forEach((dayData, index) => {
+            dayData.goalsWorkedOn = dailyGoalCounts[index].size;
+            
+            const dayGoals = Array.from(dailyGoalCounts[index]);
+            if (dayGoals.length > 0) {
+                const totalProgress = dayGoals.reduce((sum, goalId) => {
+                    const goalData = goalProgressMap.get(goalId);
+                    return sum + (goalData ? goalData.totalProgress / goalData.updates : 0);
+                }, 0);
+                dayData.averageProgress = Math.round(totalProgress / dayGoals.length);
+            }
+            
+            dayData.productivityScore = Math.min(100, Math.round(dayData.productivityScore * 2));
+        });
+
+        const mostProductiveDay = dailyProductivity.reduce((best, current) => {
+            if (current.productivityScore > best.productivityScore) return current;
+            if (current.productivityScore === best.productivityScore && current.activitiesCount > best.activitiesCount) return current;
+            return best;
+        }, dailyProductivity[0]);
+
+        const historicalDayPatterns = new Array(7).fill(0).map(() => ({ totalScore: 0, count: 0 }));
+        
+        historicalData.forEach(entry => {
+            const dayOfWeek = entry.createdAt.getDay();
+            const progressScore = entry.progress / 10;
+            const statusScore = entry.status === GoalStatus.COMPLETED ? 10 : 
+                            entry.status === GoalStatus.IN_PROGRESS ? 5 : 1;
+            
+            historicalDayPatterns[dayOfWeek].totalScore += progressScore + statusScore;
+            historicalDayPatterns[dayOfWeek].count++;
+        });
+
+        // Find historical best day pattern
+        const historicalBestDay = historicalDayPatterns
+            .map((pattern, index) => ({
+                dayIndex: index,
+                averageScore: pattern.count > 0 ? pattern.totalScore / pattern.count : 0,
+            }))
+            .reduce((best, current) => current.averageScore > best.averageScore ? current : best);
+
+        // Generate insights
+        const weekCompletion = Math.round((now.getDay() / 6) * 100);
+        const totalWeekActivity = dailyProductivity.reduce((sum, day) => sum + day.activitiesCount, 0);
+        
+        let bestDayPattern = '';
+        let recommendation = '';
+        
+        if (mostProductiveDay.productivityScore > 0) {
+            bestDayPattern = `You're most productive on ${mostProductiveDay.dayName}s`;
+            
+            if (historicalBestDay.dayIndex === daysOfWeek.indexOf(mostProductiveDay.dayName)) {
+                recommendation = `Great! You're consistent with your ${mostProductiveDay.dayName} productivity pattern.`;
+            } else {
+                recommendation = `Consider scheduling important tasks on ${daysOfWeek[historicalBestDay.dayIndex]}s based on your historical pattern.`;
+            }
+        } else {
+            bestDayPattern = 'No significant activity detected this week';
+            recommendation = 'Try to be more active with your goals to establish a productivity pattern.';
+        }
+
+        if (totalWeekActivity < 3 && weekCompletion > 50) {
+            recommendation += ' Consider increasing your goal-related activities for better progress.';
+        }
+
+        return {
+            volunteerId,
+            volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
+            currentWeek: {
+                weekStart: currentWeekStart.toISOString(),
+                weekEnd: currentWeekEnd.toISOString(),
+            },
+            mostProductiveDay: mostProductiveDay.productivityScore > 0 ? mostProductiveDay : null,
+            weeklyProductivity: dailyProductivity,
+            insights: {
+                bestDayPattern,
+                recommendation,
+                weekCompletion,
+            },
+        };
+    }
+
+
 
     private mapGoalStatus(status: GoalStatus): 'pending' | 'in-progress' | 'completed' | 'overdue' {
     switch (status) {

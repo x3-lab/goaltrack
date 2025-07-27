@@ -74,3 +74,11 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ### Get my weekly history with date range
 GET http://localhost:3000/progress-history/my-weekly-history?startDate=2024-01-01&endDate=2024-03-31
 Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get volunteer's most productive day in current week
+GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/productive-day
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get my most productive day in current week
+GET http://localhost:3000/progress-history/my-productive-day
+Authorization: Bearer YOUR_JWT_TOKEN

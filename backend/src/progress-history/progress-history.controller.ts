@@ -19,7 +19,7 @@ import { ProgressHistoryResponseDto } from './dto/progress-history-response.dto'
 import { ProgressHistoryFiltersDto } from './dto/progress-history-filters.dto';
 import { VolunteerTrendsDto } from './dto/volunteer-trends.dto';
 import { MonthlySummaryDto } from './dto/monthly-summary.dto';
-import { AnalyticsSummaryDto, VolunteerWeeklyHistoryDto } from './dto/analytics-summary.dto';
+import { AnalyticsSummaryDto, VolunteerWeeklyHistoryDto, MostProductiveDayDto } from './dto/analytics-summary.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -157,5 +157,20 @@ export class ProgressHistoryController {
         startDate,
         endDate,
     );
+    }
+
+    @Get('volunteer/:volunteerId/productive-day')
+    async getVolunteerMostProductiveDay(
+    @Param('volunteerId', ParseUUIDPipe) volunteerId: string,
+    @CurrentUser() currentUser: User,
+    ): Promise<MostProductiveDayDto> {
+        return this.progressHistoryService.getVolunteerMostProductiveDay(volunteerId, currentUser);
+    }
+
+    @Get('my-productive-day')
+    async getMyMostProductiveDay(
+    @CurrentUser() currentUser: User,
+    ): Promise<MostProductiveDayDto> {
+        return this.progressHistoryService.getVolunteerMostProductiveDay(currentUser.id, currentUser);
     }
 }

@@ -78,3 +78,33 @@ export class VolunteerWeeklyHistoryDto {
   };
   weeks: HistoricalWeekDto[];
 }
+
+export class MostProductiveDayDto {
+  volunteerId: string;
+  volunteerName: string;
+  currentWeek: {
+    weekStart: string;
+    weekEnd: string;
+  };
+  mostProductiveDay: {
+    dayName: string;
+    dayDate: string;
+    productivityScore: number;
+    activitiesCount: number;
+    averageProgress: number;
+    goalsWorkedOn: number;
+  } | null;
+  weeklyProductivity: {
+    dayName: string;
+    dayDate: string;
+    productivityScore: number;
+    activitiesCount: number;
+    averageProgress: number;
+    goalsWorkedOn: number;
+  }[];
+  insights: {
+    bestDayPattern: string;
+    recommendation: string;
+    weekCompletion: number;
+  };
+}
