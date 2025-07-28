@@ -1,0 +1,74 @@
+### Get system overview (Admin only)
+GET http://localhost:3000/analytics/system-overview
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get system overview with date range (Admin only)
+GET http://localhost:3000/analytics/system-overview?start=2024-01-01&end=2024-12-31
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get personal analytics
+GET http://localhost:3000/analytics/personal/VOLUNTEER_ID?volunteerId=VOLUNTEER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get personal analytics with date range
+GET http://localhost:3000/analytics/personal/VOLUNTEER_ID?volunteerId=VOLUNTEER_ID&startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get completion trends (Admin only)
+GET http://localhost:3000/analytics/completion-trends?start=2024-01-01&end=2024-12-31
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get performance distribution (Admin only)
+GET http://localhost:3000/analytics/performance-distribution
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get category breakdown (Admin only)
+GET http://localhost:3000/analytics/category-breakdown?start=2024-01-01&end=2024-12-31
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get volunteer activity (Admin only)
+GET http://localhost:3000/analytics/volunteer-activity?start=2024-01-01&end=2024-12-31
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get complete analytics data (Admin only)
+GET http://localhost:3000/analytics/data?start=2024-01-01&end=2024-12-31
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get volunteer performance (Admin only)
+GET http://localhost:3000/analytics/volunteer-performance
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Export report (Admin only)
+POST http://localhost:3000/analytics/export
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "type": "overview",
+  "filters": {
+    "start": "2024-01-01",
+    "end": "2024-12-31"
+  }
+}
+
+### Export performance report (Admin only)
+POST http://localhost:3000/analytics/export
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "type": "performance"
+}
+
+### Export goals report (Admin only)
+POST http://localhost:3000/analytics/export
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "type": "goals",
+  "filters": {
+    "start": "2024-01-01",
+    "end": "2024-12-31"
+  }
+}
