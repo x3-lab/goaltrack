@@ -33,6 +33,9 @@ export class CreateGoalDto {
     @IsEnum(GoalPriority)
     priority: GoalPriority;
 
+    @IsString()
+    category: string;
+
     @IsDateString()
     startDate: Date;
 
