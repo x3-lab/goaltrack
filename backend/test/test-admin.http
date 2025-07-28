@@ -1,0 +1,63 @@
+
+### Get admin profile
+GET http://localhost:3000/admin/profile
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Update admin profile
+PATCH http://localhost:3000/admin/profile
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "name": "John Admin Smith",
+  "email": "john.admin@example.com",
+  "phone": "+1234567890",
+  "department": "Information Technology",
+  "title": "Chief Technology Officer"
+}
+
+### Update admin preferences
+PATCH http://localhost:3000/admin/preferences
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "weeklyReports": true,
+  "systemAlerts": false,
+  "theme": "dark",
+  "timezone": "America/New_York"
+}
+
+### Change admin password
+POST http://localhost:3000/admin/change-password
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "currentPassword": "currentpassword123",
+  "newPassword": "newpassword456"
+}
+
+### Get dashboard stats
+GET http://localhost:3000/admin/dashboard/stats
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get recent activity
+GET http://localhost:3000/admin/dashboard/activity
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get recent activity with limit
+GET http://localhost:3000/admin/dashboard/activity?limit=20
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get upcoming deadlines
+GET http://localhost:3000/admin/dashboard/deadlines
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get upcoming deadlines with limit
+GET http://localhost:3000/admin/dashboard/deadlines?limit=15
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get volunteers with goals count
+GET http://localhost:3000/admin/volunteers-with-goals
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN

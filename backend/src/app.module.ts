@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { GoalsModule } from './goals/goals.module';
 import { ProgressHistoryModule } from './progress-history/progress-history.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { AdminModule } from './admin/admin.module';
 
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -29,6 +30,7 @@ import * as entities from './database/entities';
     GoalsModule,
     ProgressHistoryModule,
     AnalyticsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

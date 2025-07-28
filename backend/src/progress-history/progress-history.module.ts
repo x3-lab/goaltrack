@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProgressHistory } from '../database/entities/progress-history.entity';
 import { Goal } from '../database/entities/goal.entity';
 import { User } from '../database/entities/user.entity';
-import { ActivityLog } from 'src/database/entities';
+import { ActivityLog } from '../database/entities/activity-log.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProgressHistory, Goal, User, ActivityLog])],

@@ -68,6 +68,20 @@ export class User {
     @Column({ nullable: true })
     lastLogin: Date;
 
+    @Column('json', { nullable: true })
+    preferences?: {
+        weeklyReports?: boolean;
+        systemAlerts?: boolean;
+        theme?: 'light' | 'dark' | 'auto';
+        timezone?: string;
+    };
+
+    @Column({ nullable: true })
+    profileImage?: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    lastLoginAt?: Date;
+
     // Relationships
     @OneToMany(() => Goal, (goal) => goal.volunteer)
     goals: Goal[];
