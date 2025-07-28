@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,52 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, X, Copy, Bookmark } from 'lucide-react';
-
-interface GoalTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  priority: 'High' | 'Medium' | 'Low';
-}
+import { Plus, X, Copy, Bookmark, Search } from 'lucide-react';
+import { api, GoalTemplate } from '../services/api';
 
 interface EnhancedGoalFormProps {
   onSubmit: (goal: any) => Promise<void>;
   initialData?: any;
-  templates?: GoalTemplate[];
   showTemplates?: boolean;
+  volunteerId?: string;
 }
-
-const goalTemplates: GoalTemplate[] = [
-  {
-    id: '1',
-    name: 'Community Outreach',
-    description: 'Organize and participate in community outreach activities',
-    category: 'Community Service',
-    priority: 'High'
-  },
-  {
-    id: '2',
-    name: 'Training Session',
-    description: 'Complete required training or certification',
-    category: 'Training & Development',
-    priority: 'Medium'
-  },
-  {
-    id: '3',
-    name: 'Team Meeting',
-    description: 'Attend scheduled team meeting and provide updates',
-    category: 'Team Activities',
-    priority: 'Medium'
-  }
-];
 
 export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   onSubmit,
   initialData,
-  templates = goalTemplates,
-  showTemplates = true
+  showTemplates = true,
+  volunteerId
 }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -67,24 +36,77 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newTag, setNewTag] = useState('');
+  const [templates, setTemplates] = useState<GoalTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [categories, setCategories] = useState<string[]>([]);
 
-  const validateForm = () => {
+  useEffect(() => {
+    if (showTemplates && !initialData) {
+      loadTemplates();
+      loadCategories();
+    }
+  }, [showTemplates, initialData]);
+
+  const loadTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const result = await api.goalTemplates.getPopular(15);
+      setTemplates(result);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const cats = await api.goalTemplates.getCategories();
+      setCategories(cats);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const filteredTemplates = templates.filter(template => {
+    const matchesSearch = templateSearch === '' || 
+      template.name.toLowerCase().includes(templateSearch.toLowerCase()) ||
+      template.description.toLowerCase().includes(templateSearch.toLowerCase());
+    
+    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.title.trim()) {
-      newErrors.title = 'Goal title is required';
-    } else if (formData.title.length < 3) {
-      newErrors.title = 'Goal title must be at least 3 characters';
+      newErrors.title = 'Title is required';
     }
-    
+
     if (!formData.description.trim()) {
-      newErrors.description = 'Goal description is required';
+      newErrors.description = 'Description is required';
     }
-    
+
     if (!formData.category.trim()) {
       newErrors.category = 'Category is required';
     }
-    
+
+    if (!formData.dueDate) {
+      newErrors.dueDate = 'Due date is required';
+    } else {
+      const selectedDate = new Date(formData.dueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        newErrors.dueDate = 'Due date cannot be in the past';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -93,19 +115,20 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     e.preventDefault();
     
     if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fix the errors in the form",
-        variant: "destructive"
-      });
       return;
     }
 
     setLoading(true);
     try {
-      await onSubmit(formData);
+      const goalData = {
+        ...formData,
+        volunteer: volunteerId || undefined
+      };
+      
+      await onSubmit(goalData);
+      
       toast({
-        title: "Success",
+        title: `Goal ${initialData ? 'updated' : 'created'} successfully`,
         description: `Goal ${initialData ? 'updated' : 'created'} successfully`,
       });
       
@@ -130,31 +153,25 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     }
   };
 
-  const applyTemplate = (template: GoalTemplate) => {
+  const applyTemplate = async (template: GoalTemplate) => {
+    // Calculate default due date based on template duration
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + template.defaultDuration);
+    
     setFormData(prev => ({
       ...prev,
       title: template.name,
       description: template.description,
       category: template.category,
-      priority: template.priority
+      priority: template.priority,
+      tags: [...template.tags],
+      dueDate: dueDate.toISOString().split('T')[0]
     }));
+    
     toast({
       title: "Template Applied",
       description: `Applied template: ${template.name}`,
     });
-  };
-
-  const duplicateGoal = () => {
-    if (initialData) {
-      setFormData({
-        ...formData,
-        title: `${formData.title} (Copy)`
-      });
-      toast({
-        title: "Goal Duplicated",
-        description: "Goal has been duplicated for editing",
-      });
-    }
   };
 
   const addTag = () => {
@@ -172,6 +189,19 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }));
+  };
+
+  const duplicateGoal = () => {
+    if (initialData) {
+      setFormData({
+        ...formData,
+        title: `${formData.title} (Copy)`
+      });
+      toast({
+        title: "Goal Duplicated",
+        description: "Goal has been duplicated for editing",
+      });
+    }
   };
 
   return (
@@ -195,25 +225,86 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
 
       {/* Goal Templates */}
       {!initialData && showTemplates && (
-        <div className="space-y-3">
-          <Label>Quick Start Templates</Label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {templates.map((template) => (
-              <Button
-                key={template.id}
-                variant="outline"
-                size="sm"
-                onClick={() => applyTemplate(template)}
-                className="flex items-center gap-2 h-auto p-3 text-left justify-start"
-              >
-                <Bookmark className="h-4 w-4 text-blue-500" />
-                <div>
-                  <div className="font-medium text-sm">{template.name}</div>
-                  <div className="text-xs text-muted-foreground">{template.category}</div>
-                </div>
-              </Button>
-            ))}
+        <div className="space-y-4">
+          <Label className="text-base font-semibold">Quick Start Templates</Label>
+          
+          {/* Template Filters */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search templates..."
+                value={templateSearch}
+                onChange={(e) => setTemplateSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Template Grid */}
+          {loadingTemplates ? (
+            <div className="flex justify-center py-8">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
+              {filteredTemplates.map((template) => (
+                <Button
+                  key={template.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => applyTemplate(template)}
+                  className="flex flex-col items-start gap-2 h-auto p-3 text-left justify-start hover:bg-blue-50"
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <Bookmark className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{template.name}</div>
+                      <div className="text-xs text-muted-foreground">{template.category}</div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {template.usageCount}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-600 line-clamp-2 w-full text-left">
+                    {template.description}
+                  </p>
+                  <div className="flex gap-1 flex-wrap">
+                    {template.tags.slice(0, 2).map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {template.tags.length > 2 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{template.tags.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {filteredTemplates.length === 0 && !loadingTemplates && (
+            <div className="text-center py-8 text-gray-500">
+              <Bookmark className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+              <p>No templates found matching your criteria</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -261,27 +352,27 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
               id="category"
               value={formData.category}
               onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-              placeholder="e.g., Community Service"
+              placeholder="e.g., Training, Community Service"
               className={errors.category ? 'border-red-500' : ''}
+              aria-describedby={errors.category ? 'category-error' : undefined}
             />
             {errors.category && (
-              <p className="text-sm text-red-500" role="alert">{errors.category}</p>
+              <p id="category-error" className="text-sm text-red-500" role="alert">
+                {errors.category}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="priority">Priority</Label>
-            <Select 
-              value={formData.priority} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
-            >
+            <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="High">High</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
                 <SelectItem value="Low">Low</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="High">High</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -290,17 +381,9 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
         <div className="space-y-2">
           <Label>Tags</Label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {formData.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => removeTag(tag)}
-                  className="ml-1 hover:text-red-500"
-                  aria-label={`Remove tag ${tag}`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
+            {formData.tags.map((tag, index) => (
+              <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
+                {tag} <X className="h-3 w-3 ml-1" />
               </Badge>
             ))}
           </div>
@@ -318,13 +401,20 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dueDate">Due Date</Label>
+          <Label htmlFor="dueDate">Due Date *</Label>
           <Input
             id="dueDate"
             type="date"
             value={formData.dueDate}
             onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+            className={errors.dueDate ? 'border-red-500' : ''}
+            aria-describedby={errors.dueDate ? 'dueDate-error' : undefined}
           />
+          {errors.dueDate && (
+            <p id="dueDate-error" className="text-sm text-red-500" role="alert">
+              {errors.dueDate}
+            </p>
+          )}
         </div>
 
         <Button type="submit" disabled={loading} className="w-full">
