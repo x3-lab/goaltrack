@@ -11,6 +11,7 @@ import { UpdateSettingDto } from './dto/update-setting.dto';
 import { SettingResponseDto } from './dto/setting-response.dto';
 import { BulkUpdateSettingsDto } from './dto/bulk-update-settings.dto';
 
+
 @Injectable()
 export class SettingsService {
     constructor(

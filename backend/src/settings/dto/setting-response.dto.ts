@@ -1,5 +1,6 @@
 import { Setting } from '../../database/entities/settings.entity';
 
+
 export class SettingResponseDto {
     id: string;
     key: string;

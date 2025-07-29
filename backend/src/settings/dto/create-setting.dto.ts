@@ -1,6 +1,7 @@
 import { IsString, IsEnum, IsOptional, IsBoolean, IsArray, MaxLength } from 'class-validator';
 import { SettingScope, SettingType } from '../../database/enums/settings.enums';
 
+
 export class CreateSettingDto {
     @IsString()
     @MaxLength(100)

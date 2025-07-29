@@ -6,6 +6,7 @@ import { Setting } from '../database/entities/settings.entity';
 import { User } from '../database/entities/user.entity';
 import { ActivityLog } from '../database/entities/activity-log.entity';
 
+
 @Module({
     imports: [TypeOrmModule.forFeature([Setting, User, ActivityLog])],
     controllers: [SettingsController],
