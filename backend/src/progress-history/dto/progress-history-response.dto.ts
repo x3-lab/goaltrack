@@ -12,7 +12,7 @@ export class ProgressHistoryResponseDto {
     weekStart: Date;
     weekEnd: Date;
     status: GoalStatus;
-    craetedAt: Date;
+    createdAt: Date;
     updatedAt: Date;
 
     goalTitle?: string;
