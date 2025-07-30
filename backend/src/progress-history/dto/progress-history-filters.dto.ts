@@ -34,19 +34,19 @@ export class ProgressHistoryFiltersDto {
     search?: string;
 
     @IsOptional()
-    @Transform(({ value }) => parse(value))
+    @Transform(({ value }) => Number(value))
     minProgress?: number;
 
     @IsOptional()
-    @Transform(({ value }) => parse(value))
+    @Transform(({ value }) => Number(value))
     maxProgress?: number;
 
     @IsOptional()
-    @Transform(({ value }) => parse(value))
+    @Transform(({ value }) => Number(value))
     page?: number;
 
     @IsOptional()
-    @Transform(({ value }) => parse(value))
+    @Transform(({ value }) => Number(value))
     limit?: number;
 
     @IsOptional()
