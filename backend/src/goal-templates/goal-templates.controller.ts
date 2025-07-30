@@ -20,8 +20,8 @@ import { GoalTemplateFiltersDto } from './dto/goal-template-filters.dto';
 import { UseTemplateDto } from './dto/use-template.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../database/entities/user.entity';
 import { UserRole } from '../database/enums/user.enums';
 

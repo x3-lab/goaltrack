@@ -4,7 +4,7 @@ import { Repository, IsNull } from 'typeorm';
 import { Setting } from '../database/entities/settings.entity';
 import { SettingScope, SettingType } from '../database/enums/settings.enums'
 import { User } from '../database/entities/user.entity';
-import { UserRole } from 'src/database/enums/user.enums';
+import { UserRole } from '../database/enums/user.enums';
 import { ActivityLog } from '../database/entities/activity-log.entity';
 import { CreateSettingDto } from './dto/create-setting.dto';
 import { UpdateSettingDto } from './dto/update-setting.dto';

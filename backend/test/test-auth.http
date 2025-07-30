@@ -61,7 +61,46 @@ Content-Type: application/json
   "role": "admin"
 }
 
-### Login
+### Register a new volunteer user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role": "volunteer"
+}
+
+### Register a new admin user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane@smith.com",
+  "password": "password123",
+  "phoneNumber": "0828383838",
+  "role": "admin"
+}
+
+### Register another volunteer for testing
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "email": "alice.johnson@example.com",
+  "password": "password123",
+  "phoneNumber": "5551234567",
+  "role": "volunteer"
+}
+
+### Login with volunteer credentials
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
@@ -70,7 +109,382 @@ Content-Type: application/json
   "password": "password123"
 }
 
+### Login with admin credentials
+POST http://localhost:3000/auth/login
+Content-Type: application/json
 
-### Get Profile
+{
+  "email": "jane@smith.com",
+  "password": "password123"
+}
+
+### Get Profile with valid token
 GET http://localhost:3000/auth/profile
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzA5OTEwOCwiZXhwIjoxNzUzMTg1NTA4fQ.drYMb4-1Q8-wgBqhMF0__8LHwjPJREW9xQdgZUbEAtM
+
+### Change password with valid credentials
+POST http://localhost:3000/auth/change-password
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzA5OTEwOCwiZXhwIjoxNzUzMTg1NTA4fQ.drYMb4-1Q8-wgBqhMF0__8LHwjPJREW9xQdgZUbEAtM
+Content-Type: application/json
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newpassword456"
+}
+
+### Request password reset
+POST http://localhost:3000/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "alice.johnson@example.com"
+}
+
+### Reset password with token (mock token)
+POST http://localhost:3000/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "mock-reset-token-12345",
+  "newPassword": "resetpassword789"
+}
+
+### Refresh token
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "mock-refresh-token-12345"
+}
+
+### Logout
+POST http://localhost:3000/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzA5OTEwOCwiZXhwIjoxNzUzMTg1NTA4fQ.drYMb4-1Q8-wgBqhMF0__8LHwjPJREW9xQdgZUbEAtM
+
+### ERROR CASES ###
+
+### Try to register with missing required fields
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Invalid",
+  "email": "missing.fields@example.com"
+}
+
+### Try to register with invalid email format
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Invalid",
+  "lastName": "Email",
+  "email": "invalid-email-format",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role": "volunteer"
+}
+
+### Try to register with weak password
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Weak",
+  "lastName": "Password",
+  "email": "weak.password@example.com",
+  "password": "123",
+  "phoneNumber": "1234567890",
+  "role": "volunteer"
+}
+
+### Try to register with invalid role
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Invalid",
+  "lastName": "Role",
+  "email": "invalid.role@example.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role": "invalid_role"
+}
+
+### Try to register with duplicate email
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Duplicate",
+  "lastName": "Email",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "phoneNumber": "9876543210",
+  "role": "volunteer"
+}
+
+### Try to login with invalid email
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "password123"
+}
+
+### Try to login with wrong password
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}
+
+### Try to login with missing credentials
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com"
+}
+
+### Try to access profile without token
+GET http://localhost:3000/auth/profile
+
+### Try to access profile with invalid token
+GET http://localhost:3000/auth/profile
+Authorization: Bearer invalid.jwt.token
+
+### Try to access profile with expired token
+GET http://localhost:3000/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleHBpcmVkIiwiZW1haWwiOiJleHBpcmVkQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTYwMDAwMDAwMCwiZXhwIjoxNjAwMDA4NjQwfQ.invalid
+
+### Try to change password with wrong current password
+POST http://localhost:3000/auth/change-password
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzA5OTEwOCwiZXhwIjoxNzUzMTg1NTA4fQ.drYMb4-1Q8-wgBqhMF0__8LHwjPJREW9xQdgZUbEAtM
+Content-Type: application/json
+
+{
+  "currentPassword": "wrongpassword",
+  "newPassword": "newpassword456"
+}
+
+### Try to change password without authorization
+POST http://localhost:3000/auth/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newpassword456"
+}
+
+### Try to change password with weak new password
+POST http://localhost:3000/auth/change-password
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzA5OTEwOCwiZXhwIjoxNzUzMTg1NTA4fQ.drYMb4-1Q8-wgBqhMF0__8LHwjPJREW9xQdgZUbEAtM
+Content-Type: application/json
+
+{
+  "currentPassword": "password123",
+  "newPassword": "123"
+}
+
+### Try to request password reset with invalid email
+POST http://localhost:3000/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com"
+}
+
+### Try to request password reset with malformed email
+POST http://localhost:3000/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "invalid-email-format"
+}
+
+### Try to reset password with invalid token
+POST http://localhost:3000/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "invalid-reset-token",
+  "newPassword": "resetpassword789"
+}
+
+### Try to reset password with expired token
+POST http://localhost:3000/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "expired-reset-token",
+  "newPassword": "resetpassword789"
+}
+
+### Try to reset password with weak password
+POST http://localhost:3000/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "mock-reset-token-12345",
+  "newPassword": "123"
+}
+
+### Try to refresh with invalid token
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "invalid-refresh-token"
+}
+
+### Try to refresh with expired token
+POST http://localhost:3000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "expired-refresh-token"
+}
+
+### Try to logout without token
+POST http://localhost:3000/auth/logout
+
+### Try to logout with invalid token
+POST http://localhost:3000/auth/logout
+Authorization: Bearer invalid.jwt.token
+
+### EDGE CASES ###
+
+### Register with very long names
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "AVeryLongFirstNameThatExceedsNormalLengthLimitsAndMightCauseValidationIssues",
+  "lastName": "AVeryLongLastNameThatExceedsNormalLengthLimitsAndMightCauseValidationIssues",
+  "email": "long.names@example.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role": "volunteer"
+}
+
+### Register with special characters in names
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "José-María",
+  "lastName": "O'Connor-Smith",
+  "email": "special.chars@example.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role": "volunteer"
+}
+
+### Register with international phone number
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "International",
+  "lastName": "User",
+  "email": "international@example.com",
+  "password": "password123",
+  "phoneNumber": "+44-20-7946-0958",
+  "role": "volunteer"
+}
+
+### Login with email in different case
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "JOHN.DOE@EXAMPLE.COM",
+  "password": "password123"
+}
+
+### Register with minimal valid data
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "A",
+  "lastName": "B",
+  "email": "minimal@example.com",
+  "password": "password123",
+  "role": "volunteer"
+}
+
+### RATE LIMITING TESTS ###
+
+### Multiple rapid login attempts (should trigger rate limiting)
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}
+
+###
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}
+
+###
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}
+
+###
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}
+
+###
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "wrongpassword"
+}
+
+### Multiple password reset requests
+POST http://localhost:3000/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com"
+}
+
+###
+POST http://localhost:3000/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com"
+}
+
+###
+POST http://localhost:3000/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com"
+}

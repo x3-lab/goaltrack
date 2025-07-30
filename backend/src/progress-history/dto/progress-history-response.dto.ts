@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import { GoalStatus } from 'src/database/enums/goals.enums';
+import { GoalStatus } from '../../database/enums/goals.enums';
 
 
 export class ProgressHistoryResponseDto {

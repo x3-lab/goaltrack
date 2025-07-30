@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { GoalStatus, GoalPriority } from 'src/database/enums/goals.enums';
+import { GoalStatus, GoalPriority } from '../../database/enums/goals.enums';
 
 
 export class GoalResponseDto {

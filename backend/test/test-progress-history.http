@@ -1,84 +1,167 @@
-### Get all progress history entries
+### Get all progress history for admin (should see all)
+GET http://localhost:3000/progress-history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get all progress history for volunteer (should only see own)
+GET http://localhost:3000/progress-history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Get progress history with pagination
 GET http://localhost:3000/progress-history?page=1&limit=10
-Authorization: Bearer YOUR_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get progress history with filters
-GET http://localhost:3000/progress-history?volunteerId=USER_ID&status=completed&page=1&limit=5
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+### Get progress history filtered by goal ID (admin)
+GET http://localhost:3000/progress-history?goalId=VALID_GOAL_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get my progress history
-GET http://localhost:3000/progress-history/my-history?page=1&limit=10
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get progress history filtered by user ID (admin only)
+GET http://localhost:3000/progress-history?userId=f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get my trends
-GET http://localhost:3000/progress-history/my-trends
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get progress history filtered by date range
+GET http://localhost:3000/progress-history?startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get volunteer trends (Admin only or own data)
-GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/trends
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get progress history with multiple filters
+GET http://localhost:3000/progress-history?userId=f4ed6dce-508e-41e1-a594-dd9951165000f&startDate=2024-01-01&endDate=2024-12-31&page=1&limit=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get analytics summary (Admin only)
-GET http://localhost:3000/progress-history/analytics/summary
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+### Get progress history for specific goal (volunteer - own goal)
+GET http://localhost:3000/progress-history/goal/VOLUNTEER_GOAL_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 
-### Get monthly summary for all volunteers (Admin only)
-GET http://localhost:3000/progress-history/monthly/2024/1
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+### Get progress history for specific goal (admin - any goal)
+GET http://localhost:3000/progress-history/goal/ANY_GOAL_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get monthly summary for specific volunteer
-GET http://localhost:3000/progress-history/monthly/2024/1?volunteerId=USER_ID
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get specific progress entry by ID (admin)
+GET http://localhost:3000/progress-history/PROGRESS_ENTRY_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get volunteer monthly summary
-GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/monthly/2024/1
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get specific progress entry by ID (volunteer - own entry)
+GET http://localhost:3000/progress-history/OWN_PROGRESS_ENTRY_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 
-### Get specific progress history entry
-GET http://localhost:3000/progress-history/PROGRESS_HISTORY_ID
-Authorization: Bearer YOUR_JWT_TOKEN
-
-### Create progress history entry (Admin only)
+### Create progress entry (volunteer - own goal)
 POST http://localhost:3000/progress-history
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 Content-Type: application/json
 
 {
-  "title": "Learn Advanced NestJS",
-  "goalId": "GOAL_ID",
-  "volunteerId": "VOLUNTEER_ID",
-  "progress": 85,
-  "notes": "Completed modules on authentication and database integration",
-  "weekStart": "2024-01-01T00:00:00.000Z",
-  "weekEnd": "2024-01-07T23:59:59.999Z",
+  "goalId": "VOLUNTEER_GOAL_ID",
+  "progressPercentage": 75,
+  "status": "in_progress",
+  "notes": "Made significant progress on the training module. Completed 3 out of 4 sections.",
+  "hoursWorked": 4.5,
+  "challengesFaced": ["Time management", "Understanding complex concepts"],
+  "achievements": ["Completed advanced training", "Passed assessment"],
+  "nextSteps": "Complete final section and submit project"
+}
+
+### Create progress entry (admin - for any goal)
+POST http://localhost:3000/progress-history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "goalId": "ANY_GOAL_ID",
+  "userId": "f4ed6dce-508e-41e1-a594-dd9951165000f",
+  "progressPercentage": 50,
+  "status": "in_progress",
+  "notes": "Admin tracking progress for volunteer",
+  "hoursWorked": 2.0,
+  "challengesFaced": [],
+  "achievements": ["Initial milestone reached"],
+  "nextSteps": "Continue with next phase"
+}
+
+### Create progress entry with minimal data
+POST http://localhost:3000/progress-history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "goalId": "VOLUNTEER_GOAL_ID",
+  "progressPercentage": 25,
   "status": "in_progress"
 }
 
-### Delete progress history entry (Admin only)
-DELETE http://localhost:3000/progress-history/PROGRESS_HISTORY_ID
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+### Create progress entry with goal completion
+POST http://localhost:3000/progress-history
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
 
+{
+  "goalId": "VOLUNTEER_GOAL_ID",
+  "progressPercentage": 100,
+  "status": "completed",
+  "notes": "Successfully completed the goal! All objectives met.",
+  "hoursWorked": 2.0,
+  "achievements": ["Goal completed", "All milestones achieved"],
+  "nextSteps": "Move on to next goal"
+}
 
-### Get volunteer's weekly history
-GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/weekly-history
-Authorization: Bearer YOUR_JWT_TOKEN
+### Update progress entry (volunteer - own entry)
+PUT http://localhost:3000/progress-history/OWN_PROGRESS_ENTRY_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
 
-### Get volunteer's weekly history with date range
-GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/weekly-history?startDate=2024-01-01&endDate=2024-03-31
-Authorization: Bearer YOUR_JWT_TOKEN
+{
+  "progressPercentage": 85,
+  "notes": "Updated progress - almost complete!",
+  "hoursWorked": 1.5,
+  "challengesFaced": ["Minor technical issues"],
+  "achievements": ["Overcame technical challenges"],
+  "nextSteps": "Final review and submission"
+}
 
-### Get my weekly history (what your frontend will call)
-GET http://localhost:3000/progress-history/my-weekly-history
-Authorization: Bearer YOUR_JWT_TOKEN
+### Update progress entry (admin - any entry)
+PUT http://localhost:3000/progress-history/ANY_PROGRESS_ENTRY_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
 
-### Get my weekly history with date range
-GET http://localhost:3000/progress-history/my-weekly-history?startDate=2024-01-01&endDate=2024-03-31
-Authorization: Bearer YOUR_JWT_TOKEN
+{
+  "notes": "Admin update: Great progress shown by volunteer",
+  "status": "in_progress"
+}
 
-### Get volunteer's most productive day in current week
-GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/productive-day
-Authorization: Bearer YOUR_JWT_TOKEN
+### Update only specific fields
+PUT http://localhost:3000/progress-history/OWN_PROGRESS_ENTRY_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
 
-### Get my most productive day in current week
-GET http://localhost:3000/progress-history/my-productive-day
-Authorization: Bearer YOUR_JWT_TOKEN
+{
+  "progressPercentage": 90
+}
+
+### Delete progress entry (admin only)
+DELETE http://localhost:3000/progress-history/PROGRESS_ENTRY_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get progress analytics (admin only)
+GET http://localhost:3000/progress-history/analytics
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get progress analytics with date filter (admin only)
+GET http://localhost:3000/progress-history/analytics?startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get progress analytics for specific user (admin only)
+GET http://localhost:3000/progress-history/analytics?userId=f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get progress summary for specific goal (admin)
+GET http://localhost:3000/progress-history/goal/GOAL_ID/summary
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get progress summary for specific goal (volunteer - own goal)
+GET http://localhost:3000/progress-history/goal/OWN_GOAL_ID/summary
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Export progress history (admin only)
+GET http://localhost:3000/progress-history/export
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Export progress history with filters (admin only)
+GET http://localhost:3000/progress-history/export?userId=f4ed6dce-508e-41e1-a594-dd9951165000f&startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI

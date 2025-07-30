@@ -1,5 +1,5 @@
 import { IsEnum } from "class-validator";
-import { GoalStatus } from "src/database/enums/goals.enums";
+import { GoalStatus } from "../../database/enums/goals.enums";
 
 
 export class UpdateGoalStatusDto {

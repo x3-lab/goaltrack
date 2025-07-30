@@ -1,7 +1,7 @@
 import { PartialType } from "@nestjs/mapped-types";
 import { IsOptional, IsEnum, IsNumber, Min, Max } from "class-validator";
 import { CreateGoalDto } from "./create-goal.dto";
-import { GoalStatus, GoalPriority } from "src/database/enums/goals.enums";
+import { GoalStatus, GoalPriority } from "../../database/enums/goals.enums";
 
 
 export class UpdateGoalDto extends PartialType(CreateGoalDto) {

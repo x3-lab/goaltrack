@@ -10,7 +10,7 @@ import {
     Max,
     MinLength,
 } from 'class-validator';
-import { GoalStatus, GoalPriority } from 'src/database/enums/goals.enums';
+import { GoalStatus, GoalPriority } from '../../database/enums/goals.enums';
 
 
 export class CreateGoalDto {

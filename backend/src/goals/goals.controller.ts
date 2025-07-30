@@ -22,12 +22,12 @@ import { GoalResponseDto } from './dto/goal-response.dto';
 import { GoalFilterDto } from './dto/goal-filters.dto';
 import { UpdateGoalProgressDto } from './dto/update-goal-progress.dto';
 import { WeeklyProcessingResultDto } from './dto/weekly-processing.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { UserRole } from 'src/database/enums/user.enums';
+import { UserRole } from '../database/enums/user.enums';
 import { User } from '../database/entities/user.entity';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 
 @Controller('goals')
