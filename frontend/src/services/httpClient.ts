@@ -1,6 +1,21 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_CONFIG } from './config';
 
+if (typeof localStorage === 'undefined') {
+  global.localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  } as any;
+}
+
+if (typeof window === 'undefined') {
+  global.window = {
+    location: { href: '' },
+  } as any;
+}
+
+
 declare module 'axios' {
   interface InternalAxiosRequestConfig {
     metadata?: {
@@ -35,7 +50,6 @@ class HttpClient {
         'Content-Type': 'application/json',
       },
     });
-
     this.setupInterceptors();
   }
 
@@ -84,7 +98,8 @@ class HttpClient {
           data: error.response?.data,
         });
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        const hadToken = !!this.getAuthToken();
+        if (error.response?.status === 401 && !originalRequest._retry && hadToken) {
           if (this.isRefreshing) {
             return new Promise((resolve) => {
               this.retryQueue.push(() => resolve(this.client(originalRequest)));

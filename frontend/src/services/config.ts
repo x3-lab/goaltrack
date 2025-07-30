@@ -1,6 +1,6 @@
 export const API_CONFIG = {
   BASE_URL: process.env.NODE_ENV === 'production' 
-    ? process.env.VITE_API_URL || 'https://your-production-api.com' 
+    ? process.env.VITE_API_URL
     : 'http://localhost:3000',
   TIMEOUT: 15000,
   RETRY_ATTEMPTS: 3,

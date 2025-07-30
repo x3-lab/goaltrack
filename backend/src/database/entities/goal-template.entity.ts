@@ -26,7 +26,6 @@ export class GoalTemplate {
     category: string;
 
     @Column({
-        type: 'enum',
         enum: TemplatePriority,
         default: TemplatePriority.MEDIUM
     })
@@ -39,7 +38,6 @@ export class GoalTemplate {
     tags: string[];
 
     @Column({
-        type: 'enum',
         enum: TemplateStatus,
         default: TemplateStatus.ACTIVE
     })

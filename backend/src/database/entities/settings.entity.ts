@@ -14,7 +14,7 @@ import { SettingScope, SettingType } from '../enums/settings.enums';
 
 @Entity('settings')
 @Index(['scope', 'key'], { unique: true, where: 'user_id IS NULL' })
-@Index(['scope', 'key', 'user_id'], { unique: true, where: 'user_id IS NOT NULL' })
+@Index(['scope', 'key', 'userId'], { unique: true, where: 'user_id IS NOT NULL' })
 export class Setting {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -27,14 +27,12 @@ export class Setting {
     value: string;
 
     @Column({
-        type: 'enum',
         enum: SettingType,
         default: SettingType.STRING
     })
     type: SettingType;
 
     @Column({
-        type: 'enum',
         enum: SettingScope,
         default: SettingScope.SYSTEM
     })
