@@ -1,172 +1,149 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import { AppStateProvider } from "./contexts/AppStateContext";
-import { createQueryClient } from "./services/api";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Header from "./components/Header";
-import Navigation from "./components/Navigation";
-import Login from "./pages/Login";
-import VolunteerDashboard from "./pages/VolunteerDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import Goals from "./pages/Goals";
-import AdminSettings from "./pages/AdminSettings";
-import ProgressHistoryPage from "./pages/ProgressHistory";
-import PersonalAnalyticsPage from "./pages/PersonalAnalytics";
-import VolunteerProfilePage from "./pages/VolunteerProfile";
-import SystemAnalyticsPage from "./pages/SystemAnalytics";
-import AdminVolunteerManagement from "./pages/AdminVolunteerManagement";
-import AdminGoalTemplates from "./pages/AdminGoalTemplates";
-import { useAuth } from "./contexts/AuthContext";
-import AdminProfilePage from "./pages/AdminProfile";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from './components/ui/toaster';
+import ProtectedRoute, { AdminRoute, VolunteerRoute } from './components/ProtectedRoute';
+import { useAuth } from './contexts/AuthContext';
 
-const queryClient = createQueryClient();
+// Auth pages
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+// Dashboard pages
+import AdminDashboard from './pages/AdminDashboard';
+import VolunteerDashboard from './pages/VolunteerDashboard';
+
+// Admin pages
+import AdminProfile from './pages/AdminProfile';
+import AdminVolunteerManagement from './pages/AdminVolunteerManagement';
+// import AdminGoalManagement from './pages/AdminGoalManagement';
+import AdminAnalytics from './pages/AdminAnalytics';
+import AdminSettings from './pages/AdminSettings';
+
+// Volunteer pages
+import VolunteerProfile from './pages/VolunteerProfile';
+// import VolunteerGoals from './pages/VolunteerGoals';
+
+// Shared pages
+import Goals from './pages/Goals';
+
+// Styles
+import './App.css';
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* Protected routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Navigate to="/dashboard" replace />
+              </ProtectedRoute>
+            } />
+            
+            {/* Dashboard redirect */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashboardRedirect />
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin routes */}
+            <Route path="/admin-dashboard" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } />
+            
+            <Route path="/admin-dashboard/profile" element={
+              <AdminRoute>
+                <AdminProfile />
+              </AdminRoute>
+            } />
+            
+            <Route path="/admin-dashboard/volunteers" element={
+              <AdminRoute>
+                <AdminVolunteerManagement />
+              </AdminRoute>
+            } />
+            
+            <Route path="/admin-dashboard/volunteers/:id" element={
+              <AdminRoute>
+                <VolunteerProfile />
+              </AdminRoute>
+            } />
+            
+            {/* <Route path="/admin-dashboard/goals" element={
+              <AdminRoute>
+                <AdminGoalManagement />
+              </AdminRoute>
+            } /> */}
+            
+            <Route path="/admin-dashboard/analytics" element={
+              <AdminRoute>
+                <AdminAnalytics />
+              </AdminRoute>
+            } />
+            
+            <Route path="/admin-dashboard/settings" element={
+              <AdminRoute>
+                <AdminSettings />
+              </AdminRoute>
+            } />
+            
+            {/* Volunteer routes */}
+            <Route path="/volunteer-dashboard" element={
+              <VolunteerRoute>
+                <VolunteerDashboard />
+              </VolunteerRoute>
+            } />
+            
+            <Route path="/volunteer-dashboard/profile" element={
+              <VolunteerRoute>
+                <VolunteerProfile />
+              </VolunteerRoute>
+            } />
+            
+            {/* <Route path="/volunteer-dashboard/goals" element={
+              <VolunteerRoute>
+                <VolunteerGoals />
+              </VolunteerRoute>
+            } /> */}
+            
+            {/* Shared goal management */}
+            <Route path="/goals" element={
+              <ProtectedRoute>
+                <Goals />
+              </ProtectedRoute>
+            } />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+          
+          <Toaster />
+        </div>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+// Helper component to redirect to appropriate dashboard
+const DashboardRedirect: React.FC = () => {
+  const { user } = useAuth();
   
-  if (!isAuthenticated) {
-    return <>{children}</>;
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="flex">
-        <Navigation />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  
+  const redirectPath = user.role === 'admin' ? '/admin-dashboard' : '/volunteer-dashboard';
+  return <Navigate to={redirectPath} replace />;
 };
-
-const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/volunteer-dashboard"
-        element={
-          <ProtectedRoute requiredRole="volunteer">
-            <VolunteerDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/volunteer-dashboard/progress-history"
-        element={
-          <ProtectedRoute requiredRole="volunteer">
-            <ProgressHistoryPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/volunteer-dashboard/analytics"
-        element={
-          <ProtectedRoute requiredRole="volunteer">
-            <PersonalAnalyticsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/volunteers/:id"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <VolunteerProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/goals"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <Goals />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/analytics"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <SystemAnalyticsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/settings"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminSettings />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/volunteers"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminVolunteerManagement />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/goal-templates"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminGoalTemplates />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/volunteer-dashboard/profile"
-        element={
-          <ProtectedRoute requiredRole="volunteer">
-            <VolunteerProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin-dashboard/profile"
-        element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-  );
-};
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppStateProvider>
-            <AppLayout>
-              <AppRoutes />
-            </AppLayout>
-          </AppStateProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;

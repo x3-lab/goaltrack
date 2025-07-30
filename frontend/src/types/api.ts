@@ -9,7 +9,7 @@ export interface User {
   address?: string;
   skills?: string;
   notes?: string;
-  joinDate: string;
+  // joinDate: string;
   createdAt: string;
   updatedAt: string;
 }

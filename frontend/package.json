@@ -20,6 +20,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "test:auth": "tsx --require ./src/testSetup.js src/services/authTest.ts",
+    "test:integration": "npm run test:auth && npm run test:api",
     "test:api": "tsx src/services/apiTest.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit"

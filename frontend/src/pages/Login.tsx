@@ -1,41 +1,104 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
-import { Target, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Navigate, Link } from 'react-router-dom';
+import { Target, Eye, EyeOff, AlertCircle, Mail, Lock } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { LoadingSpinner } from '../components/ui/loading-spinner';
 
 const Login: React.FC = () => {
-  const { login, isAuthenticated, user } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { login, isAuthenticated, user, isLoading, error, clearError, isInitialized } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
-  if (isAuthenticated) {
-    const redirectPath = user?.role === 'admin' ? '/admin-dashboard' : '/volunteer-dashboard';
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  useEffect(() => {
+    if (formData.email || formData.password) {
+      setValidationErrors({});
+      clearError();
+    }
+  }, [formData.email, formData.password, clearError]);
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <LoadingSpinner size="lg" />
+          <p className="text-gray-600">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    const redirectPath = user.role === 'admin' ? '/admin-dashboard' : '/volunteer-dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
+  const validateForm = (): boolean => {
+    const errors: typeof validationErrors = {};
+    
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      const success = await login(username, password);
-      if (!success) {
-        setError('Invalid username or password');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+      await login({
+        email: formData.email.trim(),
+        password: formData.password
+      });
+      
+    } catch (error: any) {
+      console.error('Login error:', error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const isFormDisabled = isLoading || isSubmitting;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-4">
@@ -53,70 +116,103 @@ const Login: React.FC = () => {
         </CardHeader>
         
         <CardContent>
+          {/* Display global error */}
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                required
-                className="w-full"
-              />
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                Email Address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter your email"
+                  disabled={isFormDisabled}
+                  className={`pl-10 ${validationErrors.email ? 'border-red-500' : ''}`}
+                  autoComplete="email"
+                />
+              </div>
+              {validationErrors.email && (
+                <p className="text-sm text-red-600">{validationErrors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Password
-              </label>
+              </Label>
               <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={(e) => handleInputChange('password', e.target.value)}
                   placeholder="Enter your password"
-                  required
-                  className="w-full pr-10"
+                  disabled={isFormDisabled}
+                  className={`pl-10 pr-10 ${validationErrors.password ? 'border-red-500' : ''}`}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  disabled={isFormDisabled}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {validationErrors.password && (
+                <p className="text-sm text-red-600">{validationErrors.password}</p>
+              )}
             </div>
 
-            {error && (
-              <div className="flex items-center space-x-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg">
-                <AlertCircle className="h-4 w-4" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isFormDisabled}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isSubmitting ? (
+                <>
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Signing In...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 font-medium mb-2">Demo Accounts:</p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <p><strong>Volunteers:</strong> volunteer1 or volunteer2</p>
-              <p><strong>Admin:</strong> admin</p>
-              <p><strong>Password:</strong> password (for all accounts)</p>
-            </div>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link 
+                to="/register" 
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Register here
+              </Link>
+            </p>
           </div>
+
+          {/* Development helper */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+              <p className="font-semibold">Demo Credentials:</p>
+              <p>Admin: admin@example.com / password123</p>
+              <p>Volunteer: volunteer@example.com / password123</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
