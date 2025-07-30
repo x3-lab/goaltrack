@@ -132,7 +132,7 @@ export class UsersController {
         },
     ): Promise<{ message: string}> {
         await this.usersService.bulkUpdateStatus(bulkUpdatDto.userIds, bulkUpdatDto.status);
-        return { message: `Succssfully updated ${bulkUpdatDto.userIds.length} users` }
+        return { message: `Successfully updated ${bulkUpdatDto.userIds.length} users` }
     }
 
     @Delete(':id')
