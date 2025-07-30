@@ -1,0 +1,84 @@
+### Get all progress history entries
+GET http://localhost:3000/progress-history?page=1&limit=10
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get progress history with filters
+GET http://localhost:3000/progress-history?volunteerId=USER_ID&status=completed&page=1&limit=5
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get my progress history
+GET http://localhost:3000/progress-history/my-history?page=1&limit=10
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get my trends
+GET http://localhost:3000/progress-history/my-trends
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get volunteer trends (Admin only or own data)
+GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/trends
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get analytics summary (Admin only)
+GET http://localhost:3000/progress-history/analytics/summary
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get monthly summary for all volunteers (Admin only)
+GET http://localhost:3000/progress-history/monthly/2024/1
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get monthly summary for specific volunteer
+GET http://localhost:3000/progress-history/monthly/2024/1?volunteerId=USER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get volunteer monthly summary
+GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/monthly/2024/1
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get specific progress history entry
+GET http://localhost:3000/progress-history/PROGRESS_HISTORY_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Create progress history entry (Admin only)
+POST http://localhost:3000/progress-history
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "title": "Learn Advanced NestJS",
+  "goalId": "GOAL_ID",
+  "volunteerId": "VOLUNTEER_ID",
+  "progress": 85,
+  "notes": "Completed modules on authentication and database integration",
+  "weekStart": "2024-01-01T00:00:00.000Z",
+  "weekEnd": "2024-01-07T23:59:59.999Z",
+  "status": "in_progress"
+}
+
+### Delete progress history entry (Admin only)
+DELETE http://localhost:3000/progress-history/PROGRESS_HISTORY_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+
+### Get volunteer's weekly history
+GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/weekly-history
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get volunteer's weekly history with date range
+GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/weekly-history?startDate=2024-01-01&endDate=2024-03-31
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get my weekly history (what your frontend will call)
+GET http://localhost:3000/progress-history/my-weekly-history
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get my weekly history with date range
+GET http://localhost:3000/progress-history/my-weekly-history?startDate=2024-01-01&endDate=2024-03-31
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get volunteer's most productive day in current week
+GET http://localhost:3000/progress-history/volunteer/VOLUNTEER_ID/productive-day
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get my most productive day in current week
+GET http://localhost:3000/progress-history/my-productive-day
+Authorization: Bearer YOUR_JWT_TOKEN

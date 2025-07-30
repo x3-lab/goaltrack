@@ -1,0 +1,76 @@
+# POST http://localhost:3000/auth/register
+# Content-Type: application/json
+
+# {
+#   "firstName": "John",
+#   "lastName": "Doe",
+#   "email": "johndoe@example.com",
+#   "password": "password123",
+#   "phoneNumber": "1244567890",
+#   "role": "volunteer"
+# }
+
+### Register a new user
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role": "volunteer"
+}
+
+
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Fuad",
+  "lastName": "Obatula",
+  "email": "obatulafuad@gmail.com",
+  "password": "password123",
+  "phoneNumber": "1234567890",
+  "role":"admin"
+}
+
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "James",
+  "lastName": "Doe",
+  "email": "jamesdoe@example.com",
+  "password": "password123",
+  "phoneNumber": "1344567890",
+  "role": "volunteer"
+}
+
+### Register
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane@smith.com",
+  "password": "password123",
+  "phoneNumber": "0828383838",
+  "role": "admin"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+
+
+### Get Profile
+GET http://localhost:3000/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzA5OTEwOCwiZXhwIjoxNzUzMTg1NTA4fQ.drYMb4-1Q8-wgBqhMF0__8LHwjPJREW9xQdgZUbEAtM

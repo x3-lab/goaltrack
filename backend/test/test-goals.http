@@ -1,0 +1,89 @@
+### Create a new goal
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Learn NestJS Framework",
+  "description": "Complete a comprehensive course on NestJS development",
+  "volunteerId": "USER_ID",
+  "category": "Learning",
+  "priority": "high",
+  "dueDate": "2024-02-15T00:00:00.000Z",
+  "tags": ["backend", "nodejs", "nestjs"],
+  "notes": ["Started with basic setup"]
+}
+
+### Get all goals with filters
+GET http://localhost:3000/goals?page=1&limit=10&status=in_progress&priority=high&category=Learning
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get goal statistics
+GET http://localhost:3000/goals/statistics
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get goal statistics for specific volunteer (Admin only)
+GET http://localhost:3000/goals/statistics?volunteerId=USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get goal categories
+GET http://localhost:3000/goals/categories
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get specific goal
+GET http://localhost:3000/goals/GOAL_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Update goal
+PATCH http://localhost:3000/goals/GOAL_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "title": "Advanced NestJS Framework",
+  "description": "Complete an advanced course on NestJS development",
+  "priority": "medium",
+  "progress": 50
+}
+
+### Update goal status
+PATCH http://localhost:3000/goals/GOAL_ID/status
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+### Update goal progress
+PATCH http://localhost:3000/goals/GOAL_ID/progress
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "progress": 75,
+  "notes": "Completed chapters 1-5"
+}
+
+### Weekly processing (Admin only)
+POST http://localhost:3000/goals/weekly-processing
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Process overdue goals (Admin only)
+POST http://localhost:3000/goals/process-overdue
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Bulk update goals (Admin only)
+POST http://localhost:3000/goals/bulk/update
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "goalIds": ["goal-id-1", "goal-id-2"],
+  "status": "in_progress",
+  "priority": "high"
+}
+
+### Delete goal (Admin only)
+DELETE http://localhost:3000/goals/GOAL_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN

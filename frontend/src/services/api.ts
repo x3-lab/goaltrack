@@ -64,7 +64,6 @@ export interface AdminProfile {
   title: string;
   permissions: string[];
   preferences: {
-    emailNotifications: boolean;
     weeklyReports: boolean;
     systemAlerts: boolean;
     theme: 'light' | 'dark' | 'auto';
@@ -389,10 +388,8 @@ export const mockApi = {
       'view_analytics',
       'system_settings',
       'export_data',
-      'send_notifications'
     ],
     preferences: {
-      emailNotifications: true,
       weeklyReports: true,
       systemAlerts: true,
       theme: 'light' as const,
@@ -636,7 +633,24 @@ export const mockLocalStorageApi = {
   }
 };
 
-// Main API object - use mock data in development
+
+export interface GoalTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  priority: 'High' | 'Medium' | 'Low';
+  defaultDuration: number;
+  tags: string[];
+  status: 'active' | 'inactive' | 'archived';
+  usageCount: number;
+  createdById: string;
+  createdByName: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const api = {
   // Goals
   goals: {
@@ -716,7 +730,6 @@ export const api = {
       const stored = localStorage.getItem('systemSettings');
       return stored ? JSON.parse(stored) : {
         organizationName: 'X3 Lab',
-        emailNotifications: true,
         weeklyReports: true,
         autoReminders: true
       };
@@ -726,6 +739,218 @@ export const api = {
       return settings;
     },
   },
+
+  // Goal Templates
+  goalTemplates: {
+    getAll: async (filters?: {
+      search?: string;
+      category?: string;
+      priority?: string;
+      status?: string;
+      page?: number;
+      limit?: number;
+    }): Promise<{
+      templates: GoalTemplate[];
+      total: number;
+      page: number;
+      totalPages: number;
+    }> => {
+      // For now, return mock data
+      const mockTemplates: GoalTemplate[] = JSON.parse(localStorage.getItem('goalTemplates') || '[]');
+      
+      if (mockTemplates.length === 0) {
+        const defaultTemplates: GoalTemplate[] = [
+          {
+            id: '1',
+            name: 'Safety Training',
+            description: 'Complete mandatory safety training course',
+            category: 'Training',
+            priority: 'High',
+            defaultDuration: 7,
+            usageCount: 15,
+            createdById: 'admin-1',
+            createdByName: 'Admin User',
+            status: 'active',
+            tags: ['safety', 'training', 'mandatory'],
+            createdAt: '2024-01-01T00:00:00Z',
+            updatedAt: '2024-01-01T00:00:00Z',
+            notes: 'Required for all new volunteers'
+          },
+          {
+            id: '2',
+            name: 'Community Outreach',
+            description: 'Organize and participate in community outreach activities',
+            category: 'Community Service',
+            priority: 'Medium',
+            defaultDuration: 14,
+            usageCount: 8,
+            createdById: 'admin-1',
+            createdByName: 'Admin User',
+            status: 'active',
+            tags: ['community', 'outreach', 'event'],
+            createdAt: '2024-01-15T00:00:00Z',
+            updatedAt: '2024-01-15T00:00:00Z'
+          },
+          {
+            id: '3',
+            name: 'Fundraising Campaign',
+            description: 'Plan and execute fundraising activities',
+            category: 'Fundraising',
+            priority: 'Medium',
+            defaultDuration: 21,
+            usageCount: 12,
+            createdById: 'admin-1',
+            createdByName: 'Admin User',
+            status: 'active',
+            tags: ['fundraising', 'campaign', 'planning'],
+            createdAt: '2024-02-01T00:00:00Z',
+            updatedAt: '2024-02-01T00:00:00Z'
+          }
+        ];
+        localStorage.setItem('goalTemplates', JSON.stringify(defaultTemplates));
+        return {
+          templates: defaultTemplates,
+          total: defaultTemplates.length,
+          page: 1,
+          totalPages: 1
+        };
+      }
+
+      let filtered = mockTemplates;
+
+      if (filters) {
+        if (filters.search) {
+          const searchLower = filters.search.toLowerCase();
+          filtered = filtered.filter(t => 
+            t.name.toLowerCase().includes(searchLower) ||
+            t.description.toLowerCase().includes(searchLower) ||
+            t.category.toLowerCase().includes(searchLower)
+          );
+        }
+        if (filters.category && filters.category !== 'all') {
+          filtered = filtered.filter(t => t.category === filters.category);
+        }
+        if (filters.priority && filters.priority !== 'all') {
+          filtered = filtered.filter(t => t.priority === filters.priority);
+        }
+        if (filters.status && filters.status !== 'all') {
+          filtered = filtered.filter(t => t.status === filters.status);
+        }
+      }
+
+      const page = filters?.page || 1;
+      const limit = filters?.limit || 20;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedTemplates = filtered.slice(startIndex, endIndex);
+
+      return {
+        templates: paginatedTemplates,
+        total: filtered.length,
+        page,
+        totalPages: Math.ceil(filtered.length / limit)
+      };
+    },
+
+    getById: async (id: string): Promise<GoalTemplate | null> => {
+      const templates = JSON.parse(localStorage.getItem('goalTemplates') || '[]');
+      return templates.find((t: GoalTemplate) => t.id === id) || null;
+    },
+
+    create: async (templateData: Omit<GoalTemplate, 'id' | 'createdAt' | 'updatedAt' | 'usageCount' | 'createdById' | 'createdByName'>): Promise<GoalTemplate> => {
+      const templates = JSON.parse(localStorage.getItem('goalTemplates') || '[]');
+      const newTemplate: GoalTemplate = {
+        ...templateData,
+        id: Date.now().toString(),
+        usageCount: 0,
+        createdById: 'current-user-id',
+        createdByName: 'Current User',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      templates.push(newTemplate);
+      localStorage.setItem('goalTemplates', JSON.stringify(templates));
+      return newTemplate;
+    },
+
+    update: async (id: string, updates: Partial<GoalTemplate>): Promise<GoalTemplate> => {
+      const templates = JSON.parse(localStorage.getItem('goalTemplates') || '[]');
+      const index = templates.findIndex((t: GoalTemplate) => t.id === id);
+      if (index === -1) throw new Error('Template not found');
+      
+      templates[index] = { 
+        ...templates[index], 
+        ...updates, 
+        updatedAt: new Date().toISOString() 
+      };
+      localStorage.setItem('goalTemplates', JSON.stringify(templates));
+      return templates[index];
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const templates = JSON.parse(localStorage.getItem('goalTemplates') || '[]');
+      const filtered = templates.filter((t: GoalTemplate) => t.id !== id);
+      localStorage.setItem('goalTemplates', JSON.stringify(filtered));
+    },
+
+    duplicate: async (id: string): Promise<GoalTemplate> => {
+      const template = await api.goalTemplates.getById(id);
+      if (!template) throw new Error('Template not found');
+      
+      return api.goalTemplates.create({
+        ...template,
+        name: `${template.name} (Copy)`,
+        status: template.status,
+        tags: [...template.tags],
+        notes: template.notes
+      });
+    },
+
+    useTemplate: async (templateId: string, goalData: {
+      title: string;
+      description?: string;
+      dueDate: string;
+      volunteerId?: string;
+      customNotes?: string;
+    }): Promise<Goal> => {
+      const template = await api.goalTemplates.getById(templateId);
+      if (!template) throw new Error('Template not found');
+
+      // Create goal from template
+      const newGoal = await api.goals.create({
+        title: goalData.title,
+        description: goalData.description || template.description,
+        category: template.category,
+        priority: template.priority,
+        volunteer: goalData.volunteerId || 'current-user-id',
+        dueDate: goalData.dueDate,
+        tags: template.tags,
+        notes: goalData.customNotes || '',
+        progress: 0,
+        status: 'pending'
+      });
+
+      // Increment usage count
+      await api.goalTemplates.update(templateId, {
+        usageCount: template.usageCount + 1
+      });
+
+      return newGoal;
+    },
+
+    getCategories: async (): Promise<string[]> => {
+      const result = await api.goalTemplates.getAll();
+      const categories = [...new Set(result.templates.map(t => t.category))];
+      return categories.filter(Boolean).sort();
+    },
+
+    getPopular: async (limit: number = 10): Promise<GoalTemplate[]> => {
+      const result = await api.goalTemplates.getAll();
+      return result.templates
+        .sort((a, b) => b.usageCount - a.usageCount)
+        .slice(0, limit);
+    }
+  }
 };
 
 // Helper functions
