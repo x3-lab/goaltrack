@@ -64,7 +64,7 @@ export class ProgressHistoryService {
         const savedProgressHistory = await this.progressHistoryRepository.save(progressHistory);
 
         await this.logActivity(
-            currentUser.skills.toLocaleString(),
+            currentUser.id,
             'CREATE_PROGRESS_HISTORY',
             'progress_history',
             savedProgressHistory.id,
