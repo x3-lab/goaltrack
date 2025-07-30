@@ -92,7 +92,7 @@ export class ProgressHistoryService {
             .leftJoinAndSelect('ph.goal', 'goal')
             .leftJoinAndSelect('ph.volunteer', 'volunteer');
 
-        if (currentUser.role !== UserRole.VOLUNTEER) {
+        if (currentUser.role === UserRole.VOLUNTEER) {
             queryBuilder.where('ph.volunteerId = userId', { userId: currentUser.id});
         } else if (filters.volunteerId) {
             queryBuilder.where('ph.volunteerId = :volunteerId', { volunteerId: filters.volunteerId });
