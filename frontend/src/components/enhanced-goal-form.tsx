@@ -381,8 +381,8 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
         <div className="space-y-2">
           <Label>Tags</Label>
           <div className="flex flex-wrap gap-2 mb-2">
-            {formData.tags.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
+            {formData.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
                 {tag} <X className="h-3 w-3 ml-1" />
               </Badge>
             ))}
