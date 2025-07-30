@@ -102,7 +102,7 @@ export class ProgressHistoryService {
 
         const sortBy = filters.sortBy || 'weekStart';
         const sortOrder = filters.sortOrder || 'DESC';
-        queryBuilder.orderBy('ph.${sortBy}', sortOrder);
+        queryBuilder.orderBy(`ph.${sortBy}`, sortOrder);
 
         const page = filters.page || 1;
         const limit = filters.limit || 10;
