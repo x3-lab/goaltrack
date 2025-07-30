@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindManyOptions, SelectQueryBuilder, In, Between } from 'typeorm';
-import { User } from 'src/database/entities/user.entity';
-import { Goal } from 'src/database/entities';
-import { ActivityLog } from 'src/database/entities';
-import { UserStatus, Performance } from 'src/database/enums/user.enums';
-import { GoalStatus } from 'src/database/enums/goals.enums';
+import { User } from '../database/entities/user.entity';
+import { Goal } from '../database/entities';
+import { ActivityLog } from '../database/entities';
+import { UserStatus, Performance } from '../database/enums/user.enums';
+import { GoalStatus } from '../database/enums/goals.enums';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserFiltersDto } from './dto/user-filters.dto';

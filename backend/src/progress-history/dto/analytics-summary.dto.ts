@@ -1,5 +1,4 @@
-import { Goal } from "src/database/entities";
-import { GoalStatus, GoalPriority } from "src/database/enums/goals.enums";
+import { GoalStatus, GoalPriority } from "../../database/enums/goals.enums";
 
 export class AnalyticsSummaryDto {
     totalEntries:number;

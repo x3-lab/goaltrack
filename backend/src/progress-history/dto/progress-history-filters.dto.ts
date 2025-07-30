@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsString, IsDateString, IsUUID } from "class-validator";
 import { Transform } from 'class-transformer';
-import { GoalStatus } from "src/database/enums/goals.enums";
+import { GoalStatus } from "../../database/enums/goals.enums";
 import { parse } from "path";
 
 

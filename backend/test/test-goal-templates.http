@@ -1,0 +1,262 @@
+### Get all goal templates (Admin)
+GET http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get all goal templates (Volunteer - should only see active templates)
+GET http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Get templates with filters - search
+GET http://localhost:3000/goal-templates?search=safety
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get templates with filters - category
+GET http://localhost:3000/goal-templates?category=Training
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get templates with filters - priority
+GET http://localhost:3000/goal-templates?priority=High
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get templates with filters - status (Admin only)
+GET http://localhost:3000/goal-templates?status=inactive
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get templates with pagination
+GET http://localhost:3000/goal-templates?page=1&limit=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get template categories
+GET http://localhost:3000/goal-templates/categories
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get popular templates
+GET http://localhost:3000/goal-templates/popular
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get popular templates with limit
+GET http://localhost:3000/goal-templates/popular?limit=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get specific template by ID
+GET http://localhost:3000/goal-templates/TEMPLATE_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get template usage stats (Admin only)
+GET http://localhost:3000/goal-templates/TEMPLATE_ID/usage-stats
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Create new template (Admin only)
+POST http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "name": "Data Entry Training",
+  "description": "Complete comprehensive data entry training course with hands-on exercises",
+  "category": "Training",
+  "priority": "Medium",
+  "defaultDuration": 10,
+  "tags": ["data-entry", "training", "skills"],
+  "status": "active",
+  "notes": "Required for volunteers handling data input tasks"
+}
+
+### Create template with validation errors - missing required fields
+POST http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "category": ""
+}
+
+### Create template with invalid priority
+POST http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "name": "Test Template",
+  "description": "Test description",
+  "category": "Test",
+  "priority": "Invalid Priority",
+  "defaultDuration": 7
+}
+
+### Create template with invalid duration
+POST http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "name": "Test Template",
+  "description": "Test description",
+  "category": "Test",
+  "priority": "Medium",
+  "defaultDuration": 500
+}
+
+### Create template as volunteer (should fail)
+POST http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Template",
+  "description": "This should fail",
+  "category": "Test",
+  "priority": "Medium",
+  "defaultDuration": 7
+}
+
+### Update template (Admin only)
+PATCH http://localhost:3000/goal-templates/TEMPLATE_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "name": "Updated Safety Training",
+  "description": "Updated comprehensive safety training course",
+  "defaultDuration": 14,
+  "tags": ["safety", "training", "mandatory", "updated"]
+}
+
+### Update template as volunteer (should fail)
+PATCH http://localhost:3000/goal-templates/TEMPLATE_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Update"
+}
+
+### Update non-existent template
+PATCH http://localhost:3000/goal-templates/00000000-0000-0000-0000-000000000000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "name": "Non-existent Update"
+}
+
+### Duplicate template (Admin only)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/duplicate
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Duplicate template as volunteer (should fail)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/duplicate
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Duplicate non-existent template
+POST http://localhost:3000/goal-templates/00000000-0000-0000-0000-000000000000/duplicate
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Use template to create goal (Volunteer)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/use
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "My Safety Training Goal",
+  "description": "Complete the safety training course for my volunteer work",
+  "dueDate": "2024-02-15T00:00:00.000Z",
+  "customNotes": "Need to complete before starting field work"
+}
+
+### Use template to create goal for another volunteer (Admin only)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/use
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "title": "Safety Training for New Volunteer",
+  "description": "Safety training assigned to new volunteer",
+  "dueDate": "2024-02-20T00:00:00.000Z",
+  "volunteerId": "f4ed6dce-508e-41e1-a594-dd9951165000f",
+  "customNotes": "Assigned by admin for new volunteer onboarding"
+}
+
+### Use template with past due date (should fail)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/use
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Past Due Goal",
+  "description": "This should fail",
+  "dueDate": "2023-01-01T00:00:00.000Z"
+}
+
+### Use template with missing required fields
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/use
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "description": "Missing title"
+}
+
+### Use non-existent template
+POST http://localhost:3000/goal-templates/00000000-0000-0000-0000-000000000000/use
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Test Goal",
+  "description": "Test description",
+  "dueDate": "2024-02-15T00:00:00.000Z"
+}
+
+### Volunteer trying to assign goal to another volunteer (should fail)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID/use
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Assignment",
+  "description": "Volunteer trying to assign to another user",
+  "dueDate": "2024-02-15T00:00:00.000Z",
+  "volunteerId": "e212ee00-f197-4dad-a675-101ce8affe61"
+}
+
+### Delete template (Admin only)
+DELETE http://localhost:3000/goal-templates/TEMPLATE_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Delete template as volunteer (should fail)
+DELETE http://localhost:3000/goal-templates/TEMPLATE_ID
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Delete non-existent template
+DELETE http://localhost:3000/goal-templates/00000000-0000-0000-0000-000000000000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Test with invalid UUID format
+GET http://localhost:3000/goal-templates/invalid-uuid
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Test pagination edge cases - page 0
+GET http://localhost:3000/goal-templates?page=0&limit=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Test pagination edge cases - negative limit
+GET http://localhost:3000/goal-templates?page=1&limit=-5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Test very large page number
+GET http://localhost:3000/goal-templates?page=999999&limit=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Test with expired token
+GET http://localhost:3000/goal-templates
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleHBpcmVkLXVzZXIiLCJlbWFpbCI6ImV4cGlyZWRAZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6MTYwOTQ2MjgwMH0.invalidSignature
+
+### Test without authorization header
+GET http://localhost:3000/goal-templates
+
+### Test with malformed authorization header
+GET http://localhost:3000/goal-templates
+Authorization: Invalid Bearer Token

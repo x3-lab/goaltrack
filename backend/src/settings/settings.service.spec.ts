@@ -1,44 +1,36 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { AnalyticsService } from './analytics.service';
-import { Goal, User, ProgressHistory, ActivityLog } from '../database/entities';
+import { SettingsService } from './settings.service';
+import { Setting, User, ActivityLog } from '../database/entities';
 
-describe('AnalyticsService', () => {
-  let service: AnalyticsService;
+describe('SettingsService', () => {
+  let service: SettingsService;
 
   const mockRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     save: jest.fn(),
+    update: jest.fn(),
     delete: jest.fn(),
     createQueryBuilder: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getRawMany: jest.fn(),
       getMany: jest.fn(),
-      getCount: jest.fn(),
+      getOne: jest.fn(),
     })),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AnalyticsService,
+        SettingsService,
         {
-          provide: getRepositoryToken(Goal),
+          provide: getRepositoryToken(Setting),
           useValue: mockRepository,
         },
         {
           provide: getRepositoryToken(User),
-          useValue: mockRepository,
-        },
-        {
-          provide: getRepositoryToken(ProgressHistory),
           useValue: mockRepository,
         },
         {
@@ -48,7 +40,7 @@ describe('AnalyticsService', () => {
       ],
     }).compile();
 
-    service = module.get<AnalyticsService>(AnalyticsService);
+    service = module.get<SettingsService>(SettingsService);
   });
 
   it('should be defined', () => {

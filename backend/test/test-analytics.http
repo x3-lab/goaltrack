@@ -1,74 +1,83 @@
 ### Get system overview (Admin only)
 GET http://localhost:3000/analytics/system-overview
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
 ### Get system overview with date range (Admin only)
 GET http://localhost:3000/analytics/system-overview?start=2024-01-01&end=2024-12-31
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get personal analytics
-GET http://localhost:3000/analytics/personal/VOLUNTEER_ID?volunteerId=VOLUNTEER_ID
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get system overview with partial date range (start only)
+GET http://localhost:3000/analytics/system-overview?start=2024-06-01
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get personal analytics with date range
-GET http://localhost:3000/analytics/personal/VOLUNTEER_ID?volunteerId=VOLUNTEER_ID&startDate=2024-01-01&endDate=2024-12-31
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get system overview with partial date range (end only)
+GET http://localhost:3000/analytics/system-overview?end=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get personal analytics (volunteer - own analytics)
+GET http://localhost:3000/analytics/personal/f4ed6dce-508e-41e1-a594-dd9951165000f?volunteerId=f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Get personal analytics with date range (volunteer - own analytics)
+GET http://localhost:3000/analytics/personal/f4ed6dce-508e-41e1-a594-dd9951165000f?volunteerId=f4ed6dce-508e-41e1-a594-dd9951165000f&startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Get personal analytics (admin - any user's analytics)
+GET http://localhost:3000/analytics/personal/f4ed6dce-508e-41e1-a594-dd9951165000f?volunteerId=f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get personal analytics with date range (admin - any user's analytics)
+GET http://localhost:3000/analytics/personal/f4ed6dce-508e-41e1-a594-dd9951165000f?volunteerId=f4ed6dce-508e-41e1-a594-dd9951165000f&startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get personal analytics with partial date range (admin)
+GET http://localhost:3000/analytics/personal/f4ed6dce-508e-41e1-a594-dd9951165000f?volunteerId=f4ed6dce-508e-41e1-a594-dd9951165000f&startDate=2024-06-01
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
 ### Get completion trends (Admin only)
+GET http://localhost:3000/analytics/completion-trends
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get completion trends with date range (Admin only)
 GET http://localhost:3000/analytics/completion-trends?start=2024-01-01&end=2024-12-31
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get completion trends with recent date range (Admin only)
+GET http://localhost:3000/analytics/completion-trends?start=2024-11-01&end=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
 ### Get performance distribution (Admin only)
 GET http://localhost:3000/analytics/performance-distribution
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
 ### Get category breakdown (Admin only)
+GET http://localhost:3000/analytics/category-breakdown
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get category breakdown with date range (Admin only)
 GET http://localhost:3000/analytics/category-breakdown?start=2024-01-01&end=2024-12-31
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get category breakdown with recent date range (Admin only)
+GET http://localhost:3000/analytics/category-breakdown?start=2024-11-01&end=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
 ### Get volunteer activity (Admin only)
+GET http://localhost:3000/analytics/volunteer-activity
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get volunteer activity with date range (Admin only)
 GET http://localhost:3000/analytics/volunteer-activity?start=2024-01-01&end=2024-12-31
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get volunteer activity with recent date range (Admin only)
+GET http://localhost:3000/analytics/volunteer-activity?start=2024-11-01&end=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
 ### Get complete analytics data (Admin only)
+GET http://localhost:3000/analytics/data
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get complete analytics data with date range (Admin only)
 GET http://localhost:3000/analytics/data?start=2024-01-01&end=2024-12-31
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-
-### Get volunteer performance (Admin only)
-GET http://localhost:3000/analytics/volunteer-performance
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-
-### Export report (Admin only)
-POST http://localhost:3000/analytics/export
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-Content-Type: application/json
-
-{
-  "type": "overview",
-  "filters": {
-    "start": "2024-01-01",
-    "end": "2024-12-31"
-  }
-}
-
-### Export performance report (Admin only)
-POST http://localhost:3000/analytics/export
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-Content-Type: application/json
-
-{
-  "type": "performance"
-}
-
-### Export goals report (Admin only)
-POST http://localhost:3000/analytics/export
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-Content-Type: application/json
-
-{
-  "type": "goals",
-  "filters": {
-    "start": "2024-01-01",
-    "end": "2024-12-31"
-  }
-}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI

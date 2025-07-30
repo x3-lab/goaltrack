@@ -14,76 +14,350 @@ Content-Type: application/json
   "notes": ["Started with basic setup"]
 }
 
-### Get all goals with filters
-GET http://localhost:3000/goals?page=1&limit=10&status=in_progress&priority=high&category=Learning
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get all goals (Admin view - all goals)
+GET http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get goal statistics
-GET http://localhost:3000/goals/statistics
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get all goals (Volunteer view - own goals only)
+GET http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 
-### Get goal statistics for specific volunteer (Admin only)
-GET http://localhost:3000/goals/statistics?volunteerId=USER_ID
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+### Get goals with filters - by status
+GET http://localhost:3000/goals?status=active
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get goal categories
-GET http://localhost:3000/goals/categories
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get goals with filters - by priority
+GET http://localhost:3000/goals?priority=High
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Get specific goal
-GET http://localhost:3000/goals/GOAL_ID
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get goals with filters - by category
+GET http://localhost:3000/goals?category=Training
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 
-### Update goal
-PATCH http://localhost:3000/goals/GOAL_ID
-Authorization: Bearer YOUR_JWT_TOKEN
+### Get goals with filters - by volunteer (Admin only)
+GET http://localhost:3000/goals?volunteerId=f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get goals with filters - date range
+GET http://localhost:3000/goals?dateFrom=2024-01-01&dateTo=2024-12-31
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get goals with pagination
+GET http://localhost:3000/goals?page=1&limit=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get goals with search
+GET http://localhost:3000/goals?search=training
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get goal analytics (Admin only)
+GET http://localhost:3000/goals/analytics
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get user analytics (Volunteer - own analytics)
+GET http://localhost:3000/goals/analytics/user/f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Get user analytics (Admin - any user's analytics)
+GET http://localhost:3000/goals/analytics/user/f4ed6dce-508e-41e1-a594-dd9951165000f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get specific goal by ID
+GET http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Create goal (Volunteer - for self)
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 Content-Type: application/json
 
 {
-  "title": "Advanced NestJS Framework",
-  "description": "Complete an advanced course on NestJS development",
-  "priority": "medium",
-  "progress": 50
+  "title": "Complete Safety Training Module",
+  "description": "Complete the mandatory safety training module including fire safety, first aid, and emergency procedures",
+  "category": "Training",
+  "priority": "High",
+  "dueDate": "2024-02-15T23:59:59.000Z",
+  "tags": ["safety", "training", "mandatory"],
+  "notes": ["Remember to print certificate upon completion"]
 }
 
-### Update goal status
-PATCH http://localhost:3000/goals/GOAL_ID/status
-Authorization: Bearer YOUR_JWT_TOKEN
+### Create goal (Admin - for volunteer)
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
 Content-Type: application/json
 
 {
-  "status": "completed"
+  "title": "Organize Community Outreach Event",
+  "description": "Plan and execute a community outreach event for local families",
+  "category": "Community Service",
+  "priority": "Medium",
+  "volunteerId": "f4ed6dce-508e-41e1-a594-dd9951165000f",
+  "dueDate": "2024-03-01T23:59:59.000Z",
+  "tags": ["community", "outreach", "families"],
+  "notes": ["Coordinate with local community center", "Budget: $500"]
+}
+
+### Create goal with minimal data
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Basic Goal",
+  "description": "A basic goal with minimal information",
+  "category": "Personal",
+  "dueDate": "2024-02-28T23:59:59.000Z"
+}
+
+### Update goal (Own goal)
+PUT http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Updated Goal Title",
+  "description": "Updated description with more details",
+  "priority": "High",
+  "tags": ["updated", "modified", "improved"]
+}
+
+### Update goal (Admin updating any goal)
+PUT http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "status": "completed",
+  "notes": ["Marked as completed by admin", "Great work!"]
 }
 
 ### Update goal progress
-PATCH http://localhost:3000/goals/GOAL_ID/progress
-Authorization: Bearer YOUR_JWT_TOKEN
+PUT http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/progress
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 Content-Type: application/json
 
 {
   "progress": 75,
-  "notes": "Completed chapters 1-5"
+  "note": "Made significant progress on the training modules"
 }
 
-### Weekly processing (Admin only)
-POST http://localhost:3000/goals/weekly-processing
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-
-### Process overdue goals (Admin only)
-POST http://localhost:3000/goals/process-overdue
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
-
-### Bulk update goals (Admin only)
-POST http://localhost:3000/goals/bulk/update
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+### Add note to goal
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/notes
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
 Content-Type: application/json
 
 {
-  "goalIds": ["goal-id-1", "goal-id-2"],
-  "status": "in_progress",
-  "priority": "high"
+  "note": "Encountered some technical difficulties but resolved them"
+}
+
+### Complete goal
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/complete
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "completionNote": "Successfully completed all training modules and received certification"
+}
+
+### Reactivate goal
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/reactivate
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "reason": "Need to complete additional requirements"
+}
+
+### Archive goal
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/archive
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "reason": "Goal is no longer relevant"
+}
+
+### Extend deadline
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/extend
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "newDueDate": "2024-03-15T23:59:59.000Z",
+  "reason": "Need more time due to additional requirements"
 }
 
 ### Delete goal (Admin only)
-DELETE http://localhost:3000/goals/GOAL_ID
-Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+DELETE http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### ========== ERROR CASES ==========
+
+### Error: Create goal with missing required fields
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "description": "Missing title"
+}
+
+### Error: Create goal with invalid due date (past date)
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Past Date Goal",
+  "description": "This should fail",
+  "category": "Test",
+  "dueDate": "2020-01-01T23:59:59.000Z"
+}
+
+### Error: Create goal with invalid priority
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Invalid Priority Goal",
+  "description": "This should fail",
+  "category": "Test",
+  "priority": "InvalidPriority",
+  "dueDate": "2024-03-01T23:59:59.000Z"
+}
+
+### Error: Volunteer trying to create goal for another user
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Goal",
+  "description": "Volunteer trying to create goal for another user",
+  "category": "Test",
+  "volunteerId": "e212ee00-f197-4dad-a675-101ce8affe61",
+  "dueDate": "2024-03-01T23:59:59.000Z"
+}
+
+### Error: Get non-existent goal
+GET http://localhost:3000/goals/00000000-0000-0000-0000-000000000000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Error: Get goal with invalid UUID format
+GET http://localhost:3000/goals/invalid-uuid
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9zZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Error: Volunteer trying to access another user's goal
+GET http://localhost:3000/goals/admin-goal-id
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Error: Update non-existent goal
+PUT http://localhost:3000/goals/00000000-0000-0000-0000-000000000000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Updated Non-existent Goal"
+}
+
+### Error: Volunteer trying to update another user's goal
+PUT http://localhost:3000/goals/admin-goal-id
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Unauthorized Update"
+}
+
+### Error: Update goal with invalid data
+PUT http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "progress": 150
+}
+
+### Error: Update progress with invalid value
+PUT http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/progress
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "progress": -10
+}
+
+### Error: Add empty note
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/notes
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "note": ""
+}
+
+### Error: Complete already completed goal
+POST http://localhost:3000/goals/completed-goal-id/complete
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "completionNote": "Already completed"
+}
+
+### Error: Extend deadline to past date
+POST http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000/extend
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "newDueDate": "2020-01-01T23:59:59.000Z",
+  "reason": "Invalid past date"
+}
+
+### Error: Volunteer trying to delete goal
+DELETE http://localhost:3000/goals/550e8400-e29b-41d4-a716-446655440000
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Error: Volunteer trying to access analytics of another user
+GET http://localhost:3000/goals/analytics/user/e212ee00-f197-4dad-a675-101ce8affe61
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Error: Volunteer trying to access global analytics
+GET http://localhost:3000/goals/analytics
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Error: Request without authentication
+GET http://localhost:3000/goals
+
+### Error: Request with invalid token
+GET http://localhost:3000/goals
+Authorization: Bearer invalid.token.here
+
+### Error: Request with expired token
+GET http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.invalid_signature
+
+### Error: Create goal with extremely long title
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "This is an extremely long goal title that should exceed the maximum character limit and cause a validation error when trying to create the goal in the system because titles should have reasonable length limits to maintain data integrity and user experience",
+  "description": "Test for title length validation",
+  "category": "Test",
+  "dueDate": "2024-03-01T23:59:59.000Z"
+}
+
+### Error: Create goal with malformed JSON
+POST http://localhost:3000/goals
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9zZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+Content-Type: application/json
+
+{
+  "title": "Malformed JSON Test",
+  "description": "Missing closing quote,
+  "category": "Test"
+}

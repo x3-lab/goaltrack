@@ -1,0 +1,384 @@
+### Get all settings (Admin only)
+GET http://localhost:3000/settings
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get all system settings
+GET http://localhost:3000/settings?scope=system
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get all user settings (Admin only)
+GET http://localhost:3000/settings?scope=user
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get settings for specific user (Admin only)
+GET http://localhost:3000/settings?scope=user&userId=USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get system configuration (public settings only)
+GET http://localhost:3000/settings/system/config
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get user preferences (own preferences)
+GET http://localhost:3000/settings/user/YOUR_USER_ID/preferences
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get user preferences (Admin accessing other user's preferences)
+GET http://localhost:3000/settings/user/OTHER_USER_ID/preferences
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Export settings (Admin only)
+GET http://localhost:3000/settings/export
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Export system settings only (Admin only)
+GET http://localhost:3000/settings/export?scope=system
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Export user settings only (Admin only)
+GET http://localhost:3000/settings/export?scope=user
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Get specific system setting by key
+GET http://localhost:3000/settings/system/organization.name
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get specific user setting by key
+GET http://localhost:3000/settings/user/user.theme?userId=USER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Create new system setting (Admin only)
+POST http://localhost:3000/settings
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "key": "features.new_feature_enabled",
+  "value": "true",
+  "type": "boolean",
+  "scope": "system",
+  "description": "Enable the new experimental feature",
+  "editable": true,
+  "sensitive": false
+}
+
+### Create new user setting template (Admin only)
+POST http://localhost:3000/settings
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "key": "user.language",
+  "value": "en",
+  "type": "string",
+  "scope": "user",
+  "description": "User's preferred language",
+  "editable": true,
+  "sensitive": false,
+  "allowedValues": ["en", "es", "fr", "de"]
+}
+
+### Create sensitive system setting (Admin only)
+POST http://localhost:3000/settings
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "key": "integration.api_key",
+  "value": "sk-1234567890abcdef",
+  "type": "string",
+  "scope": "system",
+  "description": "API key for external service integration",
+  "editable": true,
+  "sensitive": true
+}
+
+### Create JSON setting (Admin only)
+POST http://localhost:3000/settings
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "key": "system.email_config",
+  "value": "{\"host\": \"smtp.gmail.com\", \"port\": 587, \"secure\": false}",
+  "type": "json",
+  "scope": "system",
+  "description": "Email server configuration",
+  "editable": true,
+  "sensitive": true
+}
+
+### Update system setting (Admin only)
+PUT http://localhost:3000/settings/system/organization.name
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "X3 Lab Updated",
+  "description": "Updated organization name"
+}
+
+### Update user setting (own setting)
+PUT http://localhost:3000/settings/user/user.theme?userId=YOUR_USER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "dark"
+}
+
+### Update user setting (Admin updating other user's setting)
+PUT http://localhost:3000/settings/user/user.email_notifications?userId=OTHER_USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "false"
+}
+
+### Update boolean setting
+PUT http://localhost:3000/settings/system/notifications.email_enabled
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "false"
+}
+
+### Update number setting
+PUT http://localhost:3000/settings/system/goals.max_per_week
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "10"
+}
+
+### Bulk update system settings (Admin only)
+PUT http://localhost:3000/settings/bulk/system
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "settings": [
+    {
+      "key": "organization.name",
+      "value": "X3 Lab - Updated"
+    },
+    {
+      "key": "goals.max_per_week",
+      "value": "8"
+    },
+    {
+      "key": "notifications.email_enabled",
+      "value": "true"
+    }
+  ]
+}
+
+### Bulk update user settings (own settings)
+PUT http://localhost:3000/settings/bulk/user?userId=YOUR_USER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "settings": [
+    {
+      "key": "user.theme",
+      "value": "auto"
+    },
+    {
+      "key": "user.email_notifications",
+      "value": "true"
+    },
+    {
+      "key": "user.weekly_reports",
+      "value": "false"
+    }
+  ]
+}
+
+### Bulk update user settings (Admin updating other user's settings)
+PUT http://localhost:3000/settings/bulk/user?userId=OTHER_USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "settings": [
+    {
+      "key": "user.theme",
+      "value": "light"
+    },
+    {
+      "key": "user.timezone",
+      "value": "America/Los_Angeles"
+    }
+  ]
+}
+
+### Delete system setting (Admin only)
+DELETE http://localhost:3000/settings/system/features.new_feature_enabled
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Delete user setting template (Admin only)
+DELETE http://localhost:3000/settings/user/user.language
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Delete specific user's setting (Admin only)
+DELETE http://localhost:3000/settings/user/user.theme?userId=USER_ID
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### Test error cases - Try to create duplicate setting (Admin only)
+POST http://localhost:3000/settings
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "key": "organization.name",
+  "value": "Duplicate Org",
+  "type": "string",
+  "scope": "system",
+  "description": "This should fail as it already exists",
+  "editable": true
+}
+
+### Test error cases - Invalid boolean value
+PUT http://localhost:3000/settings/system/notifications.email_enabled
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "invalid_boolean"
+}
+
+### Test error cases - Invalid number value
+PUT http://localhost:3000/settings/system/goals.max_per_week
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "not_a_number"
+}
+
+### Test error cases - Invalid JSON value
+PUT http://localhost:3000/settings/system/system.email_config
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "invalid json {"
+}
+
+### Test error cases - Volunteer trying to create system setting (should fail)
+POST http://localhost:3000/settings
+Authorization: Bearer YOUR_VOLUNTEER_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "key": "test.unauthorized",
+  "value": "test",
+  "type": "string",
+  "scope": "system",
+  "description": "This should fail",
+  "editable": true
+}
+
+### Test error cases - Volunteer trying to update system setting (should fail)
+PUT http://localhost:3000/settings/system/organization.name
+Authorization: Bearer YOUR_VOLUNTEER_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "Unauthorized Update"
+}
+
+### Test error cases - Volunteer trying to access other user's settings (should fail)
+GET http://localhost:3000/settings/user/OTHER_USER_ID/preferences
+Authorization: Bearer YOUR_VOLUNTEER_JWT_TOKEN
+
+### Test error cases - Volunteer trying to delete settings (should fail)
+DELETE http://localhost:3000/settings/system/organization.name
+Authorization: Bearer YOUR_VOLUNTEER_JWT_TOKEN
+
+### Test error cases - Update non-editable setting (if any exist)
+PUT http://localhost:3000/settings/system/non_editable_setting
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "This should fail if setting is not editable"
+}
+
+### Test error cases - Invalid allowed value
+PUT http://localhost:3000/settings/user/user.theme?userId=YOUR_USER_ID
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "value": "invalid_theme_option"
+}
+
+### Test with different user tokens - Admin token
+# Use this for admin operations
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Test with different user tokens - Volunteer token
+# Use this for volunteer operations
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Get settings with live tokens - Admin accessing all settings
+GET http://localhost:3000/settings
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+
+### Get system config with volunteer token (should only show non-sensitive)
+GET http://localhost:3000/settings/system/config
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Update organization name with admin token
+PUT http://localhost:3000/settings/system/organization.name
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "value": "X3 Lab - Test Update"
+}
+
+### Get user preferences with volunteer token (own preferences)
+GET http://localhost:3000/settings/user/f4ed6dce-508e-41e1-a594-dd9951165000f/preferences
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmNGVkNmRjZS01MDhlLTQxZTEtYTU5NC1kZDk5NTExNjUwMGYiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InZvbHVudGVlciIsImlhdCI6MTc1MzM5MTIxMiwiZXhwIjoxNzUzNDc3NjEyfQ.Mgsdc90hMMvR8TcK1qhii2xt5hNY7Uwn-Ge8JWYDt_4
+
+### Create a new feature flag setting
+POST http://localhost:3000/settings
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "key": "features.dark_mode_enabled",
+  "value": "true",
+  "type": "boolean",
+  "scope": "system",
+  "description": "Enable dark mode feature across the application",
+  "editable": true,
+  "sensitive": false
+}
+
+### Bulk update multiple settings
+PUT http://localhost:3000/settings/bulk/system
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlMjEyZWUwMC1mMTk3LTRkYWQtYTY3NS0xMDFjZThhZmZlNjEiLCJlbWFpbCI6ImphbmVAc21pdGguY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzMTEzNTUzLCJleHAiOjE3NTMxOTk5NTN9.UwxDGzkHO9EsvXA3k77OoGFdjco4U3puA6fcNO1gGEM
+Content-Type: application/json
+
+{
+  "settings": [
+    {
+      "key": "goals.default_duration_days",
+      "value": "14"
+    },
+    {
+      "key": "notifications.reminder_days_before",
+      "value": "2"
+    },
+    {
+      "key": "features.analytics_enabled",
+      "value": "true"
+    }
+  ]
+}

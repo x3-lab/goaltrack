@@ -11,6 +11,7 @@ import { ProgressHistoryModule } from './progress-history/progress-history.modul
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AdminModule } from './admin/admin.module';
 import { GoalTemplatesModule } from './goal-templates/goal-templates.module';
+import { SettingsModule } from './settings/settings.module';
 
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -33,6 +34,7 @@ import * as entities from './database/entities';
     AnalyticsModule,
     AdminModule,
     GoalTemplatesModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

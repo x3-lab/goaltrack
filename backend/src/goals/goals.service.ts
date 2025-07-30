@@ -8,12 +8,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import{ Repository, SelectQueryBuilder, Between, In, LessThan } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { Goal } from 'src/database/entities';
-import { User } from 'src/database/entities';
-import { ProgressHistory } from 'src/database/entities';
-import { ActivityLog } from 'src/database/entities';
-import { GoalStatus, GoalPriority } from 'src/database/enums/goals.enums';
-import { UserRole } from 'src/database/enums/user.enums';
+import { Goal } from '../database/entities/goal.entity';
+import { User } from '../database/entities/user.entity';
+import { ProgressHistory } from '../database/entities/progress-history.entity';
+import { ActivityLog } from '../database/entities/activity-log.entity';
+import { GoalStatus, GoalPriority } from '../database/enums/goals.enums';
+import { UserRole } from '../database/enums/user.enums';
 import { CreateGoalDto } from './dto/create-goal.dto';
 import { UpdateGoalDto } from './dto/update-goal.dto';
 import { GoalResponseDto } from './dto/goal-response.dto';

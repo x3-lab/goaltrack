@@ -6,11 +6,11 @@ import { Injectable,
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, Between, In, RelationQueryBuilder } from 'typeorm';
 import { ProgressHistory } from '../database/entities/progress-history.entity';
-import { Goal } from 'src/database/entities';
-import { User } from 'src/database/entities';
-import { ActivityLog } from 'src/database/entities';
-import { GoalStatus, GoalPriority } from 'src/database/enums/goals.enums';
-import { UserRole } from 'src/database/enums/user.enums';
+import { Goal } from '../database/entities';
+import { User } from '../database/entities';
+import { ActivityLog } from '../database/entities';
+import { GoalStatus, GoalPriority } from '../database/enums/goals.enums';
+import { UserRole } from '../database/enums/user.enums';
 import { CreateProgressHistoryDto } from './dto/create-progress-history.dto';
 import { ProgressHistoryResponseDto } from './dto/progress-history-response.dto';
 import { ProgressHistoryFiltersDto } from './dto/progress-history-filters.dto';
