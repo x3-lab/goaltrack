@@ -108,6 +108,25 @@ class AuthApiService {
         }
     }
 
+    async updateUser(userData: Partial<AuthUser>): Promise<AuthUser> {
+        try {
+            console.log('Updating user data:', userData);
+            
+            const response = await httpClient.put<AuthUser>(
+                ENDPOINTS.AUTH.PROFILE,
+                userData
+            );
+            
+            this.setAuthData(this.getAuthToken() || '', response, this.getRefreshToken() || undefined);
+            
+            console.log('User data updated successfully');
+            return response;
+        } catch (error: any) {
+            console.error('Failed to update user:', error);
+            throw this.transformAuthError(error);
+        }
+    }
+
     async refreshToken(): Promise<AuthTokens> {
         try {
             const refreshToken = this.getRefreshToken();

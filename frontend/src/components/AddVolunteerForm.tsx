@@ -3,27 +3,33 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { api } from '../services/api';
 import { LoadingSpinner } from './ui/loading-spinner';
+import { usersApi, type Volunteer, type CreateVolunteerRequest } from '../services/usersApi';
+
+interface AddVolunteerFormProps {
+  onSuccess?: (volunteer: Volunteer) => void;
+  onCancel?: () => void;
+}
 
 interface VolunteerFormData {
   name: string;
   email: string;
   phone: string;
   address: string;
-  role: string;
   skills: string;
   notes: string;
-  joinDate: string;
   status: 'active' | 'inactive';
-}
-
-interface AddVolunteerFormProps {
-  onSuccess?: (volunteer: any) => void;
-  onCancel?: () => void;
+  generatePassword: boolean;
+  customPassword: string;
 }
 
 const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel }) => {
@@ -34,11 +40,11 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
     email: '',
     phone: '',
     address: '',
-    role: 'volunteer',
     skills: '',
     notes: '',
-    joinDate: new Date().toISOString().split('T')[0], // Default to today
-    status: 'active'
+    status: 'active',
+    generatePassword: true,
+    customPassword: '',
   });
 
   const [errors, setErrors] = useState<Partial<VolunteerFormData>>({});
@@ -48,6 +54,8 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
     }
 
     if (!formData.email.trim()) {
@@ -58,10 +66,12 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
+    } else if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Please enter a valid phone number';
     }
 
-    if (!formData.joinDate) {
-      newErrors.joinDate = 'Join date is required';
+    if (!formData.generatePassword && formData.customPassword.length < 6) {
+      newErrors.customPassword = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -77,47 +87,47 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
 
     setLoading(true);
     try {
-      // Create volunteer data
-      const volunteerData = {
+      const volunteerData: CreateVolunteerRequest = {
         name: formData.name.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
-        address: formData.address.trim(),
-        role: formData.role,
-        skills: formData.skills.trim(),
-        notes: formData.notes.trim(),
-        joinDate: formData.joinDate,
-        status: formData.status
+        address: formData.address.trim() || undefined,
+        skills: formData.skills.trim() || undefined,
+        notes: formData.notes.trim() || undefined,
+        status: formData.status,
+        role: 'volunteer',
+        password: formData.generatePassword ? undefined : formData.customPassword,
       };
 
-      const newVolunteer = await api.volunteers.create(volunteerData);
+      const newVolunteer = await usersApi.create(volunteerData);
 
       toast({
         title: "Success",
-        description: "Volunteer has been added successfully",
+        description: `Volunteer ${newVolunteer.name} has been added successfully${
+          formData.generatePassword ? '. A temporary password has been generated.' : ''
+        }`,
       });
 
-      // Reset form
       setFormData({
         name: '',
         email: '',
         phone: '',
         address: '',
-        role: 'volunteer',
         skills: '',
         notes: '',
-        joinDate: new Date().toISOString().split('T')[0],
-        status: 'active'
+        status: 'active',
+        generatePassword: true,
+        customPassword: '',
       });
 
       if (onSuccess) {
         onSuccess(newVolunteer);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating volunteer:', error);
       toast({
         title: "Error",
-        description: "Failed to add volunteer. Please try again.",
+        description: error.message || "Failed to add volunteer. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -125,36 +135,17 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
     }
   };
 
-  const handleInputChange = (field: keyof VolunteerFormData, value: string) => {
+  const handleInputChange = (field: keyof VolunteerFormData, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
         [field]: undefined
       }));
-    }
-  };
-
-  const handleCancel = () => {
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      role: 'volunteer',
-      skills: '',
-      notes: '',
-      joinDate: new Date().toISOString().split('T')[0],
-      status: 'active'
-    });
-    setErrors({});
-    if (onCancel) {
-      onCancel();
     }
   };
 
@@ -164,37 +155,45 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
         <CardTitle>Add New Volunteer</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter full name"
-                className={errors.name ? 'border-red-500' : ''}
-              />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Personal Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Personal Information</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter full name"
+                  disabled={loading}
+                  className={errors.name ? 'border-red-500' : ''}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-600">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter email address"
+                  disabled={loading}
+                  className={errors.email ? 'border-red-500' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email}</p>
+                )}
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="Enter email address"
-                className={errors.email ? 'border-red-500' : ''}
-              />
-              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
-            </div>
-
-            {/* Phone */}
             <div className="space-y-2">
               <Label htmlFor="phone">Phone Number *</Label>
               <Input
@@ -203,44 +202,67 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="Enter phone number"
+                disabled={loading}
                 className={errors.phone ? 'border-red-500' : ''}
               />
-              {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+              {errors.phone && (
+                <p className="text-sm text-red-600">{errors.phone}</p>
+              )}
             </div>
 
-            {/* Join Date */}
             <div className="space-y-2">
-              <Label htmlFor="joinDate">Join Date *</Label>
-              <Input
-                id="joinDate"
-                type="date"
-                value={formData.joinDate}
-                onChange={(e) => handleInputChange('joinDate', e.target.value)}
-                className={errors.joinDate ? 'border-red-500' : ''}
+              <Label htmlFor="address">Address (Optional)</Label>
+              <Textarea
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                placeholder="Enter address"
+                disabled={loading}
+                rows={2}
               />
-              {errors.joinDate && <p className="text-sm text-red-500">{errors.joinDate}</p>}
+            </div>
+          </div>
+
+          {/* Skills and Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Skills & Information</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="skills">Skills & Interests (Optional)</Label>
+              <Textarea
+                id="skills"
+                value={formData.skills}
+                onChange={(e) => handleInputChange('skills', e.target.value)}
+                placeholder="Enter skills, interests, or areas of expertise"
+                disabled={loading}
+                rows={3}
+              />
             </div>
 
-            {/* Role */}
             <div className="space-y-2">
-              <Label>Role</Label>
-              <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="volunteer">Volunteer</SelectItem>
-                  <SelectItem value="team_lead">Team Lead</SelectItem>
-                  <SelectItem value="coordinator">Coordinator</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="notes">Additional Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Any additional notes or comments"
+                disabled={loading}
+                rows={2}
+              />
             </div>
+          </div>
 
-            {/* Status */}
+          {/* Account Settings */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Account Settings</h3>
+            
             <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={formData.status} onValueChange={(value: 'active' | 'inactive') => handleInputChange('status', value)}>
+              <Label htmlFor="status">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value: 'active' | 'inactive') => handleInputChange('status', value)}
+                disabled={loading}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
@@ -250,54 +272,56 @@ const AddVolunteerForm: React.FC<AddVolunteerFormProps> = ({ onSuccess, onCancel
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Password Options */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="generatePassword"
+                  checked={formData.generatePassword}
+                  onChange={(e) => handleInputChange('generatePassword', e.target.checked)}
+                  disabled={loading}
+                  className="rounded"
+                />
+                <Label htmlFor="generatePassword">Generate temporary password automatically</Label>
+              </div>
+
+              {!formData.generatePassword && (
+                <div className="space-y-2">
+                  <Label htmlFor="customPassword">Custom Password *</Label>
+                  <Input
+                    id="customPassword"
+                    type="password"
+                    value={formData.customPassword}
+                    onChange={(e) => handleInputChange('customPassword', e.target.value)}
+                    placeholder="Enter custom password"
+                    disabled={loading}
+                    className={errors.customPassword ? 'border-red-500' : ''}
+                  />
+                  {errors.customPassword && (
+                    <p className="text-sm text-red-600">{errors.customPassword}</p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Password must be at least 6 characters long
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Address */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              type="text"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Enter address"
-            />
-          </div>
-
-          {/* Skills */}
-          <div className="space-y-2">
-            <Label htmlFor="skills">Skills & Expertise</Label>
-            <Input
-              id="skills"
-              type="text"
-              value={formData.skills}
-              onChange={(e) => handleInputChange('skills', e.target.value)}
-              placeholder="e.g., Event planning, Communication, Technical support"
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Any additional information about the volunteer..."
-              rows={3}
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-4 pt-6 border-t">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
+                Cancel
+              </Button>
+            )}
             <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
                   <LoadingSpinner size="sm" className="mr-2" />
-                  Adding...
+                  Adding Volunteer...
                 </>
               ) : (
                 'Add Volunteer'

@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -9,7 +8,6 @@ export interface User {
   address?: string;
   skills?: string;
   notes?: string;
-  // joinDate: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -98,6 +96,18 @@ export interface RegisterRequest {
   skills?: string;
 }
 
+export interface CreateUserRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+  address?: string;
+  skills?: string;
+  notes?: string;
+  role: 'admin' | 'volunteer';
+  status?: 'active' | 'inactive';
+}
+
 export interface CreateGoalRequest {
   title: string;
   description: string;
@@ -171,9 +181,8 @@ export interface UserPerformance {
 
 export interface ActivityTrend {
   date: string;
-  goalCreations: number;
-  goalCompletions: number;
-  userRegistrations: number;
+  goalsCreated: number;
+  goalsCompleted: number;
   activeUsers: number;
 }
 
