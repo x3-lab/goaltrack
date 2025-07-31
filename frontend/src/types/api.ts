@@ -18,7 +18,7 @@ export interface Goal {
   description: string;
   category: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
   progress: number;
   dueDate: string;
   volunteerId: string;
@@ -123,7 +123,8 @@ export interface UpdateGoalRequest {
   description?: string;
   category?: string;
   priority?: 'low' | 'medium' | 'high';
-  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  progress?: number;
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
   dueDate?: string;
   tags?: string[];
   notes?: string;

@@ -22,7 +22,8 @@
     "test": "vitest",
     "test:auth": "tsx --require ./src/testSetup.js src/services/authTest.ts",
     "test:users": "tsx src/services/userTest.ts",
-    "test:integration": "npm run test:auth && npm run test:api && npm run test:users",
+    "test:goals": "tsx src/services/goalsTest.ts",
+    "test:integration": "npm run test:auth && npm run test:api && npm run test:users && npm run test:goals",
     "test:api": "tsx src/services/apiTest.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit"
