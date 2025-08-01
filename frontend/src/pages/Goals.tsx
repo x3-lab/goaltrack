@@ -116,13 +116,14 @@ const Goals: React.FC = () => {
         limit: itemsPerPage,
       };
 
+      // Use real backend API calls
       const [goalsResponse, statsData, volunteersData, categoriesData] = await Promise.all([
         goalsApi.getAll(filters),
         goalsApi.getStatistics(),
         usersApi.getAll({ role: 'volunteer' }),
-        goalsApi.getCategories().catch(() => []) // Don't fail if categories endpoint isn't available
+        goalsApi.getCategories().catch(() => [])
       ]);
-
+      
       setState(prev => ({
         ...prev,
         goals: goalsResponse.data,
@@ -131,19 +132,17 @@ const Goals: React.FC = () => {
         categories: categoriesData,
         loading: false,
       }));
-
+      
       setTotalPages(goalsResponse.totalPages);
       setTotalItems(goalsResponse.total);
-
-      console.log(`✅ Loaded ${goalsResponse.data.length} goals`);
     } catch (error: any) {
+      // Handle real API errors
       console.error('Error loading goals data:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to load goals data. Please try again.",
+        description: error.message || "Failed to load goals data",
         variant: "destructive"
       });
-      setState(prev => ({ ...prev, loading: false }));
     }
   }, [searchTerm, filterStatus, filterPriority, filterCategory, filterVolunteer, sortBy, sortOrder, currentPage, itemsPerPage, toast]);
 

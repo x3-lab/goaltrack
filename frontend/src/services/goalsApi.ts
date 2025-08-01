@@ -98,6 +98,8 @@ export interface WeeklyProcessingResult {
 }
 
 class GoalsApiService {
+  private baseURL = '/goals';
+  
   // Get all goals with filters and pagination
   async getAll(filters?: GoalFilterDto): Promise<PaginatedResponse<GoalResponseDto>> {
     try {
@@ -121,7 +123,7 @@ class GoalsApiService {
         page: number;
         limit: number;
         totalPages: number;
-      }>(`/goals?${params.toString()}`);
+      }>(`${this.baseURL}?${params.toString()}`);
 
       // Transform backend response to frontend format
       return {
@@ -151,7 +153,7 @@ class GoalsApiService {
   // Get goal by ID
   async getById(id: string): Promise<GoalWithProgress> {
     try {
-      const response = await httpClient.get<GoalResponseDto>(`/goals/${id}`);
+      const response = await httpClient.get<GoalResponseDto>(`${this.baseURL}/${id}`);
       
       // Get progress history
       const progressHistory = await this.getProgressHistory(id);
@@ -171,7 +173,7 @@ class GoalsApiService {
     try {
       console.log('🎯 Creating new goal:', goalData.title);
 
-      const response = await httpClient.post<GoalResponseDto>('/goals', goalData);
+      const response = await httpClient.post<GoalResponseDto>(this.baseURL, goalData);
 
       console.log('✅ Goal created successfully:', response.title);
       return this.transformGoalResponse(response);
@@ -186,7 +188,7 @@ class GoalsApiService {
     try {
       console.log(`🎯 Updating goal ${id}:`, updates);
 
-      const response = await httpClient.put<GoalResponseDto>(`/goals/${id}`, updates);
+      const response = await httpClient.put<GoalResponseDto>(`${this.baseURL}/${id}`, updates);
 
       console.log('✅ Goal updated successfully:', response.title);
       return this.transformGoalResponse(response);
@@ -202,7 +204,7 @@ class GoalsApiService {
       console.log(`🎯 Updating goal ${id} progress to ${progressData.progress}%`);
 
       const response = await httpClient.patch<GoalResponseDto>(
-        `/goals/${id}/progress`, 
+        `${this.baseURL}/${id}/progress`, 
         progressData
       );
 
@@ -219,7 +221,7 @@ class GoalsApiService {
     try {
       console.log(`🎯 Deleting goal ${id}`);
 
-      await httpClient.delete(`/goals/${id}`);
+      await httpClient.delete(`${this.baseURL}/${id}`);
 
       console.log('✅ Goal deleted successfully');
     } catch (error: any) {
@@ -242,7 +244,7 @@ class GoalsApiService {
         averageProgress: number;
         categoriesCount: number;
         upcomingDeadlines: GoalResponseDto[];
-      }>(`/goals/statistics${params}`);
+      }>(`${this.baseURL}/statistics${params}`);
 
       return {
         totalGoals: response.totalGoals,
@@ -264,7 +266,7 @@ class GoalsApiService {
   // Get available categories
   async getCategories(): Promise<string[]> {
     try {
-      const response = await httpClient.get<{ categories: string[] }>('/goals/categories');
+      const response = await httpClient.get<{ categories: string[] }>(`${this.baseURL}/categories`);
       return response.categories;
     } catch (error: any) {
       console.error('❌ Failed to get categories:', error);
@@ -306,7 +308,7 @@ class GoalsApiService {
     try {
       console.log(`🎯 Bulk updating ${request.goalIds.length} goals`);
 
-      const response = await httpClient.post<BulkUpdateResponse>('/goals/bulk-update', request);
+      const response = await httpClient.post<BulkUpdateResponse>(`${this.baseURL}/bulk-update`, request);
 
       console.log('✅ Bulk update completed:', response);
       return response;
@@ -320,7 +322,7 @@ class GoalsApiService {
     try {
       console.log(`🎯 Bulk deleting ${goalIds.length} goals`);
 
-      const response = await httpClient.post<BulkUpdateResponse>('/goals/bulk-delete', {
+      const response = await httpClient.post<BulkUpdateResponse>(`${this.baseURL}/bulk-delete`, {
         goalIds
       });
 
@@ -337,7 +339,7 @@ class GoalsApiService {
     try {
       console.log('🎯 Processing weekly goals...');
 
-      const response = await httpClient.post<WeeklyProcessingResult>('/goals/process-weekly');
+      const response = await httpClient.post<WeeklyProcessingResult>(`${this.baseURL}/process-weekly`);
 
       console.log('✅ Weekly processing completed:', response);
       return response;
@@ -359,7 +361,7 @@ class GoalsApiService {
 
       const response = await httpClient.get<{
         goals: GoalResponseDto[];
-      }>(`/goals/my-goals${params.toString() ? `?${params.toString()}` : ''}`);
+      }>(`${this.baseURL}/my-goals${params.toString() ? `?${params.toString()}` : ''}`);
 
       return response.goals.map(goal => this.transformToFrontendGoal(goal));
     } catch (error: any) {
@@ -401,7 +403,7 @@ class GoalsApiService {
     try {
       const response = await httpClient.get<{
         goals: GoalResponseDto[];
-      }>('/goals/overdue');
+      }>(`${this.baseURL}/overdue`);
 
       return response.goals.map(goal => this.transformToFrontendGoal(goal));
     } catch (error: any) {
@@ -423,7 +425,7 @@ class GoalsApiService {
         });
       }
 
-      const response = await httpClient.get(`/goals/export?${params.toString()}`, {
+      const response = await httpClient.get(`${this.baseURL}/export?${params.toString()}`, {
         responseType: 'blob'
       });
 
