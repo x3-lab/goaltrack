@@ -1,132 +1,124 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { goalsApi } from '../services/goalsApi';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Progress } from '../components/ui/progress';
-import { GoalFormModal } from '@/components/GoalFormModal';
-import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { 
   Target, 
-  Calendar, 
+  Plus, 
   TrendingUp, 
-  CheckCircle, 
-  Clock, 
-  AlertCircle,
-  Plus,
-  Filter,
+  Calendar, 
+  Award, 
+  Clock,
   BarChart3,
-  Edit,
-  Trash2,
-  MoreHorizontal
+  History,
+  RefreshCw,
+  Filter
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '../components/ui/dropdown-menu';
-import type { Goal, GoalStatistics } from '../types/api';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Progress } from '../components/ui/progress';
+import { Badge } from '../components/ui/badge';
+import { LoadingSpinner } from '../components/ui/loading-spinner';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { goalsApi } from '../services/goalsApi';
+import { progressHistoryApi, type VolunteerTrendsDto } from '../services/progressHistoryApi';
+import { analyticsApi } from '../services/analyticsApi';
+import { type PersonalAnalyticsDto } from '../types/analytics';
+import GoalCard from '../components/GoalCard';
+import WeeklyProgressSummary from '../components/WeeklyProgressSummary';
+import PersonalAnalytics from '../components/PersonalAnalytics';
+import ProgressUpdate from '../components/ProgressUpdate';
+import { EnhancedGoalForm } from '../components/enhanced-goal-form';
+import { Goal } from '../types/api'
 
-interface VolunteerDashboardState {
-  goals: Goal[];
-  stats: GoalStatistics | null;
-  loading: boolean;
-  refreshing: boolean;
-}
 
 const VolunteerDashboard: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
   // State management
-  const [state, setState] = useState<VolunteerDashboardState>({
-    goals: [],
-    stats: null,
-    loading: true,
-    refreshing: false,
-  });
-
-  // UI State
-  const [showGoalModal, setShowGoalModal] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue'>('all');
-  const [priorityFilter, setPriorityFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [trends, setTrends] = useState<VolunteerTrendsDto | null>(null);
+  const [analytics, setAnalytics] = useState<PersonalAnalyticsDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'goals' | 'analytics' | 'history'>('overview');
+  
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       loadDashboardData();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const loadDashboardData = async () => {
-    if (!user) return;
-
     try {
-      setState(prev => ({ ...prev, loading: true }));
+      console.log('📊 Loading volunteer dashboard data...');
+      
+      if (!user?.id) {
+        throw new Error('User ID not available');
+      }
 
-      // Load goals and statistics in parallel
-      const [goalsData, statsData] = await Promise.all([
-        goalsApi.getMyGoals(),
-        goalsApi.getStatistics(user.id)
+      // Load goals using the correct API method
+      const goalsResponse = await goalsApi.getMyGoals(); // This returns Goal[] directly
+      setGoals(goalsResponse); // No need to access .goals property
+
+      // Load trends and analytics
+      const [trendsData, analyticsData] = await Promise.all([
+        progressHistoryApi.getMyTrends().catch(error => {
+          console.warn('Failed to load trends:', error);
+          return null;
+        }),
+        analyticsApi.getPersonalAnalytics({ volunteerId: user.id }).catch(error => {
+          console.warn('Failed to load analytics:', error);
+          return null;
+        })
       ]);
 
-      setState(prev => ({
-        ...prev,
-        goals: goalsData,
-        stats: statsData,
-        loading: false,
-      }));
+      setTrends(trendsData);
+      setAnalytics(analyticsData);
 
-      console.log(`✅ Loaded ${goalsData.length} goals for volunteer`);
+      console.log('✅ Dashboard data loaded successfully');
+      
     } catch (error: any) {
-      console.error('Error loading volunteer dashboard:', error);
+      console.error('❌ Error loading dashboard:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to load your dashboard. Please try again.",
+        description: "Failed to load dashboard data. Please refresh the page.",
         variant: "destructive"
       });
-      setState(prev => ({ ...prev, loading: false }));
+    } finally {
+      setLoading(false);
     }
   };
 
   const refreshData = async () => {
-    setState(prev => ({ ...prev, refreshing: true }));
+    setRefreshing(true);
     await loadDashboardData();
-    setState(prev => ({ ...prev, refreshing: false }));
+    setRefreshing(false);
   };
 
   const handleCreateGoal = async (goalData: any) => {
     try {
+      console.log('🎯 Creating new goal...');
+      
       await goalsApi.create({
-        title: goalData.title,
-        description: goalData.description,
-        category: goalData.category,
-        priority: goalData.priority.toLowerCase() as 'low' | 'medium' | 'high',
-        dueDate: goalData.dueDate,
-        volunteerId: user?.id,
-        tags: goalData.tags || [],
+        ...goalData,
+        volunteerId: user?.id
       });
-
-      setShowGoalModal(false);
+      
       await refreshData();
+      setShowCreateGoal(false);
       
       toast({
-        title: "Goal Created",
-        description: `"${goalData.title}" has been added to your goals`,
+        title: "Goal Created! 🎯",
+        description: "Your new goal has been added successfully.",
       });
+      
     } catch (error: any) {
-      console.error('Error creating goal:', error);
+      console.error('❌ Error creating goal:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create goal",
@@ -135,20 +127,9 @@ const VolunteerDashboard: React.FC = () => {
     }
   };
 
-  const handleUpdateGoal = async (goalId: string, updates: Partial<Goal>) => {
+  const handleUpdateGoal = async (id: string, updates: Partial<Goal>) => {
     try {
-      await goalsApi.update(goalId, {
-        title: updates.title,
-        description: updates.description,
-        category: updates.category,
-        priority: updates.priority,
-        status: updates.status,
-        dueDate: updates.dueDate,
-        tags: updates.tags,
-        notes: updates.notes,
-      });
-
-      setEditingGoal(null);
+      await goalsApi.update(id, updates);
       await refreshData();
       
       toast({
@@ -165,13 +146,15 @@ const VolunteerDashboard: React.FC = () => {
     }
   };
 
-  const handleDeleteGoal = async (goalId: string, goalTitle: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${goalTitle}"? This action cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteGoal = async (id: string) => {
+    const goal = goals.find(g => g.id === id);
+    if (!goal) return;
+
+    const confirmMessage = `Are you sure you want to delete "${goal.title}"?`;
+    if (!window.confirm(confirmMessage)) return;
 
     try {
-      await goalsApi.delete(goalId);
+      await goalsApi.delete(id);
       await refreshData();
       
       toast({
@@ -230,60 +213,30 @@ const VolunteerDashboard: React.FC = () => {
   };
 
   // Filter goals based on current filters
-  const filteredGoals = state.goals.filter(goal => {
-    if (statusFilter !== 'all' && goal.status !== statusFilter) return false;
-    if (priorityFilter !== 'all' && goal.priority !== priorityFilter) return false;
-    return true;
+  const filteredGoals = goals.filter(goal => {
+    const matchesStatus = statusFilter === 'all' || goal.status === statusFilter;
+    const matchesCategory = categoryFilter === 'all' || goal.category === categoryFilter;
+    return matchesStatus && matchesCategory;
   });
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { label: 'Pending', variant: 'secondary' as const, icon: Clock, className: ''},
-      in_progress: { label: 'In Progress', variant: 'default' as const, icon: TrendingUp, className: '' },
-      completed: { label: 'Completed', variant: 'default' as const, icon: CheckCircle, className: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' as const, icon: AlertCircle, className: '' },
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className={config.className}>
-        <Icon className="h-3 w-3 mr-1" />
-        {config.label}
-      </Badge>
-    );
+  // Calculate statistics
+  const stats = {
+    total: goals.length,
+    completed: goals.filter(g => g.status === 'completed').length,
+    inProgress: goals.filter(g => g.status === 'in-progress').length,
+    pending: goals.filter(g => g.status === 'pending').length,
+    overdue: goals.filter(g => g.status === 'overdue').length,
+    averageProgress: goals.length > 0 ? Math.round(goals.reduce((sum, g) => sum + g.progress, 0) / goals.length) : 0,
+    completionRate: goals.length > 0 ? Math.round((goals.filter(g => g.status === 'completed').length / goals.length) * 100) : 0
   };
 
-  const getPriorityBadge = (priority: string) => {
-    const priorityConfig = {
-      low: { label: 'Low', className: 'bg-blue-100 text-blue-800' },
-      medium: { label: 'Medium', className: 'bg-yellow-100 text-yellow-800' },
-      high: { label: 'High', className: 'bg-red-100 text-red-800' },
-    };
-
-    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium;
-
+  if (loading) {
     return (
-      <Badge variant="outline" className={config.className}>
-        {config.label}
-      </Badge>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  if (state.loading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <LoadingSpinner size="lg" />
-        <span className="ml-3 text-lg">Loading your dashboard...</span>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-lg">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -293,234 +246,317 @@ const VolunteerDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Dashboard</h1>
-          <p className="text-muted-foreground">
-            Track your progress and manage your goals
+          <h1 className="text-3xl font-bold">Welcome back, {user?.name}!</h1>
+          <p className="text-gray-600">
+            Track your goals and monitor your progress
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={refreshData} 
-            variant="outline" 
-            disabled={state.refreshing}
-            className="gap-2"
-          >
-            {state.refreshing ? <LoadingSpinner size="sm" /> : <BarChart3 className="h-4 w-4" />}
-            Refresh
+        <div className="flex items-center gap-3">
+          <Button onClick={refreshData} variant="outline" disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
-          <Button onClick={() => setShowGoalModal(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button onClick={() => setShowCreateGoal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
             New Goal
           </Button>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      {state.stats && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Target className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-2xl font-bold">{state.stats.totalGoals}</p>
-                  <p className="text-sm text-muted-foreground">Total Goals</p>
+      {/* Navigation Tabs */}
+      <div className="border-b">
+        <nav className="flex space-x-8">
+          {[
+            { key: 'overview', label: 'Overview', icon: BarChart3 },
+            { key: 'goals', label: 'Goals', icon: Target },
+            { key: 'analytics', label: 'Analytics', icon: TrendingUp },
+            { key: 'history', label: 'History', icon: History }
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as any)}
+              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === tab.key
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Goals</p>
+                    <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+                  </div>
+                  <Target className="h-8 w-8 text-blue-600" />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Completed</p>
+                    <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                  </div>
+                  <Award className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Avg Progress</p>
+                    <p className="text-2xl font-bold text-purple-600">{stats.averageProgress}%</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-purple-600" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Completion Rate</p>
+                    <p className="text-2xl font-bold text-orange-600">{stats.completionRate}%</p>
+                  </div>
+                  <Clock className="h-8 w-8 text-orange-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Weekly Progress Summary */}
+          <WeeklyProgressSummary 
+            volunteerId={user?.id}
+            onSubmitWeeklyReport={refreshData}
+          />
+
+          {/* Recent Goals */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Recent Goals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {goals.slice(0, 3).length > 0 ? (
+                <div className="grid gap-4">
+                  {goals.slice(0, 3).map((goal) => (
+                    <GoalCard
+                      key={goal.id}
+                      goal={goal}
+                      onUpdate={handleUpdateGoal}
+                      onDelete={handleDeleteGoal}
+                      onProgressUpdate={handleProgressUpdate}
+                      onMarkComplete={handleMarkComplete}
+                      compact={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p className="text-gray-500 mb-4">No goals yet</p>
+                  <Button onClick={() => setShowCreateGoal(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Goal
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Progress Trends Preview */}
+          {trends && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Progress Trends
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{trends.overallAverageProgress}%</div>
+                    <div className="text-sm text-blue-700">Overall Avg Progress</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">{trends.overallCompletionRate}%</div>
+                    <div className="text-sm text-green-700">Completion Rate</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">{trends.weeklyTrends.length}</div>
+                    <div className="text-sm text-purple-700">Weeks Tracked</div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveTab('analytics')}
+                    className="w-full"
+                  >
+                    View Detailed Analytics
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Goals Tab */}
+      {activeTab === 'goals' && (
+        <div className="space-y-6">
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  <span className="text-sm font-medium">Filters:</span>
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-1 border rounded text-sm"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="overdue">Overdue</option>
+                </select>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-3 py-1 border rounded text-sm"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="Community Service">Community Service</option>
+                  <option value="Training">Training</option>
+                  <option value="Environmental">Environmental</option>
+                  <option value="Education">Education</option>
+                  <option value="Administration">Administration</option>
+                </select>
+                {(statusFilter !== 'all' || categoryFilter !== 'all') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setStatusFilter('all');
+                      setCategoryFilter('all');
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-2xl font-bold">{state.stats.completedGoals}</p>
-                  <p className="text-sm text-muted-foreground">Completed</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Goals Grid */}
+          {filteredGoals.length > 0 ? (
+            <div className="grid gap-6">
+              {filteredGoals.map((goal) => (
+                <GoalCard
+                  key={goal.id}
+                  goal={goal}
+                  onUpdate={handleUpdateGoal}
+                  onDelete={handleDeleteGoal}
+                  onProgressUpdate={handleProgressUpdate}
+                  onMarkComplete={handleMarkComplete}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500 mb-4">
+                  {statusFilter !== 'all' || categoryFilter !== 'all' 
+                    ? 'No goals match your current filters' 
+                    : 'No goals yet'}
+                </p>
+                <Button onClick={() => setShowCreateGoal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Goal
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-2xl font-bold">{Math.round(state.stats.averageProgress)}%</p>
-                  <p className="text-sm text-muted-foreground">Avg Progress</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <PersonalAnalytics 
+          volunteerId={user?.id}
+          showInsights={true}
+        />
+      )}
 
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div className="space-y-6">
+          <WeeklyProgressSummary 
+            volunteerId={user?.id}
+            showSubmitButton={false}
+          />
+          
+          {/* Add ProgressHistory component here when ready */}
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <AlertCircle className="h-8 w-8 text-red-600" />
-                <div className="ml-4">
-                  <p className="text-2xl font-bold">{state.stats.overdueGoals}</p>
-                  <p className="text-sm text-muted-foreground">Overdue</p>
-                </div>
-              </div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Progress History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                View your complete progress history and track your journey over time.
+              </p>
+              <Button onClick={() => setActiveTab('analytics')}>
+                View Analytics for Detailed History
+              </Button>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Filters and Goals */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Your Goals</h2>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-500" />
-            
-            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={priorityFilter} onValueChange={(value: any) => setPriorityFilter(value)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Badge variant="secondary">
-              {filteredGoals.length} goals
-            </Badge>
+      {/* Create Goal Modal */}
+      {showCreateGoal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Create New Goal</h2>
+              <EnhancedGoalForm
+                onSubmit={handleCreateGoal}
+                onCancel={() => setShowCreateGoal(false)}
+                volunteerId={user?.id}
+              />
+            </div>
           </div>
         </div>
-        
-        <div className="grid gap-4">
-          {filteredGoals.length > 0 ? filteredGoals.map(goal => (
-            <Card key={goal.id} className="hover:shadow-lg transition-shadow duration-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex flex-col">
-                  <CardTitle className="text-lg font-semibold">{goal.title}</CardTitle>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {goal.tags?.map(tag => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(goal.status)}
-                  {getPriorityBadge(goal.priority)}
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingGoal(goal)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Goal
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => handleProgressUpdate(goal.id, Math.min(100, goal.progress + 10), 'Progress update')}
-                      >
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        Update Progress
-                      </DropdownMenuItem>
-                      {goal.status !== 'completed' && (
-                        <DropdownMenuItem onClick={() => handleMarkComplete(goal.id)}>
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Mark Complete
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => handleDeleteGoal(goal.id, goal.title)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{goal.description}</p>
-                
-                {/* Progress Bar */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{goal.progress}%</span>
-                  </div>
-                  <Progress value={goal.progress} className="h-2" />
-                </div>
-                
-                {/* Due Date */}
-                <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>Due: {formatDate(goal.dueDate)}</span>
-                  {new Date(goal.dueDate) < new Date() && goal.status !== 'completed' && (
-                    <Badge variant="destructive" className="ml-2">Overdue</Badge>
-                  )}
-                </div>
-
-                {/* Category */}
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline">{goal.category}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-          )) : (
-            <div className="text-center py-12 text-gray-500">
-              <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg mb-2">No goals found</p>
-              <p className="text-sm">
-                {statusFilter !== 'all' || priorityFilter !== 'all' 
-                  ? 'Try adjusting your filters or create a new goal.'
-                  : 'Create your first goal to get started on your journey!'}
-              </p>
-              <Button 
-                onClick={() => setShowGoalModal(true)} 
-                className="mt-4"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Goal
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Goal Creation/Edit Modal */}
-      <GoalFormModal
-        isOpen={showGoalModal || !!editingGoal}
-        onClose={() => {
-          setShowGoalModal(false);
-          setEditingGoal(null);
-        }}
-        onSubmit={editingGoal ? 
-          (data) => handleUpdateGoal(editingGoal.id, data) : 
-          handleCreateGoal
-        }
-        initialData={editingGoal || undefined}
-        title={editingGoal ? 'Edit Goal' : 'Create New Goal'}
-      />
+      )}
     </div>
   );
 };

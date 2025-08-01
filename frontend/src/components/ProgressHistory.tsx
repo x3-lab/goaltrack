@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Calendar, 
   ChevronLeft, 
@@ -10,7 +10,9 @@ import {
   Award,
   Eye,
   CalendarDays,
-  X
+  X,
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -20,27 +22,97 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Input } from './ui/input';
-import { type HistoricalWeek } from '../services/api';
+import { LoadingSpinner } from './ui/loading-spinner';
+import { useToast } from '@/hooks/use-toast';
+import { progressHistoryApi, type VolunteerWeeklyHistoryDto, type HistoricalWeekDto } from '../services/progressHistoryApi';
 
+// Updated interface to match backend DTOs
 interface ProgressHistoryProps {
-  historicalData: HistoricalWeek[];
-  onRefresh?: () => void;
   volunteerId?: string;
+  onRefresh?: () => void;
+  showAnalytics?: boolean;
 }
 
-const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRefresh, volunteerId }) => {
+const ProgressHistory: React.FC<ProgressHistoryProps> = ({ 
+  volunteerId, 
+  onRefresh, 
+  showAnalytics = true 
+}) => {
+  const { toast } = useToast();
+  
+  // State management
+  const [weeklyHistory, setWeeklyHistory] = useState<VolunteerWeeklyHistoryDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Filter states
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [selectedWeek, setSelectedWeek] = useState<HistoricalWeek | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [selectedWeek, setSelectedWeek] = useState<HistoricalWeekDto | null>(null);
   const [dateRangeStart, setDateRangeStart] = useState<Date>();
   const [dateRangeEnd, setDateRangeEnd] = useState<Date>();
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
+  // Load progress history on component mount and when volunteerId changes
+  useEffect(() => {
+    loadProgressHistory();
+  }, [volunteerId]);
+
+  const loadProgressHistory = async (refresh = false) => {
+    if (refresh) setRefreshing(true);
+    else setLoading(true);
+    
+    setError(null);
+    
+    try {
+      console.log('📊 Loading progress history...');
+      
+      let result: VolunteerWeeklyHistoryDto;
+      
+      if (volunteerId) {
+        result = await progressHistoryApi.getVolunteerWeeklyHistory(
+          volunteerId,
+          dateRangeStart?.toISOString().split('T')[0],
+          dateRangeEnd?.toISOString().split('T')[0]
+        );
+      } else {
+        result = await progressHistoryApi.getMyWeeklyHistory(
+          dateRangeStart?.toISOString().split('T')[0],
+          dateRangeEnd?.toISOString().split('T')[0]
+        );
+      }
+      
+      setWeeklyHistory(result);
+      console.log('✅ Progress history loaded successfully');
+      
+    } catch (error: any) {
+      console.error('❌ Error loading progress history:', error);
+      setError('Failed to load progress history');
+      toast({
+        title: "Error",
+        description: "Failed to load progress history. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await loadProgressHistory(true);
+    if (onRefresh) onRefresh();
+  };
+
   // Enhanced filtering logic
   const filteredData = useMemo(() => {
-    return historicalData.filter(week => {
+    if (!weeklyHistory?.weeks) return [];
+    
+    return weeklyHistory.weeks.filter(week => {
       const weekStart = new Date(week.weekStart);
       const weekEnd = new Date(week.weekEnd);
       
@@ -63,22 +135,23 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
       
       return true;
     });
-  }, [historicalData, selectedDate, dateRangeStart, dateRangeEnd, searchTerm]);
+  }, [weeklyHistory, selectedDate, dateRangeStart, dateRangeEnd, searchTerm]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-orange-100 text-orange-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Low': return 'bg-green-100 text-green-800';
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -96,23 +169,27 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
     setDateRangeEnd(undefined);
     setStatusFilter('all');
     setPriorityFilter('all');
+    setCategoryFilter('all');
     setSearchTerm('');
   };
 
-  const filteredGoalsInWeek = (week: HistoricalWeek) => {
+  const filteredGoalsInWeek = (week: HistoricalWeekDto) => {
     return week.goals.filter(goal => {
       const matchesStatus = statusFilter === 'all' || goal.status === statusFilter;
       const matchesPriority = priorityFilter === 'all' || goal.priority === priorityFilter;
-      return matchesStatus && matchesPriority;
+      const matchesCategory = categoryFilter === 'all' || goal.category === categoryFilter;
+      return matchesStatus && matchesPriority && matchesCategory;
     });
   };
 
-  const handleWeekSelect = (week: HistoricalWeek) => {
+  const handleWeekSelect = (week: HistoricalWeekDto) => {
     setSelectedWeek(selectedWeek?.weekStart === week.weekStart ? null : week);
   };
 
   // Statistics calculation
   const overallStats = useMemo(() => {
+    if (!weeklyHistory) return null;
+    
     const totalWeeks = filteredData.length;
     const totalGoals = filteredData.reduce((sum, week) => sum + week.totalGoals, 0);
     const completedGoals = filteredData.reduce((sum, week) => sum + week.completedGoals, 0);
@@ -124,12 +201,71 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
       totalWeeks,
       totalGoals,
       completedGoals,
-      averageCompletionRate
+      averageCompletionRate,
+      overallAverageProgress: weeklyHistory.averageProgress,
+      overallCompletionRate: weeklyHistory.averageCompletionRate
     };
-  }, [filteredData]);
+  }, [filteredData, weeklyHistory]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Progress History</h2>
+            <p className="text-gray-600">Loading your goal completion history...</p>
+          </div>
+          <div className="animate-pulse bg-gray-200 h-10 w-32 rounded"></div>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+          <span className="ml-3 text-lg">Loading progress history...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !weeklyHistory) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Progress History</h2>
+          <Button onClick={handleRefresh} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+        <div className="text-center py-12">
+          <Clock className="h-12 w-12 mx-auto mb-4 text-red-400" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading History</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={handleRefresh}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Progress History</h2>
+          <p className="text-gray-600">
+            {weeklyHistory?.volunteerName && `${weeklyHistory.volunteerName}'s `}
+            goal completion history and progress tracking
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
+      </div>
+
       {/* Enhanced Filters */}
       <Card>
         <CardHeader>
@@ -165,6 +301,46 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+            </div>
+            <div className="flex gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="Community Service">Community Service</SelectItem>
+                  <SelectItem value="Training">Training</SelectItem>
+                  <SelectItem value="Environmental">Environmental</SelectItem>
+                  <SelectItem value="Education">Education</SelectItem>
+                  <SelectItem value="Administration">Administration</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -259,7 +435,7 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
           </div>
 
           {/* Active Filters Display */}
-          {(selectedDate || dateRangeStart || dateRangeEnd || searchTerm) && (
+          {(selectedDate || dateRangeStart || dateRangeEnd || searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' || categoryFilter !== 'all') && (
             <div className="flex flex-wrap gap-2 items-center">
               <span className="text-sm text-gray-600">Active filters:</span>
               {selectedDate && (
@@ -294,6 +470,30 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
                   </button>
                 </Badge>
               )}
+              {statusFilter !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Status: {statusFilter}
+                  <button onClick={() => setStatusFilter('all')}>
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {priorityFilter !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Priority: {priorityFilter}
+                  <button onClick={() => setPriorityFilter('all')}>
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {categoryFilter !== 'all' && (
+                <Badge variant="secondary" className="gap-1">
+                  Category: {categoryFilter}
+                  <button onClick={() => setCategoryFilter('all')}>
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
             </div>
           )}
 
@@ -301,57 +501,57 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
             <Button variant="outline" onClick={clearAllFilters}>
               Clear All Filters
             </Button>
-            {onRefresh && (
-              <Button variant="outline" onClick={onRefresh}>
-                Refresh Data
-              </Button>
-            )}
+            <Button variant="outline" onClick={handleRefresh}>
+              Refresh Data
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Statistics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-blue-600">{overallStats.totalWeeks}</p>
-              <p className="text-sm text-gray-600">Total Weeks</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <Target className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-purple-600">{overallStats.totalGoals}</p>
-              <p className="text-sm text-gray-600">Total Goals</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <Award className="h-8 w-8 text-green-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-green-600">{overallStats.completedGoals}</p>
-              <p className="text-sm text-gray-600">Completed Goals</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <TrendingUp className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-orange-600">{overallStats.averageCompletionRate}%</p>
-              <p className="text-sm text-gray-600">Avg Completion</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {showAnalytics && overallStats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-blue-600">{overallStats.totalWeeks}</p>
+                <p className="text-sm text-gray-600">Total Weeks</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Target className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-purple-600">{overallStats.totalGoals}</p>
+                <p className="text-sm text-gray-600">Total Goals</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Award className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-green-600">{overallStats.completedGoals}</p>
+                <p className="text-sm text-gray-600">Completed Goals</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <TrendingUp className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-orange-600">{overallStats.averageCompletionRate}%</p>
+                <p className="text-sm text-gray-600">Avg Completion</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Calendar View */}
       {viewMode === 'calendar' && (
@@ -434,7 +634,7 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
                                 </div>
                                 <div className="flex gap-2">
                                   <Badge className={getStatusColor(goal.status)}>
-                                    {goal.status}
+                                    {goal.status.replace('_', ' ')}
                                   </Badge>
                                   <Badge className={getPriorityColor(goal.priority)}>
                                     {goal.priority}
@@ -534,7 +734,7 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
                             </div>
                             <div className="flex gap-2">
                               <Badge className={getStatusColor(goal.status)}>
-                                {goal.status}
+                                {goal.status.replace('_', ' ')}
                               </Badge>
                               <Badge className={getPriorityColor(goal.priority)}>
                                 {goal.priority}
@@ -564,7 +764,7 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({ historicalData, onRef
         </div>
       )}
 
-      {filteredData.length === 0 && (
+      {filteredData.length === 0 && !loading && (
         <Card>
           <CardContent className="text-center py-12">
             <Clock className="h-12 w-12 mx-auto mb-4 text-gray-300" />

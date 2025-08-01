@@ -7,21 +7,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, X, Copy, Bookmark, Search } from 'lucide-react';
+import { Plus, X, Copy, Bookmark, Search, Target } from 'lucide-react';
 import { api, GoalTemplate } from '../services/api';
+import { Goal } from '@/types/api';
 
-interface EnhancedGoalFormProps {
-  onSubmit: (goal: any) => Promise<void>;
-  initialData?: any;
-  showTemplates?: boolean;
+export interface EnhancedGoalFormProps {
+  onSubmit: (goalData: any) => Promise<void>;
+  onCancel?: () => void; // Now optional
   volunteerId?: string;
+  initialData?: Partial<Goal>;
+  mode?: 'create' | 'edit';
+  showTemplates?: boolean;
 }
 
 export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   onSubmit,
+  onCancel,
+  volunteerId,
   initialData,
-  showTemplates = true,
-  volunteerId
+  mode = 'create',
+  showTemplates = true
 }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -111,6 +116,13 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const isFormValid = () => {
+    return formData.title.trim() !== '' && 
+           formData.description.trim() !== '' && 
+           formData.category.trim() !== '' && 
+           formData.dueDate !== '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -128,11 +140,11 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
       await onSubmit(goalData);
       
       toast({
-        title: `Goal ${initialData ? 'updated' : 'created'} successfully`,
-        description: `Goal ${initialData ? 'updated' : 'created'} successfully`,
+        title: `Goal ${mode === 'edit' ? 'updated' : 'created'} successfully`,
+        description: `Goal ${mode === 'edit' ? 'updated' : 'created'} successfully`,
       });
       
-      if (!initialData) {
+      if (mode !== 'edit') {
         setFormData({
           title: '',
           description: '',
@@ -145,7 +157,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     } catch (error) {
       toast({
         title: "Error",
-        description: `Failed to ${initialData ? 'update' : 'create'} goal`,
+        description: `Failed to ${mode === 'edit' ? 'update' : 'create'} goal`,
         variant: "destructive"
       });
     } finally {
@@ -207,7 +219,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   return (
     <div className="space-y-6">
       {/* Header with duplicate button for editing */}
-      {initialData && (
+      {mode === 'edit' && (
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">Edit Goal</h3>
           <Button 
@@ -224,7 +236,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
       )}
 
       {/* Goal Templates */}
-      {!initialData && showTemplates && (
+      {mode !== 'edit' && showTemplates && (
         <div className="space-y-4">
           <Label className="text-base font-semibold">Quick Start Templates</Label>
           
@@ -417,12 +429,36 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
           )}
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? (
-            <LoadingSpinner size="sm" className="mr-2" />
-          ) : null}
-          {initialData ? 'Update Goal' : 'Create Goal'}
-        </Button>
+        <div className="flex gap-2 pt-4">
+          <Button
+            type="submit"
+            disabled={loading || !isFormValid()}
+            className="flex-1"
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                {mode === 'edit' ? 'Updating...' : 'Creating...'}
+              </>
+            ) : (
+              <>
+                <Target className="h-4 w-4 mr-2" />
+                {mode === 'edit' ? 'Update Goal' : 'Create Goal'}
+              </>
+            )}
+          </Button>
+          
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
       </form>
     </div>
   );

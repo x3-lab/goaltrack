@@ -337,7 +337,6 @@ const Goals: React.FC = () => {
     const statusConfig = {
       pending: { variant: 'secondary' as const, icon: Clock, color: 'bg-gray-100 text-gray-800' },
       'in-progress': { variant: 'default' as const, icon: Target, color: 'bg-blue-100 text-blue-800' },
-      'in_progress': { variant: 'default' as const, icon: Target, color: 'bg-blue-100 text-blue-800' },
       completed: { variant: 'default' as const, icon: CheckCircle, color: 'bg-green-100 text-green-800' },
       overdue: { variant: 'destructive' as const, icon: AlertCircle, color: 'bg-red-100 text-red-800' },
       cancelled: { variant: 'destructive' as const, icon: AlertCircle, color: 'bg-red-100 text-red-800' },

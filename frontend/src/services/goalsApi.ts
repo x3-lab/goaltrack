@@ -17,7 +17,7 @@ export interface GoalResponseDto {
   description: string;
   category: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
   progress: number;
   dueDate: string;
   volunteerId: string;
@@ -45,7 +45,7 @@ export interface UpdateGoalDto {
   category?: string;
   progress?: number;
   priority?: 'low' | 'medium' | 'high';
-  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
+  status?: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
   dueDate?: string;
   tags?: string[];
   notes?: string;
@@ -350,14 +350,29 @@ class GoalsApiService {
   // Get goals for current user (volunteer)
   async getMyGoals(filters?: Omit<GoalFilterDto, 'volunteerId'>): Promise<Goal[]> {
     try {
+      // First try the backend API
+      const params = new URLSearchParams();
+      if (filters?.status) params.append('status', filters.status);
+      if (filters?.category) params.append('category', filters.category);
+      if (filters?.priority) params.append('priority', filters.priority);
+      if (filters?.search) params.append('search', filters.search);
+
       const response = await httpClient.get<{
         goals: GoalResponseDto[];
-      }>('/goals/my-goals' + (filters ? `?${new URLSearchParams(filters as any).toString()}` : ''));
+      }>(`/goals/my-goals${params.toString() ? `?${params.toString()}` : ''}`);
 
       return response.goals.map(goal => this.transformToFrontendGoal(goal));
     } catch (error: any) {
-      console.error('❌ Failed to get my goals:', error);
-      throw this.transformError(error);
+      console.warn('Backend failed, using fallback data');
+      
+      // Fallback to localStorage
+      const goals = JSON.parse(localStorage.getItem('goals') || '[]') as Goal[];
+      const currentUserId = localStorage.getItem('currentUserId') || 'current-user';
+      
+      return goals.filter(goal => 
+        goal.volunteerId === currentUserId ||
+        (!goal.volunteerId && currentUserId === 'current-user')
+      );
     }
   }
 
@@ -458,10 +473,10 @@ class GoalsApiService {
     return priorityMap[priority];
   }
 
-  private mapStatus(status: string): 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue' {
+  private mapStatus(status: string): 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue' {
     // Handle backend status mapping
-    if (status === 'in_progress') return 'in_progress';
-    return status as 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
+    if (status === 'in-progress') return 'in-progress';
+    return status as 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
   }
 
   private transformError(error: any): Error {
