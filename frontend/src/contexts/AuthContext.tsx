@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { authApi, type AuthUser } from '../services/authApi';
 import type { LoginRequest, RegisterRequest } from '../types/api';
 
@@ -49,7 +49,7 @@ const initialState: AuthState = {
   isInitialized: false,
 };
 
-const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'AUTH_INIT_START':
       return {
@@ -122,10 +122,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       };
       
     case 'CLEAR_ERROR':
-      return {
-        ...state,
-        error: null,
-      };
+      if (state.error === null) return state;
+      return { ...state, error: null };
       
     default:
       return state;
@@ -141,42 +139,38 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  useEffect(() => {
-    initializeAuth();
-  }, []);
-
-  const initializeAuth = async () => {
-    dispatch({ type: 'AUTH_INIT_START' });
-
+  const initializeAuth = useCallback(async () => {
     try {
-      if (!authApi.isAuthenticated()) {
+      dispatch({ type: 'AUTH_INIT_START' });
+      const token = authApi.getAuthToken();
+      const storedUser = authApi.getStoredUser();
+      if (!token || !storedUser) {
         dispatch({ type: 'AUTH_INIT_FAILURE' });
         return;
       }
-
       if (authApi.isTokenExpired()) {
-        console.log('Token expired, attempting refresh...');
-        
         try {
           await authApi.refreshToken();
-        } catch (refreshError) {
-          console.log('Token refresh failed, clearing auth data');
+          const refreshed = authApi.getStoredUser();
+          if (refreshed) {
+            dispatch({ type: 'AUTH_INIT_SUCCESS', payload: refreshed });
+          } else {
+            dispatch({ type: 'AUTH_INIT_FAILURE' });
+          }
+        } catch {
           authApi.clearAuthData();
           dispatch({ type: 'AUTH_INIT_FAILURE' });
-          return;
         }
+      } else {
+        dispatch({ type: 'AUTH_INIT_SUCCESS', payload: storedUser });
       }
-
-      const user = await authApi.getCurrentUser();
-      dispatch({ type: 'AUTH_INIT_SUCCESS', payload: user });
-      
-      console.log('Authentication initialized successfully');
-    } catch (error: any) {
-      console.error('Auth initialization failed:', error);
+    } catch {
       authApi.clearAuthData();
       dispatch({ type: 'AUTH_INIT_FAILURE' });
     }
-  };
+  }, []);
+
+  useEffect(() => { initializeAuth(); }, [initializeAuth]);
 
   const login = async (credentials: LoginRequest): Promise<void> => {
     dispatch({ type: 'LOGIN_START' });
@@ -243,21 +237,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshUserData = async (): Promise<void> => {
     try {
+      dispatch({ type: 'AUTH_INIT_START' });
       const user = await authApi.getCurrentUser();
-      dispatch({ type: 'UPDATE_USER', payload: user });
+      dispatch({ type: 'AUTH_INIT_SUCCESS', payload: user });
     } catch (error) {
       console.error('Failed to refresh user data:', error);
+      dispatch({ type: 'AUTH_INIT_FAILURE' });
       throw error;
     }
   };
 
-  const clearError = (): void => {
+  // Memoize clearError to prevent unnecessary re-renders
+  const clearError = useCallback(() => {
     dispatch({ type: 'CLEAR_ERROR' });
-  };
+  }, []);
 
-  const hasRole = (role: 'admin' | 'volunteer'): boolean => {
+  // Memoize hasRole to prevent unnecessary re-renders
+  const hasRole = useCallback((role: 'admin' | 'volunteer'): boolean => {
     return state.user?.role === role;
-  };
+  }, [state.user?.role]);
 
   const contextValue: AuthContextType = {
     user: state.user,

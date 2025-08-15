@@ -190,7 +190,7 @@ const AdminProfile: React.FC = () => {
         await updateUser({
           ...user,
           name: updatedProfile.name,
-          phone: updatedProfile.phone
+          phoneNumber: updatedProfile.phone
         });
       }
       

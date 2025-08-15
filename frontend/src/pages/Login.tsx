@@ -27,12 +27,6 @@ const Login: React.FC = () => {
     clearError();
   }, [clearError]);
 
-  useEffect(() => {
-    if (formData.email || formData.password) {
-      setValidationErrors({});
-      clearError();
-    }
-  }, [formData.email, formData.password, clearError]);
 
   if (!isInitialized) {
     return (
@@ -96,6 +90,17 @@ const Login: React.FC = () => {
       ...prev,
       [field]: value
     }));
+
+    if (validationErrors[field]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
+
+    if (error) {
+      clearError();
+    }
   };
 
   const isFormDisabled = isLoading || isSubmitting;

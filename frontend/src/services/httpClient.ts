@@ -1,46 +1,23 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { API_CONFIG } from './config';
 
-if (typeof localStorage === 'undefined') {
-  global.localStorage = {
-    getItem: () => null,
-    setItem: () => {},
-    removeItem: () => {},
-  } as any;
-}
-
-if (typeof window === 'undefined') {
-  global.window = {
-    location: { href: '' },
-  } as any;
-}
-
-
-declare module 'axios' {
-  interface InternalAxiosRequestConfig {
-    metadata?: {
-      startTime: Date;
-    };
-  }
-}
-
-export interface ApiError {
-  message: string;
-  status: number;
+interface ApiError extends Error {
+  status?: number;
   code?: string;
-  details?: any;
 }
 
-export interface ApiResponse<T = any> {
+interface ApiResponse<T> {
   data: T;
-  message?: string;
   success: boolean;
+  message?: string;
 }
 
 class HttpClient {
   private client: AxiosInstance;
   private retryQueue: Array<() => void> = [];
   private isRefreshing = false;
+
+  // private hasNotifiedAuthFailure = false;
 
   constructor() {
     this.client = axios.create({
@@ -50,75 +27,71 @@ class HttpClient {
         'Content-Type': 'application/json',
       },
     });
+
     this.setupInterceptors();
   }
 
   private setupInterceptors() {
-    // Request interceptor - Add auth token
     this.client.interceptors.request.use(
       (config) => {
         const token = this.getAuthToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-        
-        // Add request timestamp for debugging
-        config.metadata = { startTime: new Date() };
-        
-        console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, {
-          params: config.params,
-          data: config.data,
-        });
-        
         return config;
       },
-      (error) => {
-        console.error('Request error:', error);
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
-    // Response interceptor - Handle responses and errors
     this.client.interceptors.response.use(
-      (response: AxiosResponse) => {
-        const duration = new Date().getTime() - response.config.metadata?.startTime?.getTime();
-        console.log(`${response.config.method?.toUpperCase()} ${response.config.url} (${duration}ms)`, {
-          status: response.status,
-          data: response.data,
-        });
-        
-        return response;
-      },
+      (response) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-        
-        console.error(`${originalRequest.method?.toUpperCase()} ${originalRequest.url}`, {
-          status: error.response?.status,
-          message: error.message,
-          data: error.response?.data,
-        });
+        const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean });
 
-        const hadToken = !!this.getAuthToken();
-        if (error.response?.status === 401 && !originalRequest._retry && hadToken) {
-          if (this.isRefreshing) {
-            return new Promise((resolve) => {
-              this.retryQueue.push(() => resolve(this.client(originalRequest)));
-            });
+        // If no response (network), just pass along
+        if (!error.response) {
+          return Promise.reject(this.transformError(error));
+        }
+
+        const status = error.response.status;
+
+        // 401 handling
+        if (status === 401) {
+          const hasAccess = !!this.getAuthToken();
+            const hasRefresh = !!this.getRefreshToken();
+
+          // If we have both tokens, try refresh once
+          if (hasAccess && hasRefresh && !originalRequest._retry) {
+            if (this.isRefreshing) {
+              return new Promise((resolve, reject) => {
+                this.retryQueue.push(() => {
+                  originalRequest.headers = originalRequest.headers || {};
+                  originalRequest.headers.Authorization = `Bearer ${this.getAuthToken()}`;
+                  this.client(originalRequest).then(resolve).catch(reject);
+                });
+              });
+            }
+
+            originalRequest._retry = true;
+            this.isRefreshing = true;
+
+            try {
+              await this.refreshTokenSilently();
+              this.processRetryQueue();
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers.Authorization = `Bearer ${this.getAuthToken()}`;
+              return this.client(originalRequest);
+            } catch (refreshErr) {
+              this.flushRetryQueueWithFailure(refreshErr);
+              // Fall through to reject – let context handle logout / redirect
+            } finally {
+              this.isRefreshing = false;
+            }
           }
 
-          originalRequest._retry = true;
-          this.isRefreshing = true;
-
-          try {
-            await this.refreshToken();
-            this.processRetryQueue();
-            return this.client(originalRequest);
-          } catch (refreshError) {
-            this.handleAuthFailure();
-            return Promise.reject(refreshError);
-          } finally {
-            this.isRefreshing = false;
-          }
+          // No tokens to refresh or refresh failed: just reject (NO redirect here)
+          // Upstream (AuthContext) decides what to do.
+          return Promise.reject(this.transformError(error));
         }
 
         return Promise.reject(this.transformError(error));
@@ -126,115 +99,154 @@ class HttpClient {
     );
   }
 
-  private async refreshToken(): Promise<void> {
-    try {
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      const response = await axios.post(
-        `${API_CONFIG.BASE_URL}/auth/refresh`,
-        { refreshToken }
-      );
-
-      const { access_token, refresh_token } = response.data;
-      localStorage.setItem('authToken', access_token);
-      if (refresh_token) {
-        localStorage.setItem('refreshToken', refresh_token);
-      }
-    } catch (error) {
-      console.error('Failed to refresh token:', error);
-      throw error;
-    }
+  private async refreshTokenSilently(): Promise<void> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) throw new Error('No refresh token available');
+    const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/refresh`, {
+      refresh_token: refreshToken,
+    });
+    const { access_token, refresh_token: newRefreshToken, user } = response.data;
+    localStorage.setItem('authToken', access_token);
+    if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
+    if (user) localStorage.setItem('user', JSON.stringify(user));
   }
 
-  private processRetryQueue(): void {
-    this.retryQueue.forEach((callback) => callback());
+  private flushRetryQueueWithFailure(err: any) {
+    this.retryQueue.forEach(cb => cb());
     this.retryQueue = [];
   }
 
-  private handleAuthFailure(): void {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    
-    window.location.href = '/login';
+  private processRetryQueue(): void {
+    this.retryQueue.forEach(cb => cb());
+    this.retryQueue = [];
   }
 
   private getAuthToken(): string | null {
     return localStorage.getItem('authToken');
   }
 
-  private transformError(error: AxiosError): ApiError {
-    const apiError: ApiError = {
-      message: 'An unexpected error occurred',
-      status: 500,
-    };
+  private getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
+  }
 
+  private shouldRetry(error: AxiosError, retryCount: number): boolean {
+    if (retryCount >= API_CONFIG.RETRY_ATTEMPTS) {
+      return false;
+    }
+
+    if (!error.response) {
+      return true;
+    }
+
+    const status = error.response.status;
+
+    if (status >= 400 && status < 500) {
+      if ([400, 401, 403, 404, 409, 422, 429].includes(status)) {
+        console.log(`❌ Not retrying ${status} error - client error`);
+        return false;
+      }
+    }
+
+    if (status >= 500 || status === 0) {
+      console.log(`🔄 Will retry ${status} error - server/network error`);
+      return true;
+    }
+
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      console.log(`🔄 Will retry timeout error`);
+      return true;
+    }
+
+    console.log(`❌ Not retrying ${status} error - not retriable`);
+    return false;
+  }
+
+  private transformError(error: AxiosError): ApiError {
+    const apiError: ApiError = new Error();
+    
     if (error.response) {
       apiError.status = error.response.status;
       apiError.message = (error.response.data as any)?.message || error.message;
-      apiError.details = error.response.data;
     } else if (error.request) {
-      apiError.message = 'Network error - please check your connection';
       apiError.status = 0;
+      apiError.message = 'Network error. Please check your connection.';
     } else {
       apiError.message = error.message;
     }
-
+    
+    apiError.code = error.code;
     return apiError;
-  }
-
-  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.requestWithRetry(() => this.client.get<ApiResponse<T>>(url, config));
-  }
-
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.requestWithRetry(() => this.client.post<ApiResponse<T>>(url, data, config));
-  }
-
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.requestWithRetry(() => this.client.put<ApiResponse<T>>(url, data, config));
-  }
-
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return this.requestWithRetry(() => this.client.patch<ApiResponse<T>>(url, data, config));
-  }
-
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return this.requestWithRetry(() => this.client.delete<ApiResponse<T>>(url, config));
-  }
-
-  private async requestWithRetry<T>(
-    requestFn: () => Promise<AxiosResponse<ApiResponse<T>>>,
-    retryCount = 0
-  ): Promise<T> {
-    try {
-      const response = await requestFn();
-      if (response.data.data !== undefined) {
-        return response.data.data;
-      } else if (response.data.success) {
-        return response.data as unknown as T;
-      } else {
-        throw new Error('Invalid response format');
-      }
-    } catch (error) {
-      if (retryCount < API_CONFIG.RETRY_ATTEMPTS && this.shouldRetry(error as AxiosError)) {
-        console.log(`🔄 Retrying request (attempt ${retryCount + 1}/${API_CONFIG.RETRY_ATTEMPTS})`);
-        await this.delay(API_CONFIG.RETRY_DELAY * (retryCount + 1));
-        return this.requestWithRetry(requestFn, retryCount + 1);
-      }
-      throw error;
-    }
-  }
-
-  private shouldRetry(error: AxiosError): boolean {
-    return !error.response || (error.response.status >= 500 && error.response.status < 600);
   }
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async requestWithRetry<T>(
+    requestFn: () => Promise<AxiosResponse<any>>,
+    retryCount = 0
+  ): Promise<T> {
+    try {
+      const response = await requestFn();
+      
+      console.log(`✅ Request successful on attempt ${retryCount + 1}`);
+      
+      if (response.data?.data !== undefined) {
+        return response.data.data;
+      } else if (response.data?.success !== false) {
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Request failed');
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      
+      if (this.shouldRetry(axiosError, retryCount)) {
+        const delay = API_CONFIG.RETRY_DELAY * Math.pow(2, retryCount);
+        
+        console.log(`🔄 Retrying request in ${delay}ms (attempt ${retryCount + 1}/${API_CONFIG.RETRY_ATTEMPTS})`);
+        console.log(`📝 Error details:`, {
+          status: axiosError.response?.status,
+          message: axiosError.message,
+          code: axiosError.code
+        });
+        
+        await this.delay(delay);
+        return this.requestWithRetry(requestFn, retryCount + 1);
+      }
+      
+      console.log(`❌ Request failed permanently after ${retryCount + 1} attempts`);
+      throw this.transformError(axiosError);
+    }
+  }
+
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.get(url, config));
+  }
+
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.post(url, data, config));
+  }
+
+  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.put(url, data, config));
+  }
+
+  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.patch(url, data, config));
+  }
+
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.requestWithRetry<T>(() => this.client.delete(url, config));
+  }
+
+  async postNoRetry<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    try {
+      const response = await this.client.post(url, data, config);
+      return response.data?.data !== undefined ? response.data.data : response.data;
+    } catch (error) {
+      throw this.transformError(error as AxiosError);
+    }
   }
 
   setAuthToken(token: string): void {
@@ -245,13 +257,7 @@ class HttpClient {
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
   }
-
-  getClient(): AxiosInstance {
-    return this.client;
-  }
 }
 
-const httpClient = new HttpClient();
+export const httpClient = new HttpClient();
 export default httpClient;
-
-export { HttpClient };

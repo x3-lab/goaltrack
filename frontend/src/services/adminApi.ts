@@ -1,6 +1,5 @@
 import httpClient from './httpClient';
 import { ENDPOINTS } from './config';
-import { authApi, type ChangePasswordRequest } from './authApi';
 import type { User } from '../types/api';
 
 // Import types that match backend DTOs exactly

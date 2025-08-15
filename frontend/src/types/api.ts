@@ -89,11 +89,18 @@ export interface LoginResponse {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   role?: 'volunteer';
-  phone?: string;
+  phoneNumber?: string;
   address?: string;
-  skills?: string;
+  skills?: string[];
+  position?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface CreateUserRequest {

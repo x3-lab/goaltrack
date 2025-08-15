@@ -17,34 +17,77 @@ const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
     email: '',
     password: '',
-    name: '',
-    phone: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
     address: '',
-    skills: ''
+    skills: [],
+    position: ''
   });
   
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [skillsInput, setSkillsInput] = useState(''); // For comma-separated skills input
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
     password?: string;
     confirmPassword?: string;
-    name?: string;
-    phone?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
   }>({});
 
+  // Clear error on mount only
   useEffect(() => {
     clearError();
   }, [clearError]);
 
-  useEffect(() => {
-    if (Object.values(formData).some(value => value) || confirmPassword) {
-      setValidationErrors({});
+  // Clear errors when user starts typing
+  const handleInputChange = (field: keyof RegisterRequest, value: string | string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear validation error for this field
+    if (validationErrors[field as keyof typeof validationErrors]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
+    
+    // Clear auth error when user starts typing
+    if (error) {
       clearError();
     }
-  }, [formData, confirmPassword, clearError]);
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    
+    // Clear validation error when user starts typing
+    if (validationErrors.confirmPassword) {
+      setValidationErrors(prev => ({
+        ...prev,
+        confirmPassword: undefined
+      }));
+    }
+    
+    // Clear auth error when user starts typing
+    if (error) {
+      clearError();
+    }
+  };
+
+  const handleSkillsChange = (value: string) => {
+    setSkillsInput(value);
+    // Convert comma-separated string to array
+    const skillsArray = value.split(',').map(skill => skill.trim()).filter(skill => skill);
+    handleInputChange('skills', skillsArray);
+  };
 
   if (!isInitialized) {
     return (
@@ -65,10 +108,16 @@ const Register: React.FC = () => {
   const validateForm = (): boolean => {
     const errors: typeof validationErrors = {};
     
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required';
-    } else if (formData.name.trim().length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    } else if (formData.firstName.trim().length < 2) {
+      errors.firstName = 'First name must be at least 2 characters';
+    }
+    
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    } else if (formData.lastName.trim().length < 2) {
+      errors.lastName = 'Last name must be at least 2 characters';
     }
     
     if (!formData.email.trim()) {
@@ -77,10 +126,8 @@ const Register: React.FC = () => {
       errors.email = 'Please enter a valid email address';
     }
     
-    if (!formData.phone?.trim()) {
-      errors.phone = 'Phone number is required';
-    } else if (!/^[\+]?[\d\s\-\(\)]{10,}$/.test(formData.phone.trim())) {
-      errors.phone = 'Please enter a valid phone number';
+    if (formData.phoneNumber && !/^[\+]?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber.trim())) {
+      errors.phoneNumber = 'Please enter a valid phone number';
     }
     
     if (!formData.password) {
@@ -114,11 +161,18 @@ const Register: React.FC = () => {
       const registrationData: RegisterRequest = {
         email: formData.email.trim(),
         password: formData.password,
-        name: formData.name.trim(),
-        phone: formData.phone?.trim() || undefined,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        phoneNumber: formData.phoneNumber?.trim() || undefined,
         address: formData.address?.trim() || undefined,
-        skills: formData.skills?.trim() || undefined,
+        skills: formData.skills?.length ? formData.skills : undefined,
+        position: formData.position?.trim() || undefined,
       };
+
+      console.log('🚀 Submitting registration data:', {
+        ...registrationData,
+        password: '[HIDDEN]'
+      });
 
       await register(registrationData);
       
@@ -127,13 +181,6 @@ const Register: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleInputChange = (field: keyof RegisterRequest, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
   const isFormDisabled = isLoading || isSubmitting;
@@ -163,73 +210,109 @@ const Register: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Personal Information */}
+            {/* Name Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                  Full Name *
+                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                  First Name *
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
-                    id="name"
+                    id="firstName"
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter your full name"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    placeholder="Enter your first name"
                     disabled={isFormDisabled}
-                    className={`pl-10 ${validationErrors.name ? 'border-red-500' : ''}`}
-                    autoComplete="name"
+                    className={`pl-10 ${validationErrors.firstName ? 'border-red-500' : ''}`}
+                    autoComplete="given-name"
                   />
                 </div>
-                {validationErrors.name && (
-                  <p className="text-sm text-red-600">{validationErrors.name}</p>
+                {validationErrors.firstName && (
+                  <p className="text-sm text-red-600">{validationErrors.firstName}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Address *
+                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                  Last Name *
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="Enter your email"
+                    id="lastName"
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    placeholder="Enter your last name"
                     disabled={isFormDisabled}
-                    className={`pl-10 ${validationErrors.email ? 'border-red-500' : ''}`}
-                    autoComplete="email"
+                    className={`pl-10 ${validationErrors.lastName ? 'border-red-500' : ''}`}
+                    autoComplete="family-name"
                   />
                 </div>
-                {validationErrors.email && (
-                  <p className="text-sm text-red-600">{validationErrors.email}</p>
+                {validationErrors.lastName && (
+                  <p className="text-sm text-red-600">{validationErrors.lastName}</p>
                 )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                Phone Number *
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                Email Address *
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Enter your email"
+                  disabled={isFormDisabled}
+                  className={`pl-10 ${validationErrors.email ? 'border-red-500' : ''}`}
+                  autoComplete="email"
+                />
+              </div>
+              {validationErrors.email && (
+                <p className="text-sm text-red-600">{validationErrors.email}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">
+                Phone Number (Optional)
               </Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  id="phone"
+                  id="phoneNumber"
                   type="tel"
-                  value={formData.phone || ''}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  value={formData.phoneNumber || ''}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   placeholder="Enter your phone number"
                   disabled={isFormDisabled}
-                  className={`pl-10 ${validationErrors.phone ? 'border-red-500' : ''}`}
+                  className={`pl-10 ${validationErrors.phoneNumber ? 'border-red-500' : ''}`}
                   autoComplete="tel"
                 />
               </div>
-              {validationErrors.phone && (
-                <p className="text-sm text-red-600">{validationErrors.phone}</p>
+              {validationErrors.phoneNumber && (
+                <p className="text-sm text-red-600">{validationErrors.phoneNumber}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="position" className="text-sm font-medium text-gray-700">
+                Position (Optional)
+              </Label>
+              <Input
+                id="position"
+                type="text"
+                value={formData.position || ''}
+                onChange={(e) => handleInputChange('position', e.target.value)}
+                placeholder="e.g., Student, Teacher, Engineer"
+                disabled={isFormDisabled}
+              />
             </div>
 
             <div className="space-y-2">
@@ -256,13 +339,16 @@ const Register: React.FC = () => {
               </Label>
               <Textarea
                 id="skills"
-                value={formData.skills || ''}
-                onChange={(e) => handleInputChange('skills', e.target.value)}
-                placeholder="Tell us about your skills, interests, and areas you'd like to contribute to..."
+                value={skillsInput}
+                onChange={(e) => handleSkillsChange(e.target.value)}
+                placeholder="Enter skills separated by commas (e.g., Communication, Leadership, Programming)"
                 disabled={isFormDisabled}
                 className="resize-none"
                 rows={3}
               />
+              <p className="text-xs text-gray-500">
+                Separate multiple skills with commas
+              </p>
             </div>
 
             {/* Password Fields */}
@@ -307,7 +393,7 @@ const Register: React.FC = () => {
                     id="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                     placeholder="Confirm your password"
                     disabled={isFormDisabled}
                     className={`pl-10 pr-10 ${validationErrors.confirmPassword ? 'border-red-500' : ''}`}

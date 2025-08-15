@@ -1,24 +1,30 @@
 import httpClient from './httpClient';
 import { ENDPOINTS } from './config';
-import type { 
-    LoginRequest, 
-    LoginResponse, 
-    RegisterRequest, 
-    User,
-    ApiErrorResponse 
-} from '../types/api';
+import type { LoginRequest, RegisterRequest, ChangePasswordRequest } from '../types/api';
 
 export interface AuthTokens {
-    access_token: string;
-    refresh_token?: string;
+  access_token: string;
+  refresh_token?: string;
 }
 
-export interface AuthUser extends Omit<User, 'password'> {
+export interface AuthUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  name?: string; // Computed field
+  role: 'admin' | 'volunteer';
+  phoneNumber?: string;
+  address?: string;
+  position?: string;
+  skills?: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ChangePasswordRequest {
-    currentPassword: string;
-    newPassword: string;
+export interface LoginResponse extends AuthTokens {
+  user: AuthUser;
 }
 
 class AuthApiService {
@@ -28,7 +34,7 @@ class AuthApiService {
 
     async login(credentials: LoginRequest): Promise<LoginResponse> {
         try {
-            console.log('Attempting login for:', credentials.email);
+            console.log('🔐 Attempting login for:', credentials.email);
             
             const response = await httpClient.post<LoginResponse>(
                 ENDPOINTS.AUTH.LOGIN, 
@@ -37,10 +43,10 @@ class AuthApiService {
 
             this.setAuthData(response.access_token, response.user, response.refresh_token);
             
-            console.log('Login successful for:', response.user.email);
+            console.log('✅ Login successful for:', response.user.email);
             return response;
         } catch (error: any) {
-            console.error('Login failed:', error);
+            console.error('❌ Login failed:', error);
             this.clearAuthData();
             throw this.transformAuthError(error);
         }
@@ -48,9 +54,9 @@ class AuthApiService {
 
     async register(userData: RegisterRequest): Promise<LoginResponse> {
         try {
-            console.log('Attempting registration for:', userData.email);
+            console.log('📝 Attempting registration for:', userData.email);
             
-            const response = await httpClient.post<LoginResponse>(
+            const response = await httpClient.postNoRetry<LoginResponse>(
                 ENDPOINTS.AUTH.REGISTER, 
                 userData
             );
@@ -68,34 +74,37 @@ class AuthApiService {
     async logout(): Promise<void> {
         try {
             console.log('Logging out user');
+            // Don't retry logout requests
+            await httpClient.postNoRetry(ENDPOINTS.AUTH.LOGOUT);
         } catch (error) {
             console.warn('Logout request failed (continuing anyway):', error);
         } finally {
             this.clearAuthData();
+            console.log('User logged out locally');
         }
     }
 
     async getCurrentUser(): Promise<AuthUser> {
         try {
+            console.log('Getting current user profile');
+            
             const response = await httpClient.get<AuthUser>(ENDPOINTS.AUTH.PROFILE);
             
-            globalThis.localStorage.setItem(this.USER_KEY, JSON.stringify(response));
+            localStorage.setItem(this.USER_KEY, JSON.stringify(response));
             
+            console.log('Current user profile loaded');
             return response;
         } catch (error: any) {
             console.error('Failed to get current user:', error);
-            
-            if (error.status === 401) {
-                this.clearAuthData();
-            }
-            
             throw this.transformAuthError(error);
         }
     }
 
     async changePassword(passwordData: ChangePasswordRequest): Promise<{ message: string }> {
         try {
-            const response = await httpClient.patch<{ message: string }>(
+            console.log('Changing user password');
+            
+            const response = await httpClient.post<{ message: string }>(
                 ENDPOINTS.AUTH.CHANGE_PASSWORD,
                 passwordData
             );
@@ -103,7 +112,7 @@ class AuthApiService {
             console.log('Password changed successfully');
             return response;
         } catch (error: any) {
-            console.error('Password change failed:', error);
+            console.error('Failed to change password:', error);
             throw this.transformAuthError(error);
         }
     }
@@ -134,66 +143,54 @@ class AuthApiService {
                 throw new Error('No refresh token available');
             }
 
-            const response = await httpClient.post<LoginResponse>(
+            console.log('Refreshing authentication token');
+            
+            const response = await httpClient.postNoRetry<AuthTokens>(
                 ENDPOINTS.AUTH.REFRESH,
                 { refresh_token: refreshToken }
             );
-
-            this.setAuthData(response.access_token, response.user, response.refresh_token);
             
-            return {
-                access_token: response.access_token,
-                refresh_token: response.refresh_token
-            };
+            this.setAuthData(response.access_token, this.getStoredUser(), response.refresh_token);
+            
+            console.log('Token refreshed successfully');
+            return response;
         } catch (error: any) {
-            console.error('Token refresh failed:', error);
+            console.error('Failed to refresh token:', error);
             this.clearAuthData();
             throw this.transformAuthError(error);
         }
     }
 
+    // Token management methods
     setAuthData(token: string, user: AuthUser, refreshToken?: string): void {
-        globalThis.localStorage.setItem(this.TOKEN_KEY, token);
-        globalThis.localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-        
+        localStorage.setItem(this.TOKEN_KEY, token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
         if (refreshToken) {
-            globalThis.localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+            localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
         }
-        
-        httpClient.setAuthToken(token);
     }
 
     getAuthToken(): string | null {
-        return globalThis.localStorage.getItem(this.TOKEN_KEY);
+        return localStorage.getItem(this.TOKEN_KEY);
     }
 
     getRefreshToken(): string | null {
-        return globalThis.localStorage.getItem(this.REFRESH_TOKEN_KEY);
+        return localStorage.getItem(this.REFRESH_TOKEN_KEY);
     }
 
     getStoredUser(): AuthUser | null {
-        const userStr = globalThis.localStorage.getItem(this.USER_KEY);
-        if (!userStr) return null;
-        
-        try {
-            return JSON.parse(userStr);
-        } catch (error) {
-            console.error('Error parsing stored user:', error);
-            return null;
-        }
+        const userData = localStorage.getItem(this.USER_KEY);
+        return userData ? JSON.parse(userData) : null;
     }
 
     clearAuthData(): void {
-        globalThis.localStorage.removeItem(this.TOKEN_KEY);
-        globalThis.localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-        globalThis.localStorage.removeItem(this.USER_KEY);
-        httpClient.clearAuthToken();
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
     }
 
     isAuthenticated(): boolean {
-        const token = this.getAuthToken();
-        const user = this.getStoredUser();
-        return !!(token && user);
+        return !!this.getAuthToken();
     }
 
     isTokenExpired(): boolean {
@@ -202,18 +199,13 @@ class AuthApiService {
 
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            const currentTime = Date.now() / 1000;
-            
-            return payload.exp < currentTime;
-        } catch (error) {
-            console.error('Error checking token expiration:', error);
-            return true;
+            const exp = payload.exp * 1000;
+            return Date.now() >= exp;   
         }
-    }
-
-    getUserRole(): 'admin' | 'volunteer' | null {
-        const user = this.getStoredUser();
-        return user?.role || null;
+        catch (error) {
+            console.error('Failed to decode token:', error);
+            return true; // Assume expired if we can't decode
+        }
     }
 
     private transformAuthError(error: any): Error {
@@ -232,17 +224,6 @@ class AuthApiService {
         }
         
         return new Error(error.message || 'An unexpected error occurred.');
-    }
-
-    getDebugInfo(): object {
-        return {
-            isAuthenticated: this.isAuthenticated(),
-            hasToken: !!this.getAuthToken(),
-            hasRefreshToken: !!this.getRefreshToken(),
-            hasUser: !!this.getStoredUser(),
-            userRole: this.getUserRole(),
-            isTokenExpired: this.isTokenExpired(),
-        };
     }
 }
 
