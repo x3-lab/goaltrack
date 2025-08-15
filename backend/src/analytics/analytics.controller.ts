@@ -6,6 +6,8 @@ import {
     ValidationPipe,
     Post,
     Body,
+    Param,
+    ParseUUIDPipe,
 } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { SystemOverviewDto } from './dto/system-overview.dto';
@@ -13,7 +15,7 @@ import { PersonalAnalyticsDto } from './dto/personal-analytics.dto';
 import { AnalyticsDataDto } from './dto/analytics-data.dto';
 import { ExportReportDto } from './dto/export-report.dto';
 import { VolunteerPerformanceDto } from './dto/volunteer-performance.dto';
-import { AnalyticsFiltersDto, PersonalAnalyticsFiltersDto } from './dto/analytics-filters.dto';
+import { AnalyticsFiltersDto, PersonalAnalyticsQueryDto, PersonalAnalyticsFiltersDto } from './dto/analytics-filters.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -38,9 +40,15 @@ export class AnalyticsController {
 
     @Get('personal/:volunteerId')
     async getPersonalAnalytics(
-        @Query(ValidationPipe) filters: PersonalAnalyticsFiltersDto,
+        @Param('volunteerId', new ParseUUIDPipe()) volunteerId: string,
+        @Query(new ValidationPipe({ transform: true, whitelist: true })) query: PersonalAnalyticsQueryDto,
         @CurrentUser() currentUser: User,
     ): Promise<PersonalAnalyticsDto> {
+        const filters: PersonalAnalyticsFiltersDto = {
+            volunteerId,
+            startDate: query.startDate,
+            endDate: query.endDate,
+        };
         return this.analyticsService.getPersonalAnalytics(filters, currentUser);
     }
 

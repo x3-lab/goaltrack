@@ -26,3 +26,13 @@ export class PersonalAnalyticsFiltersDto {
   @IsDateString()
   endDate?: string;
 }
+
+export class PersonalAnalyticsQueryDto {
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+}
