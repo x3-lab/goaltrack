@@ -1,12 +1,21 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User } from 'lucide-react';
-import VolunteerProfile from '@/pages/VolunteerProfile';
-import path from 'path';
+import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User, LucideIcon } from 'lucide-react';
 
-const Navigation: React.FC = () => {
+interface NavigationItem {
+  path?: string;
+  href?: string;
+  label?: string;
+  title?: string;
+  icon: LucideIcon;
+}
+
+interface NavigationProps {
+  items?: NavigationItem[];
+}
+
+const Navigation: React.FC<NavigationProps> = ({ items }) => {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -29,7 +38,8 @@ const Navigation: React.FC = () => {
     { path: '/admin-dashboard/settings', label: 'Settings', icon: Settings },
   ];
 
-  const navItems = user.role === 'admin' ? adminNavItems : volunteerNavItems;
+  // Use provided items or fall back to default items based on user role
+  const navItems = items || (user.role === 'admin' ? adminNavItems : volunteerNavItems);
 
   return (
     <nav className="bg-gray-50 border-r border-gray-200 w-64 min-h-screen">
@@ -45,12 +55,14 @@ const Navigation: React.FC = () => {
         <ul className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const path = item.path || item.href || '';
+            const label = item.label || item.title || '';
+            const isActive = location.pathname === path;
             
             return (
-              <li key={item.path}>
+              <li key={path}>
                 <Link
-                  to={item.path}
+                  to={path}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-indigo-100 text-indigo-700'
@@ -58,7 +70,7 @@ const Navigation: React.FC = () => {
                   }`}
                 >
                   <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <span>{label}</span>
                 </Link>
               </li>
             );

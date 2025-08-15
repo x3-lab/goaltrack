@@ -16,13 +16,14 @@ import VolunteerDashboard from './pages/VolunteerDashboard';
 // Admin pages
 import AdminProfile from './pages/AdminProfile';
 import AdminVolunteerManagement from './pages/AdminVolunteerManagement';
-// import AdminGoalManagement from './pages/AdminGoalManagement';
+import AdminGoalManagement from './pages/AdminGoalManagement';
 import AdminAnalytics from './pages/AdminAnalytics';
 import AdminSettings from './pages/AdminSettings';
+import AdminAdvancedAnalytics from './pages/AdminAdvancedAnalytics';
 
 // Volunteer pages
 import VolunteerProfile from './pages/VolunteerProfile';
-// import VolunteerGoals from './pages/VolunteerGoals';
+import VolunteerGoals from './pages/VolunteerGoals';
 
 // Shared pages
 import Goals from './pages/Goals';
@@ -79,11 +80,11 @@ function App() {
               </AdminRoute>
             } />
             
-            {/* <Route path="/admin-dashboard/goals" element={
+            <Route path="/admin-dashboard/goals" element={
               <AdminRoute>
                 <AdminGoalManagement />
               </AdminRoute>
-            } /> */}
+            } />
             
             <Route path="/admin-dashboard/analytics" element={
               <AdminRoute>
@@ -95,6 +96,12 @@ function App() {
               <AdminRoute>
                 <AdminSettings />
               </AdminRoute>
+            } />
+            
+            <Route path="/admin-dashboard/advanced-analytics" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminAdvancedAnalytics />
+              </ProtectedRoute>
             } />
             
             {/* Volunteer routes */}
@@ -110,11 +117,11 @@ function App() {
               </VolunteerRoute>
             } />
             
-            {/* <Route path="/volunteer-dashboard/goals" element={
+            <Route path="/volunteer-dashboard/goals" element={
               <VolunteerRoute>
                 <VolunteerGoals />
               </VolunteerRoute>
-            } /> */}
+            } />
             
             {/* Shared goal management */}
             <Route path="/goals" element={

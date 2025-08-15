@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { analyticsApi } from '../services/analyticsApi';
+import { progressHistoryApi } from '../services/progressHistoryApi';
 import PersonalAnalytics from '../components/PersonalAnalytics';
 import type { PersonalAnalyticsDto } from '../types/analytics';
 
@@ -35,11 +36,15 @@ const PersonalAnalyticsPage: React.FC = () => {
     try {
       console.log('🔄 Loading personal analytics for user:', user.id);
       
-      const data = await analyticsApi.getPersonalAnalytics({ 
-        volunteerId: user.id 
-      });
+      const [data, trends, productivity] = await Promise.all([
+        analyticsApi.getPersonalAnalytics({ volunteerId: user.id }),
+        progressHistoryApi.getVolunteerTrends(user.id),
+        progressHistoryApi.getVolunteerMostProductiveDay(user.id)
+      ]);
       
       setAnalyticsData(data);
+      // Store trends and productivity in state if needed by other components
+      
       console.log('✅ Personal analytics loaded successfully');
     } catch (err: any) {
       console.error('❌ Error loading analytics data:', err);
@@ -213,7 +218,7 @@ const PersonalAnalyticsPage: React.FC = () => {
       </div>
 
       <PersonalAnalytics 
-        data={analyticsData} 
+        analytics={analyticsData} 
         onRefresh={handleRefresh}
         volunteerId={user?.id}
       />

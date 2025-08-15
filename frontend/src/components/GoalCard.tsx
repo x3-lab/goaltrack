@@ -37,7 +37,7 @@ interface GoalCardProps {
   showVolunteerInfo?: boolean;
   compact?: boolean;
   onProgressUpdate?: (goalId: string, progress: number, notes: string) => void;
-  onMarkComplete?: (goalId: string) => void;
+  onMarkComplete?: (goalId: string) => Promise<void>;
 }
 
 const GoalCard: React.FC<GoalCardProps> = ({ 
@@ -667,10 +667,23 @@ const GoalCard: React.FC<GoalCardProps> = ({
             currentProgress={goal.progress}
             goalTitle={goal.title}
             goalStatus={goal.status}
-            onProgressUpdate={onProgressUpdate || ((goalId, progress, notes) => {
-              onUpdate(goalId, { progress, updatedAt: new Date().toISOString() });
-            })}
-            onMarkComplete={onMarkComplete || (() => handleMarkComplete())}
+            onUpdate={onProgressUpdate ? 
+              async (progress: number, notes: string) => {
+                await onProgressUpdate(goal.id, progress, notes);
+              } : 
+              async (progress: number, notes: string) => {
+                onUpdate(goal.id, { progress, updatedAt: new Date().toISOString() });
+              }
+            }
+            onCancel={() => {}}
+            onMarkComplete={onMarkComplete ? 
+              async (goalId: string) => {
+                await onMarkComplete(goalId);
+              } : 
+              async () => {
+                await handleMarkComplete();
+              }
+            }
             showHistory={true}
             compact={true}
           />

@@ -15,25 +15,44 @@ interface PersonalAnalyticsProps {
   volunteerId?: string;
   showInsights?: boolean;
   compact?: boolean;
+
+  // New props for integration with parent components
+  analytics?: PersonalAnalyticsDto | null;
+  onRefresh?: () => Promise<void>;
 }
 
 const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({ 
   volunteerId, 
   showInsights = true,
-  compact = false
+  compact = false,
+  analytics: externalAnalytics = null,
+  onRefresh
 }) => {
   const { toast } = useToast();
-  const [analytics, setAnalytics] = useState<PersonalAnalyticsDto | null>(null);
+  const [analytics, setAnalytics] = useState<PersonalAnalyticsDto | null>(externalAnalytics);
   const [trends, setTrends] = useState<VolunteerTrendsDto | null>(null);
   const [productivityData, setProductivityData] = useState<MostProductiveDayDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!externalAnalytics);
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'productivity'>('overview');
 
   useEffect(() => {
-    loadAnalyticsData();
-  }, [volunteerId]);
+    // If external analytics are provided, use them
+    if (externalAnalytics) {
+      setAnalytics(externalAnalytics);
+      setLoading(false);
+    } else {
+      // Otherwise load data ourselves
+      loadAnalyticsData();
+    }
+  }, [volunteerId, externalAnalytics]);
 
   const loadAnalyticsData = async () => {
+    // If onRefresh is provided, use that instead
+    if (onRefresh) {
+      await onRefresh();
+      return;
+    }
+
     setLoading(true);
     try {
       console.log('📊 Loading personal analytics data...');
@@ -64,6 +83,13 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
       setLoading(false);
     }
   };
+
+  // When externalAnalytics changes, we need to update our state
+  useEffect(() => {
+    if (externalAnalytics) {
+      setAnalytics(externalAnalytics);
+    }
+  }, [externalAnalytics]);
 
   const getPerformanceLevel = (score: number) => {
     if (score >= 90) return { level: 'Excellent', color: 'text-green-600', bg: 'bg-green-100' };

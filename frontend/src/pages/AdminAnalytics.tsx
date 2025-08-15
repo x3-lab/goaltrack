@@ -405,10 +405,10 @@ const AdminAnalytics: React.FC = () => {
                     {volunteerPerformance
                       .sort((a, b) => b.completionRate - a.completionRate)
                       .map((volunteer) => (
-                      <tr key={volunteer.id} className="border-t hover:bg-gray-50">
+                      <tr key={volunteer.volunteerId} className="border-t hover:bg-gray-50">
                         <td className="p-3">
                           <div>
-                            <div className="font-medium">{volunteer.name}</div>
+                            <div className="font-medium">{volunteer.volunteerName}</div>
                             <div className="text-gray-500 text-xs">{volunteer.email}</div>
                           </div>
                         </td>

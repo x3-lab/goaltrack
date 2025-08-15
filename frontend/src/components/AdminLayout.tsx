@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { LoadingSpinner } from './ui/loading-spinner';
+import { Home, Users, Target, BarChart, TrendingUp, FileText, Settings } from 'lucide-react';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -31,9 +32,47 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     );
   }
 
+  const navigationItems = [
+    {
+      title: "Dashboard",
+      href: "/admin-dashboard",
+      icon: Home
+    },
+    {
+      title: "Volunteers",
+      href: "/admin-dashboard/volunteers",
+      icon: Users
+    },
+    {
+      title: "Goals",
+      href: "/admin-dashboard/goals",
+      icon: Target
+    },
+    {
+      title: "Basic Analytics",
+      href: "/admin-dashboard/analytics",
+      icon: BarChart
+    },
+    {
+      title: "Advanced Analytics",
+      href: "/admin-dashboard/advanced-analytics",
+      icon: TrendingUp
+    },
+    {
+      title: "Goal Templates",
+      href: "/admin-dashboard/goal-templates",
+      icon: FileText
+    },
+    {
+      title: "Settings",
+      href: "/admin-dashboard/settings",
+      icon: Settings
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      <Navigation items={navigationItems} />
       <main className="container mx-auto px-4 py-8">
         {children || <Outlet />}
       </main>
