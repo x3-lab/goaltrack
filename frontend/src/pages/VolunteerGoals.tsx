@@ -149,15 +149,13 @@ const VolunteerGoals: React.FC = () => {
   // Handle goal creation
   const handleCreateGoal = async (goalData: any) => {
     try {
-      const newGoalData = {
+      await goalsApi.create({
         ...goalData,
-        volunteerId: user?.id
-      };
-      
-      await goalsApi.create(newGoalData);
+        volunteerId: user?.id,
+        startDate: goalData.startDate || new Date().toISOString()
+      });
       setShowCreateModal(false);
       await loadGoalsData();
-      
       toast({
         title: "Goal Created!",
         description: "Your new goal has been created successfully.",

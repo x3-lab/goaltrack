@@ -102,21 +102,17 @@ const VolunteerDashboard: React.FC = () => {
 
   const handleCreateGoal = async (goalData: any) => {
     try {
-      console.log('Creating new goal...');
-      
       await goalsApi.create({
         ...goalData,
-        volunteerId: user?.id
+        volunteerId: user?.id,
+        startDate: goalData.startDate || new Date().toISOString()
       });
-      
       await refreshData();
       setShowCreateGoal(false);
-      
       toast({
         title: "Goal Created!",
         description: "Your new goal has been added successfully.",
       });
-      
     } catch (error: any) {
       console.error('Error creating goal:', error);
       toast({
@@ -192,12 +188,8 @@ const VolunteerDashboard: React.FC = () => {
 
   const handleMarkComplete = async (goalId: string) => {
     try {
-      await goalsApi.update(goalId, { 
-        status: 'completed',
-        progress: 100 
-      });
+      await goalsApi.updateStatus(goalId, 'completed');
       await refreshData();
-
       toast({
         title: "Goal Completed!",
         description: "Congratulations on completing your goal!",
@@ -207,6 +199,25 @@ const VolunteerDashboard: React.FC = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to mark goal as complete",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleGoalStatus = async (goalId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'pending' ? 'in-progress' : 'pending';
+      await goalsApi.updateStatus(goalId, newStatus as any);
+      await refreshData();
+      toast({
+        title: "Status Updated",
+        description: `Goal ${newStatus === 'in-progress' ? 'started' : 'paused'}`,
+      });
+    } catch (error: any) {
+      console.error('Error updating goal status:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update goal status",
         variant: "destructive"
       });
     }
@@ -473,9 +484,9 @@ const VolunteerDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Goals Grid */}
+          {/* Goals List */}
           {filteredGoals.length > 0 ? (
-            <div className="grid gap-6">
+            <div className="grid gap-4">
               {filteredGoals.map((goal) => (
                 <GoalCard
                   key={goal.id}
@@ -484,6 +495,7 @@ const VolunteerDashboard: React.FC = () => {
                   onDelete={handleDeleteGoal}
                   onProgressUpdate={handleProgressUpdate}
                   onMarkComplete={handleMarkComplete}
+                  compact={false}
                 />
               ))}
             </div>

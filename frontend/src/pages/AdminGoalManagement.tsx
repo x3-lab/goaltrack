@@ -24,7 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
 import AdminLayout from '../components/AdminLayout';
 import { EnhancedGoalForm } from '../components/enhanced-goal-form';
-import { goalsApi, type GoalResponseDto, type GoalFilterDto, type BulkUpdateGoalsRequest } from '../services/goalsApi';
+import { goalsApi, type GoalResponseDto, type GoalFilterDto } from '../services/goalsApi';
 import { usersApi, type Volunteer } from '../services/usersApi';
 import { type GoalStatistics } from '../types/api';
 
@@ -94,9 +94,8 @@ const AdminGoalManagement: React.FC = () => {
         limit: itemsPerPage,
       };
 
-      // Use real backend API calls
       const [goalsResponse, statsData, volunteersData, categoriesData] = await Promise.all([
-        goalsApi.getAll(filters),
+        goalsApi.list(filters),
         goalsApi.getStatistics(),
         usersApi.getAll({ role: 'volunteer' }),
         goalsApi.getCategories().catch(() => [])
@@ -104,7 +103,7 @@ const AdminGoalManagement: React.FC = () => {
       
       setState(prev => ({
         ...prev,
-        goals: goalsResponse.data,
+        goals: goalsResponse.goals,
         stats: statsData,
         volunteers: volunteersData,
         categories: categoriesData,

@@ -25,7 +25,7 @@ export interface Goal {
   createdAt: string;
   updatedAt: string;
   tags?: string[];
-  notes?: string;
+  notes?: string[];
   volunteerName?: string;
 }
 
@@ -134,7 +134,7 @@ export interface UpdateGoalRequest {
   status?: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
   dueDate?: string;
   tags?: string[];
-  notes?: string;
+  notes?: string[];
 }
 
 export interface GoalProgressRequest {

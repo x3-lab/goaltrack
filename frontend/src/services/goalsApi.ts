@@ -1,42 +1,34 @@
 import httpClient from './httpClient';
-import { ENDPOINTS } from './config';
-import type { 
-  Goal,
-  CreateGoalRequest,
-  UpdateGoalRequest,
-  GoalProgressRequest,
-  GoalFilters,
-  GoalStatistics,
-  PaginatedResponse,
-  ApiErrorResponse 
-} from '../types/api';
+import type { Goal } from '../types/api';
 
 export interface GoalResponseDto {
   id: string;
   title: string;
   description: string;
   category: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
+  priority: string;         // backend: LOW | MEDIUM | HIGH
+  status: string;           // backend: PENDING | IN_PROGRESS | COMPLETED | CANCELLED | OVERDUE
   progress: number;
   dueDate: string;
   volunteerId: string;
-  volunteerName?: string;
   createdAt: string;
   updatedAt: string;
   tags?: string[];
-  notes?: string;
+  notes?: string[];          // backend stores simple-array
+  progressHistory?: any[];   // relation when included
 }
 
 export interface CreateGoalDto {
   title: string;
-  description: string;
+  description?: string;
   category: string;
-  priority: 'low' | 'medium' | 'high';
-  dueDate: string;
+  priority?: 'low' | 'medium' | 'high';
+  dueDate: string;          // ISO/date string
+  startDate?: string;       // required by backend; we will ensure it
   volunteerId?: string;
   tags?: string[];
-  notes?: string;
+  notes?: string[];
+  progress?: number;
 }
 
 export interface UpdateGoalDto {
@@ -48,7 +40,7 @@ export interface UpdateGoalDto {
   status?: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
   dueDate?: string;
   tags?: string[];
-  notes?: string;
+  notes?: string[];
 }
 
 export interface GoalFilterDto {
@@ -56,27 +48,13 @@ export interface GoalFilterDto {
   priority?: string;
   category?: string;
   volunteerId?: string;
-  startDate?: string;
-  endDate?: string;
   search?: string;
+  dueDateFrom?: string;
+  dueDateTo?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-}
-
-export interface ProgressHistoryEntry {
-  id: string;
-  goalId: string;
-  userId: string;
-  progress: number;
-  notes?: string;
-  timestamp: string;
-  createdAt: string;
-}
-
-export interface GoalWithProgress extends GoalResponseDto {
-  progressHistory?: ProgressHistoryEntry[];
 }
 
 export interface BulkUpdateGoalsRequest {
@@ -99,211 +77,226 @@ export interface WeeklyProcessingResult {
 
 class GoalsApiService {
   private baseURL = '/goals';
-  
-  // Get all goals with filters and pagination
-  async getAll(filters?: GoalFilterDto): Promise<PaginatedResponse<GoalResponseDto>> {
+
+  // Map backend enums -> frontend
+  private mapBackendStatus(status: string): Goal['status'] {
+    const map: Record<string, Goal['status']> = {
+      PENDING: 'pending',
+      IN_PROGRESS: 'in-progress',
+      COMPLETED: 'completed',
+      CANCELLED: 'cancelled',
+      OVERDUE: 'overdue'
+    };
+    return map[status] || (status.toLowerCase() as Goal['status']);
+  }
+
+  private mapBackendPriority(priority: string): Goal['priority'] {
+    const map: Record<string, Goal['priority']> = {
+      LOW: 'low',
+      MEDIUM: 'medium',
+      HIGH: 'high'
+    };
+    return map[priority] || (priority.toLowerCase() as Goal['priority']);
+  }
+
+  // Map frontend -> backend enums
+  private mapFrontendStatus(status?: string): string | undefined {
+    if (!status) return undefined;
+    const map: Record<string, string> = {
+      'pending': 'PENDING',
+      'in-progress': 'IN_PROGRESS',
+      'completed': 'COMPLETED',
+      'cancelled': 'CANCELLED',
+      'overdue': 'OVERDUE'
+    };
+    return map[status] || status;
+  }
+
+  private mapFrontendPriority(priority?: string): string | undefined {
+    if (!priority) return undefined;
+    const map: Record<string, string> = {
+      'low': 'LOW',
+      'medium': 'MEDIUM',
+      'high': 'HIGH'
+    };
+    return map[priority] || priority;
+  }
+
+  private toFrontend(goal: GoalResponseDto): Goal {
+    return {
+      id: goal.id,
+      title: goal.title,
+      description: goal.description,
+      category: goal.category,
+      priority: this.mapBackendPriority(goal.priority),
+      status: this.mapBackendStatus(goal.status),
+      progress: goal.progress,
+      dueDate: goal.dueDate,
+      volunteerId: goal.volunteerId,
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt,
+      tags: goal.tags,
+      notes: goal.notes?.join ? goal.notes : goal.notes,
+      volunteerName: undefined,
+    };
+  }
+
+  private transformError(error: any): Error {
+    if (error.status === 404) return new Error('Goal not found');
+    if (error.status === 403) return new Error('You do not have permission for this action');
+    if (error.status === 400 || error.status === 422) return new Error(error.message || 'Invalid goal data');
+    if (error.status >= 500) return new Error('Server error. Please try again later.');
+    return new Error(error.message || 'Unexpected error');
+  }
+
+  // Core fetch: GET /goals (applies user scoping server-side)
+  async list(filters?: GoalFilterDto): Promise<{ goals: Goal[]; total: number; page: number; limit: number; totalPages: number }> {
     try {
       const params = new URLSearchParams();
-      
-      if (filters?.status) params.append('status', filters.status);
-      if (filters?.priority) params.append('priority', filters.priority);
+      if (filters?.status) params.append('status', this.mapFrontendStatus(filters.status)!);
+      if (filters?.priority) params.append('priority', this.mapFrontendPriority(filters.priority)!);
       if (filters?.category) params.append('category', filters.category);
       if (filters?.volunteerId) params.append('volunteerId', filters.volunteerId);
-      if (filters?.startDate) params.append('startDate', filters.startDate);
-      if (filters?.endDate) params.append('endDate', filters.endDate);
       if (filters?.search) params.append('search', filters.search);
+      if (filters?.dueDateFrom) params.append('dueDateFrom', filters.dueDateFrom);
+      if (filters?.dueDateTo) params.append('dueDateTo', filters.dueDateTo);
       if (filters?.page) params.append('page', filters.page.toString());
       if (filters?.limit) params.append('limit', filters.limit.toString());
       if (filters?.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder);
+      if (filters?.sortOrder) params.append('sortOrder', (filters.sortOrder === 'asc' ? 'ASC' : filters.sortOrder === 'desc' ? 'DESC' : filters.sortOrder || '').toString());
 
+      const query = params.toString();
       const response = await httpClient.get<{
         goals: GoalResponseDto[];
         total: number;
         page: number;
         limit: number;
         totalPages: number;
-      }>(`${this.baseURL}?${params.toString()}`);
+      }>(`${this.baseURL}${query ? `?${query}` : ''}`);
 
-      // Transform backend response to frontend format
       return {
-        data: response.goals.map(goal => this.transformGoalResponse(goal)),
+        goals: response.goals.map(g => this.toFrontend(g)),
         total: response.total,
         page: response.page,
         limit: response.limit,
         totalPages: response.totalPages
       };
-    } catch (error: any) {
-      console.error('Failed to get goals:', error);
-      throw this.transformError(error);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Get simple array of goals (for compatibility with existing code)
-  async getAllSimple(filters?: GoalFilterDto): Promise<Goal[]> {
-    try {
-      const response = await this.getAll(filters);
-      return response.data.map(goal => this.transformToFrontendGoal(goal));
-    } catch (error: any) {
-      console.error('Failed to get goals:', error);
-      throw this.transformError(error);
-    }
+  async getMyGoals(filters?: Omit<GoalFilterDto, 'volunteerId'>): Promise<Goal[]> {
+    const { goals } = await this.list(filters);
+    return goals;
   }
 
-  // Get goal by ID
-  async getById(id: string): Promise<GoalWithProgress> {
+  async getById(id: string): Promise<Goal> {
     try {
       const response = await httpClient.get<GoalResponseDto>(`${this.baseURL}/${id}`);
-      
-      // Get progress history
-      const progressHistory = await this.getProgressHistory(id);
-      
-      return {
-        ...this.transformGoalResponse(response),
-        progressHistory
+      return this.toFrontend(response);
+    } catch (e: any) {
+      throw this.transformError(e);
+    }
+  }
+
+  async create(data: CreateGoalDto): Promise<Goal> {
+    try {
+      const payload: any = {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        volunteerId: data.volunteerId,
+        priority: this.mapFrontendPriority(data.priority || 'medium'),
+        status: this.mapFrontendStatus('pending'),
+        dueDate: data.dueDate,
+        startDate: data.startDate || new Date().toISOString(),
+        tags: data.tags,
+        notes: data.notes,
+        progress: data.progress ?? 0
       };
-    } catch (error: any) {
-      console.error(`Failed to get goal ${id}:`, error);
-      throw this.transformError(error);
+      const response = await httpClient.post<GoalResponseDto>(this.baseURL, payload);
+      return this.toFrontend(response);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Create new goal
-  async create(goalData: CreateGoalDto): Promise<GoalResponseDto> {
+  async update(id: string, updates: UpdateGoalDto): Promise<Goal> {
     try {
-      console.log('Creating new goal:', goalData.title);
-
-      const response = await httpClient.post<GoalResponseDto>(this.baseURL, goalData);
-
-      console.log('Goal created successfully:', response.title);
-      return this.transformGoalResponse(response);
-    } catch (error: any) {
-      console.error('Failed to create goal:', error);
-      throw this.transformError(error);
+      const payload: any = { ...updates };
+      if (updates.status) payload.status = this.mapFrontendStatus(updates.status);
+      if (updates.priority) payload.priority = this.mapFrontendPriority(updates.priority);
+      const response = await httpClient.patch<GoalResponseDto>(`${this.baseURL}/${id}`, payload);
+      return this.toFrontend(response);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Update goal
-  async update(id: string, updates: UpdateGoalDto): Promise<GoalResponseDto> {
+  async updateStatus(id: string, status: Goal['status']): Promise<Goal> {
     try {
-      console.log(`Updating goal ${id}:`, updates);
-
-      const response = await httpClient.put<GoalResponseDto>(`${this.baseURL}/${id}`, updates);
-
-      console.log('Goal updated successfully:', response.title);
-      return this.transformGoalResponse(response);
-    } catch (error: any) {
-      console.error(`Failed to update goal ${id}:`, error);
-      throw this.transformError(error);
+      const response = await httpClient.patch<GoalResponseDto>(`${this.baseURL}/${id}/status`, {
+        status: this.mapFrontendStatus(status)
+      });
+      return this.toFrontend(response);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Update goal progress
-  async updateProgress(id: string, progressData: GoalProgressRequest): Promise<GoalResponseDto> {
+  async updateProgress(id: string, data: { progress: number; notes?: string }): Promise<Goal> {
     try {
-      console.log(`Updating goal ${id} progress to ${progressData.progress}%`);
-
-      const response = await httpClient.patch<GoalResponseDto>(
-        `${this.baseURL}/${id}/progress`, 
-        progressData
-      );
-
-      console.log('Goal progress updated successfully');
-      return this.transformGoalResponse(response);
-    } catch (error: any) {
-      console.error(`Failed to update goal ${id} progress:`, error);
-      throw this.transformError(error);
+      const response = await httpClient.patch<GoalResponseDto>(`${this.baseURL}/${id}/progress`, {
+        progress: data.progress,
+        notes: data.notes
+      });
+      return this.toFrontend(response);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Delete goal
   async delete(id: string): Promise<void> {
     try {
-      console.log(`🎯 Deleting goal ${id}`);
-
       await httpClient.delete(`${this.baseURL}/${id}`);
-
-      console.log('Goal deleted successfully');
-    } catch (error: any) {
-      console.error(`Failed to delete goal ${id}:`, error);
-      throw this.transformError(error);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Get goal statistics
-  async getStatistics(volunteerId?: string): Promise<GoalStatistics> {
+  async getStatistics(volunteerId?: string): Promise<{
+    totalGoals: number;
+    completedGoals: number;
+    pendingGoals: number;
+    inProgressGoals: number;
+    overdueGoals: number;
+    completionRate: number;
+    averageProgress: number;
+    categoriesCount: number;
+    upcomingDeadlines: Goal[];
+  }> {
     try {
-      const params = volunteerId ? `?volunteerId=${volunteerId}` : '';
-      const response = await httpClient.get<{
-        totalGoals: number;
-        completedGoals: number;
-        pendingGoals: number;
-        inProgressGoals: number;
-        overdueGoals: number;
-        completionRate: number;
-        averageProgress: number;
-        categoriesCount: number;
-        upcomingDeadlines: GoalResponseDto[];
-      }>(`${this.baseURL}/statistics${params}`);
-
+      const response = await httpClient.get<any>(`${this.baseURL}/statistics${volunteerId ? `?volunteerId=${volunteerId}` : ''}`);
       return {
-        totalGoals: response.totalGoals,
-        completedGoals: response.completedGoals,
-        pendingGoals: response.pendingGoals,
-        inProgressGoals: response.inProgressGoals,
-        overdueGoals: response.overdueGoals,
-        completionRate: response.completionRate,
-        averageProgress: response.averageProgress,
-        categoriesCount: response.categoriesCount,
-        upcomingDeadlines: response.upcomingDeadlines.map(goal => this.transformToFrontendGoal(goal))
+        ...response,
+        upcomingDeadlines: (response.upcomingDeadlines || []).map((g: GoalResponseDto) => this.toFrontend(g))
       };
-    } catch (error: any) {
-      console.error('ailed to get goal statistics:', error);
-      throw this.transformError(error);
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Get available categories
   async getCategories(): Promise<string[]> {
     try {
-      const response = await httpClient.get<{ categories: string[] }>(`${this.baseURL}/categories`);
-      return response.categories;
-    } catch (error: any) {
-      console.error('Failed to get categories:', error);
-      throw this.transformError(error);
+      const res = await httpClient.get<{ categories: string[] }>(`${this.baseURL}/categories`);
+      return res.categories;
+    } catch (e: any) {
+      throw this.transformError(e);
     }
   }
 
-  // Get progress history for a goal
-  async getProgressHistory(goalId: string): Promise<ProgressHistoryEntry[]> {
-    try {
-      const response = await httpClient.get<ProgressHistoryEntry[]>(`/goals/${goalId}/progress-history`);
-      return response;
-    } catch (error: any) {
-      console.error(`Failed to get progress history for goal ${goalId}:`, error);
-      throw this.transformError(error);
-    }
-  }
-
-  // Assign goal to volunteer
-  async assignToVolunteer(goalId: string, volunteerId: string): Promise<GoalResponseDto> {
-    try {
-      console.log(`🎯 Assigning goal ${goalId} to volunteer ${volunteerId}`);
-
-      const response = await httpClient.post<GoalResponseDto>(
-        `/goals/${goalId}/assign`, 
-        { volunteerId }
-      );
-
-      console.log('Goal assigned successfully');
-      return this.transformGoalResponse(response);
-    } catch (error: any) {
-      console.error(`Failed to assign goal ${goalId}:`, error);
-      throw this.transformError(error);
-    }
-  }
-
-  // Bulk operations
+   // Bulk operations
   async bulkUpdate(request: BulkUpdateGoalsRequest): Promise<BulkUpdateResponse> {
     try {
       console.log(`Bulk updating ${request.goalIds.length} goals`);
@@ -349,55 +342,7 @@ class GoalsApiService {
     }
   }
 
-  // Get goals for current user (volunteer)
-  async getMyGoals(filters?: Omit<GoalFilterDto, 'volunteerId'>): Promise<Goal[]> {
-    const params = new URLSearchParams();
-    if (filters?.status) params.append('status', filters.status);
-    if (filters?.category) params.append('category', filters.category);
-    if (filters?.priority) params.append('priority', filters.priority);
-    if (filters?.search) params.append('search', filters.search);
-
-    const response = await httpClient.get<{ goals: GoalResponseDto[] }>(
-      `${this.baseURL}/my-goals${params.toString() ? `?${params.toString()}` : ''}`
-    );
-    return response.goals.map(g => this.transformToFrontendGoal(g));
-  }
-
-  // Search goals
-  async search(query: string, filters?: Partial<GoalFilterDto>): Promise<Goal[]> {
-    try {
-      const params = new URLSearchParams({ search: query });
-      
-      if (filters?.status) params.append('status', filters.status);
-      if (filters?.category) params.append('category', filters.category);
-      if (filters?.priority) params.append('priority', filters.priority);
-
-      const response = await httpClient.get<{
-        goals: GoalResponseDto[];
-      }>(`/goals/search?${params.toString()}`);
-
-      return response.goals.map(goal => this.transformToFrontendGoal(goal));
-    } catch (error: any) {
-      console.error('Failed to search goals:', error);
-      throw this.transformError(error);
-    }
-  }
-
-  // Get overdue goals
-  async getOverdueGoals(): Promise<Goal[]> {
-    try {
-      const response = await httpClient.get<{
-        goals: GoalResponseDto[];
-      }>(`${this.baseURL}/overdue`);
-
-      return response.goals.map(goal => this.transformToFrontendGoal(goal));
-    } catch (error: any) {
-      console.error('Failed to get overdue goals:', error);
-      throw this.transformError(error);
-    }
-  }
-
-  // Export goals
+   // Export goals
   async exportGoals(format: 'csv' | 'xlsx' | 'pdf', filters?: GoalFilterDto): Promise<Blob> {
     try {
       const params = new URLSearchParams({ format });
@@ -421,100 +366,6 @@ class GoalsApiService {
     }
   }
 
-  // Transform methods
-  private transformGoalResponse(goal: GoalResponseDto): GoalResponseDto {
-    return {
-      ...goal,
-      // Ensure consistent date formats
-      createdAt: goal.createdAt,
-      updatedAt: goal.updatedAt,
-      dueDate: goal.dueDate,
-    };
-  }
-
-  private transformToFrontendGoal(goal: GoalResponseDto): Goal {
-    return {
-      id: goal.id,
-      title: goal.title,
-      description: goal.description,
-      category: goal.category,
-      priority: this.mapPriority(goal.priority),
-      status: this.mapStatus(goal.status),
-      progress: goal.progress,
-      dueDate: goal.dueDate,
-      volunteerId: goal.volunteerId,
-      createdAt: goal.createdAt,
-      updatedAt: goal.updatedAt,
-      tags: goal.tags,
-      notes: goal.notes,
-      volunteerName: goal.volunteerName,
-    };
-  }
-
-  private mapPriority(priority: 'low' | 'medium' | 'high'): 'low' | 'medium' | 'high' {
-    const priorityMap = {
-      'low': 'low' as const,
-      'medium': 'medium' as const,
-      'high': 'high' as const,
-    };
-    return priorityMap[priority];
-  }
-
-  private mapStatus(status: string): 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue' {
-    // Handle backend status mapping
-    if (status === 'in-progress') return 'in-progress';
-    return status as 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
-  }
-
-  private transformError(error: any): Error {
-    if (error.status === 404) {
-      return new Error('Goal not found');
-    } else if (error.status === 403) {
-      return new Error('You do not have permission to access this goal');
-    } else if (error.status === 422) {
-      return new Error(error.message || 'Invalid goal data provided');
-    } else if (error.status >= 500) {
-      return new Error('Server error. Please try again later.');
-    }
-    
-    return new Error(error.message || 'An unexpected error occurred');
-  }
-  
-  async updateStatus(id: string, status: string, reason?: string): Promise<Goal> {
-      try {
-        console.log(`Updating goal ${id} status to ${status}`);
-        
-        const response = await httpClient.put<GoalResponseDto>(
-          `/goals/${id}/status`, 
-          { status, reason }
-        );
-
-        console.log('Goal status updated successfully');
-        return this.transformToFrontendGoal(response);
-      } catch (error: any) {
-        console.warn('Backend failed, updating local storage');
-      }
-  }
-
-
-
-
-  // Development/Debug methods
-  getDebugInfo(): object {
-    return {
-      serviceReady: true,
-      endpoints: {
-        base: '/goals',
-        statistics: '/goals/statistics',
-        categories: '/goals/categories',
-        myGoals: '/goals/my-goals',
-        search: '/goals/search',
-        export: '/goals/export'
-      },
-    };
-  }
 }
-
-// Create singleton instance
 export const goalsApi = new GoalsApiService();
 export default goalsApi;

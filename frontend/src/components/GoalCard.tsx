@@ -59,7 +59,7 @@ const GoalCard: React.FC<GoalCardProps> = ({
   const [editData, setEditData] = useState({
     title: goal.title,
     description: goal.description || '',
-    notes: goal.notes || ''
+    notes: goal.notes || []
   });
   const [progressData, setProgressData] = useState({
     progress: goal.progress,
@@ -85,10 +85,10 @@ const GoalCard: React.FC<GoalCardProps> = ({
       });
       
       setProgressHistory(result.progressHistory);
-      console.log('✅ Progress history loaded successfully');
+      console.log('Progress history loaded successfully');
       
     } catch (error: any) {
-      console.error('❌ Error loading progress history:', error);
+      console.error('Error loading progress history:', error);
       toast({
         title: "Error",
         description: "Failed to load progress history.",
@@ -138,18 +138,18 @@ const GoalCard: React.FC<GoalCardProps> = ({
       // Create progress history entry
       try {
         const statusNote = newStatus === 'completed' 
-          ? '🎉 Goal marked as complete!' 
+          ? '🎉oal marked as complete!' 
           : `Status changed to ${newStatus.replace('-', ' ')}`;
         
         await progressHistoryApi.generateWeeklyEntry(goal.id, statusNote);
-        console.log('✅ Progress history entry created for status change');
+        console.log('Progress history entry created for status change');
         
         // Refresh history if visible
         if (showProgressHistory) {
           setTimeout(() => loadProgressHistory(), 500);
         }
       } catch (historyError) {
-        console.warn('⚠️ Failed to create status change history entry:', historyError);
+        console.warn('Failed to create status change history entry:', historyError);
       }
 
       toast({
@@ -158,7 +158,7 @@ const GoalCard: React.FC<GoalCardProps> = ({
       });
 
     } catch (error: any) {
-      console.error('❌ Error updating goal status:', error);
+      console.error('Error updating goal status:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update goal status",
@@ -444,14 +444,14 @@ const GoalCard: React.FC<GoalCardProps> = ({
             <Label className="text-sm font-medium">Notes</Label>
             {isEditing ? (
               <Textarea
-                value={editData.notes}
-                onChange={(e) => setEditData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Add any notes or comments..."
+                value={Array.isArray(editData.notes) ? editData.notes.join('\n') : ''}
+                onChange={(e) => setEditData(prev => ({ ...prev, notes: e.target.value.split('\n') }))}
+                placeholder="Add any notes or comments (one per line)..."
                 rows={3}
                 className="mt-1"
               />
-            ) : goal.notes ? (
-              <p className="text-sm text-gray-600 mt-1">{goal.notes}</p>
+            ) : goal.notes && goal.notes.length > 0 ? (
+              <p className="text-sm text-gray-600 mt-1">{Array.isArray(goal.notes) ? goal.notes.join('\n') : goal.notes}</p>
             ) : (
               <p className="text-sm text-gray-400 mt-1 italic">No notes added</p>
             )}
