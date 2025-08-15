@@ -61,7 +61,7 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
       
       // Load all analytics data in parallel
       const [analyticsResult, trendsResult, productivityResult] = await Promise.all([
-        analyticsApi.getPersonalAnalytics({ volunteerId: currentUserId }),
+        analyticsApi.getPersonalAnalytics(currentUserId),
         progressHistoryApi.getVolunteerTrends(currentUserId),
         progressHistoryApi.getVolunteerMostProductiveDay(currentUserId)
       ]);

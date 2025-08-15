@@ -37,7 +37,7 @@ const PersonalAnalyticsPage: React.FC = () => {
       console.log('🔄 Loading personal analytics for user:', user.id);
       
       const [data, trends, productivity] = await Promise.all([
-        analyticsApi.getPersonalAnalytics({ volunteerId: user.id }),
+        analyticsApi.getPersonalAnalytics(user.id),
         progressHistoryApi.getVolunteerTrends(user.id),
         progressHistoryApi.getVolunteerMostProductiveDay(user.id)
       ]);
@@ -45,9 +45,9 @@ const PersonalAnalyticsPage: React.FC = () => {
       setAnalyticsData(data);
       // Store trends and productivity in state if needed by other components
       
-      console.log('✅ Personal analytics loaded successfully');
+      console.log('Personal analytics loaded successfully');
     } catch (err: any) {
-      console.error('❌ Error loading analytics data:', err);
+      console.error('Error loading analytics data:', err);
       setError(err.message || 'Failed to load analytics data');
       toast({
         title: 'Error',

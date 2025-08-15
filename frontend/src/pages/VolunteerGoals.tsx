@@ -70,7 +70,6 @@ const VolunteerGoals: React.FC = () => {
     try {
       setState(prev => ({ ...prev, loading: true }));
       
-      console.log('🎯 Loading volunteer goals...');
 
       const filters = {
         status: filterStatus === 'all' ? undefined : filterStatus,
@@ -81,7 +80,7 @@ const VolunteerGoals: React.FC = () => {
 
       const [goalsData, analyticsData, categoriesData] = await Promise.all([
         goalsApi.getMyGoals(filters),
-        analyticsApi.getPersonalAnalytics({ volunteerId: user.id }).catch(() => null),
+        analyticsApi.getPersonalAnalytics(user.id).catch(() => null),
         goalsApi.getCategories().catch(() => [])
       ]);
 
@@ -93,10 +92,10 @@ const VolunteerGoals: React.FC = () => {
         loading: false,
       }));
 
-      console.log(`✅ Loaded ${goalsData.length} goals successfully`);
+      console.log(`Loaded ${goalsData.length} goals successfully`);
 
     } catch (error: any) {
-      console.error('❌ Error loading goals data:', error);
+      console.error('Error loading goals data:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to load goals data",
@@ -160,7 +159,7 @@ const VolunteerGoals: React.FC = () => {
       await loadGoalsData();
       
       toast({
-        title: "Goal Created! 🎯",
+        title: "Goal Created!",
         description: "Your new goal has been created successfully.",
       });
     } catch (error: any) {
@@ -230,7 +229,7 @@ const VolunteerGoals: React.FC = () => {
       await loadGoalsData();
 
       toast({
-        title: "Progress Updated! 📈",
+        title: "Progress Updated!",
         description: `Progress set to ${progress}%`,
       });
     } catch (error: any) {
@@ -253,7 +252,7 @@ const VolunteerGoals: React.FC = () => {
       await loadGoalsData();
 
       toast({
-        title: "Goal Completed! 🎉",
+        title: "Goal Completed!",
         description: "Congratulations on completing your goal!",
       });
     } catch (error: any) {

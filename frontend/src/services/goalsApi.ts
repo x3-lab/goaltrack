@@ -134,7 +134,7 @@ class GoalsApiService {
         totalPages: response.totalPages
       };
     } catch (error: any) {
-      console.error('❌ Failed to get goals:', error);
+      console.error('Failed to get goals:', error);
       throw this.transformError(error);
     }
   }
@@ -145,7 +145,7 @@ class GoalsApiService {
       const response = await this.getAll(filters);
       return response.data.map(goal => this.transformToFrontendGoal(goal));
     } catch (error: any) {
-      console.error('❌ Failed to get goals:', error);
+      console.error('Failed to get goals:', error);
       throw this.transformError(error);
     }
   }
@@ -163,7 +163,7 @@ class GoalsApiService {
         progressHistory
       };
     } catch (error: any) {
-      console.error(`❌ Failed to get goal ${id}:`, error);
+      console.error(`Failed to get goal ${id}:`, error);
       throw this.transformError(error);
     }
   }
@@ -171,14 +171,14 @@ class GoalsApiService {
   // Create new goal
   async create(goalData: CreateGoalDto): Promise<GoalResponseDto> {
     try {
-      console.log('🎯 Creating new goal:', goalData.title);
+      console.log('Creating new goal:', goalData.title);
 
       const response = await httpClient.post<GoalResponseDto>(this.baseURL, goalData);
 
-      console.log('✅ Goal created successfully:', response.title);
+      console.log('Goal created successfully:', response.title);
       return this.transformGoalResponse(response);
     } catch (error: any) {
-      console.error('❌ Failed to create goal:', error);
+      console.error('Failed to create goal:', error);
       throw this.transformError(error);
     }
   }
@@ -186,14 +186,14 @@ class GoalsApiService {
   // Update goal
   async update(id: string, updates: UpdateGoalDto): Promise<GoalResponseDto> {
     try {
-      console.log(`🎯 Updating goal ${id}:`, updates);
+      console.log(`Updating goal ${id}:`, updates);
 
       const response = await httpClient.put<GoalResponseDto>(`${this.baseURL}/${id}`, updates);
 
-      console.log('✅ Goal updated successfully:', response.title);
+      console.log('Goal updated successfully:', response.title);
       return this.transformGoalResponse(response);
     } catch (error: any) {
-      console.error(`❌ Failed to update goal ${id}:`, error);
+      console.error(`Failed to update goal ${id}:`, error);
       throw this.transformError(error);
     }
   }
@@ -201,17 +201,17 @@ class GoalsApiService {
   // Update goal progress
   async updateProgress(id: string, progressData: GoalProgressRequest): Promise<GoalResponseDto> {
     try {
-      console.log(`🎯 Updating goal ${id} progress to ${progressData.progress}%`);
+      console.log(`Updating goal ${id} progress to ${progressData.progress}%`);
 
       const response = await httpClient.patch<GoalResponseDto>(
         `${this.baseURL}/${id}/progress`, 
         progressData
       );
 
-      console.log('✅ Goal progress updated successfully');
+      console.log('Goal progress updated successfully');
       return this.transformGoalResponse(response);
     } catch (error: any) {
-      console.error(`❌ Failed to update goal ${id} progress:`, error);
+      console.error(`Failed to update goal ${id} progress:`, error);
       throw this.transformError(error);
     }
   }
@@ -223,9 +223,9 @@ class GoalsApiService {
 
       await httpClient.delete(`${this.baseURL}/${id}`);
 
-      console.log('✅ Goal deleted successfully');
+      console.log('Goal deleted successfully');
     } catch (error: any) {
-      console.error(`❌ Failed to delete goal ${id}:`, error);
+      console.error(`Failed to delete goal ${id}:`, error);
       throw this.transformError(error);
     }
   }
@@ -258,7 +258,7 @@ class GoalsApiService {
         upcomingDeadlines: response.upcomingDeadlines.map(goal => this.transformToFrontendGoal(goal))
       };
     } catch (error: any) {
-      console.error('❌ Failed to get goal statistics:', error);
+      console.error('ailed to get goal statistics:', error);
       throw this.transformError(error);
     }
   }
@@ -269,7 +269,7 @@ class GoalsApiService {
       const response = await httpClient.get<{ categories: string[] }>(`${this.baseURL}/categories`);
       return response.categories;
     } catch (error: any) {
-      console.error('❌ Failed to get categories:', error);
+      console.error('Failed to get categories:', error);
       throw this.transformError(error);
     }
   }
@@ -280,7 +280,7 @@ class GoalsApiService {
       const response = await httpClient.get<ProgressHistoryEntry[]>(`/goals/${goalId}/progress-history`);
       return response;
     } catch (error: any) {
-      console.error(`❌ Failed to get progress history for goal ${goalId}:`, error);
+      console.error(`Failed to get progress history for goal ${goalId}:`, error);
       throw this.transformError(error);
     }
   }
@@ -295,10 +295,10 @@ class GoalsApiService {
         { volunteerId }
       );
 
-      console.log('✅ Goal assigned successfully');
+      console.log('Goal assigned successfully');
       return this.transformGoalResponse(response);
     } catch (error: any) {
-      console.error(`❌ Failed to assign goal ${goalId}:`, error);
+      console.error(`Failed to assign goal ${goalId}:`, error);
       throw this.transformError(error);
     }
   }
@@ -306,30 +306,30 @@ class GoalsApiService {
   // Bulk operations
   async bulkUpdate(request: BulkUpdateGoalsRequest): Promise<BulkUpdateResponse> {
     try {
-      console.log(`🎯 Bulk updating ${request.goalIds.length} goals`);
+      console.log(`Bulk updating ${request.goalIds.length} goals`);
 
       const response = await httpClient.post<BulkUpdateResponse>(`${this.baseURL}/bulk-update`, request);
 
-      console.log('✅ Bulk update completed:', response);
+      console.log('Bulk update completed:', response);
       return response;
     } catch (error: any) {
-      console.error('❌ Bulk update failed:', error);
+      console.error('Bulk update failed:', error);
       throw this.transformError(error);
     }
   }
 
   async bulkDelete(goalIds: string[]): Promise<BulkUpdateResponse> {
     try {
-      console.log(`🎯 Bulk deleting ${goalIds.length} goals`);
+      console.log(`Bulk deleting ${goalIds.length} goals`);
 
       const response = await httpClient.post<BulkUpdateResponse>(`${this.baseURL}/bulk-delete`, {
         goalIds
       });
 
-      console.log('✅ Bulk delete completed:', response);
+      console.log('Bulk delete completed:', response);
       return response;
     } catch (error: any) {
-      console.error('❌ Bulk delete failed:', error);
+      console.error('Bulk delete failed:', error);
       throw this.transformError(error);
     }
   }
@@ -337,45 +337,30 @@ class GoalsApiService {
   // Weekly processing
   async processWeeklyGoals(): Promise<WeeklyProcessingResult> {
     try {
-      console.log('🎯 Processing weekly goals...');
+      console.log('Processing weekly goals...');
 
       const response = await httpClient.post<WeeklyProcessingResult>(`${this.baseURL}/process-weekly`);
 
-      console.log('✅ Weekly processing completed:', response);
+      console.log('Weekly processing completed:', response);
       return response;
     } catch (error: any) {
-      console.error('❌ Weekly processing failed:', error);
+      console.error('Weekly processing failed:', error);
       throw this.transformError(error);
     }
   }
 
   // Get goals for current user (volunteer)
   async getMyGoals(filters?: Omit<GoalFilterDto, 'volunteerId'>): Promise<Goal[]> {
-    try {
-      // First try the backend API
-      const params = new URLSearchParams();
-      if (filters?.status) params.append('status', filters.status);
-      if (filters?.category) params.append('category', filters.category);
-      if (filters?.priority) params.append('priority', filters.priority);
-      if (filters?.search) params.append('search', filters.search);
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.priority) params.append('priority', filters.priority);
+    if (filters?.search) params.append('search', filters.search);
 
-      const response = await httpClient.get<{
-        goals: GoalResponseDto[];
-      }>(`${this.baseURL}/my-goals${params.toString() ? `?${params.toString()}` : ''}`);
-
-      return response.goals.map(goal => this.transformToFrontendGoal(goal));
-    } catch (error: any) {
-      console.warn('Backend failed, using fallback data');
-      
-      // Fallback to localStorage
-      const goals = JSON.parse(localStorage.getItem('goals') || '[]') as Goal[];
-      const currentUserId = localStorage.getItem('currentUserId') || 'current-user';
-      
-      return goals.filter(goal => 
-        goal.volunteerId === currentUserId ||
-        (!goal.volunteerId && currentUserId === 'current-user')
-      );
-    }
+    const response = await httpClient.get<{ goals: GoalResponseDto[] }>(
+      `${this.baseURL}/my-goals${params.toString() ? `?${params.toString()}` : ''}`
+    );
+    return response.goals.map(g => this.transformToFrontendGoal(g));
   }
 
   // Search goals
@@ -393,7 +378,7 @@ class GoalsApiService {
 
       return response.goals.map(goal => this.transformToFrontendGoal(goal));
     } catch (error: any) {
-      console.error('❌ Failed to search goals:', error);
+      console.error('Failed to search goals:', error);
       throw this.transformError(error);
     }
   }
@@ -407,7 +392,7 @@ class GoalsApiService {
 
       return response.goals.map(goal => this.transformToFrontendGoal(goal));
     } catch (error: any) {
-      console.error('❌ Failed to get overdue goals:', error);
+      console.error('Failed to get overdue goals:', error);
       throw this.transformError(error);
     }
   }
@@ -431,7 +416,7 @@ class GoalsApiService {
 
       return response as Blob;
     } catch (error: any) {
-      console.error('❌ Failed to export goals:', error);
+      console.error('Failed to export goals:', error);
       throw this.transformError(error);
     }
   }
@@ -497,14 +482,14 @@ class GoalsApiService {
   
   async updateStatus(id: string, status: string, reason?: string): Promise<Goal> {
       try {
-        console.log(`🎯 Updating goal ${id} status to ${status}`);
+        console.log(`Updating goal ${id} status to ${status}`);
         
         const response = await httpClient.put<GoalResponseDto>(
           `/goals/${id}/status`, 
           { status, reason }
         );
 
-        console.log('✅ Goal status updated successfully');
+        console.log('Goal status updated successfully');
         return this.transformToFrontendGoal(response);
       } catch (error: any) {
         console.warn('Backend failed, updating local storage');

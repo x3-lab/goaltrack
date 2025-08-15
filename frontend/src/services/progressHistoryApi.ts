@@ -214,30 +214,12 @@ export interface CategoryDistributionData {
 }
 
 class ProgressHistoryApiService {
-  private isOnline = false;
-
-  constructor() {
-    this.checkConnection();
-  }
-
-  private async checkConnection(): Promise<void> {
-    try {
-      await httpClient.get('/progress-history');
-      this.isOnline = true;
-      console.log('✅ Progress History API connected to backend');
-    } catch (error) {
-      this.isOnline = false;
-      console.log('🔄 Progress History API using fallback mode');
-    }
-  }
-
-  // CORE CRUD OPERATIONS
+  // Remove any isOnline / fallback logic; always call backend
 
   /**
    * Get all progress history entries with filters
    */
   async getAll(filters?: ProgressHistoryFiltersDto): Promise<PaginatedProgressHistoryResponse> {
-    if (this.isOnline) {
       try {
         const params = new URLSearchParams();
         
@@ -257,12 +239,12 @@ class ProgressHistoryApiService {
           `/progress-history?${params.toString()}`
         );
 
-        console.log('✅ Progress history loaded from backend');
+        console.log('Progress history loaded from backend');
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
 
     // Fallback to local calculation
     return this.getAllFallback(filters);
@@ -272,14 +254,13 @@ class ProgressHistoryApiService {
    * Get specific progress history entry by ID
    */
   async getById(id: string): Promise<ProgressHistoryResponseDto> {
-    if (this.isOnline) {
       try {
         const response = await httpClient.get<ProgressHistoryResponseDto>(`/progress-history/${id}`);
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
 
     // Fallback
     const allHistory = await this.getAllFallback();
@@ -294,19 +275,18 @@ class ProgressHistoryApiService {
    * Create new progress history entry (Admin only)
    */
   async create(data: CreateProgressHistoryDto): Promise<ProgressHistoryResponseDto> {
-    if (this.isOnline) {
       try {
-        console.log('📊 Creating progress history entry');
+        console.log('Creating progress history entry');
         
         const response = await httpClient.post<ProgressHistoryResponseDto>('/progress-history', data);
         
-        console.log('✅ Progress history entry created successfully');
+        console.log('Progress history entry created successfully');
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback');
         throw this.transformError(error);
       }
-    }
+    
 
     // Fallback to local storage
     return this.createFallback(data);
@@ -316,21 +296,20 @@ class ProgressHistoryApiService {
    * Delete progress history entry (Admin only)
    */
   async delete(id: string): Promise<void> {
-    if (this.isOnline) {
       try {
-        console.log(`📊 Deleting progress history entry ${id}`);
+        console.log(`Deleting progress history entry ${id}`);
         
         await httpClient.delete(`/progress-history/${id}`);
         
-        console.log('✅ Progress history entry deleted successfully');
+        console.log('Progress history entry deleted successfully');
       } catch (error: any) {
         console.warn('Backend failed, using fallback');
         throw this.transformError(error);
       }
-    }
+    
 
     // Fallback - simulate deletion
-    console.log(`🔄 Simulated deletion of progress history entry ${id}`);
+    console.log(`Simulated deletion of progress history entry ${id}`);
   }
 
   // PERSONAL PROGRESS HISTORY
@@ -339,7 +318,6 @@ class ProgressHistoryApiService {
    * Get current user's progress history
    */
   async getMyHistory(filters?: Omit<ProgressHistoryFiltersDto, 'volunteerId'>): Promise<PaginatedProgressHistoryResponse> {
-    if (this.isOnline) {
       try {
         const params = new URLSearchParams();
         
@@ -358,12 +336,12 @@ class ProgressHistoryApiService {
           `/progress-history/my-history?${params.toString()}`
         );
 
-        console.log('✅ Personal progress history loaded from backend');
+        console.log('Personal progress history loaded from backend');
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
 
     // Fallback
     const currentUserId = localStorage.getItem('currentUserId') || 'current-user';
@@ -374,18 +352,7 @@ class ProgressHistoryApiService {
    * Get current user's trends
    */
   async getMyTrends(): Promise<VolunteerTrendsDto> {
-    if (this.isOnline) {
-      try {
-        const response = await httpClient.get<VolunteerTrendsDto>('/progress-history/my-trends');
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
-    }
-
-    // Fallback
-    const currentUserId = localStorage.getItem('currentUserId') || 'current-user';
-    return this.getVolunteerTrendsFallback(currentUserId);
+    return httpClient.get<VolunteerTrendsDto>('/progress-history/my-trends');
   }
 
   // VOLUNTEER-SPECIFIC ANALYTICS
@@ -394,24 +361,13 @@ class ProgressHistoryApiService {
    * Get volunteer trends
    */
   async getVolunteerTrends(volunteerId: string): Promise<VolunteerTrendsDto> {
-    if (this.isOnline) {
-      try {
-        const response = await httpClient.get<VolunteerTrendsDto>(`/progress-history/volunteer/${volunteerId}/trends`);
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
-    }
-
-    // Fallback
-    return this.getVolunteerTrendsFallback(volunteerId);
+    return httpClient.get<VolunteerTrendsDto>(`/progress-history/volunteer/${volunteerId}/trends`);
   }
 
   /**
    * Get monthly summary for volunteer
    */
   async getMonthlySummary(volunteerId: string, year: number, month: number): Promise<MonthlySummaryDto> {
-    if (this.isOnline) {
       try {
         const response = await httpClient.get<MonthlySummaryDto>(
           `/progress-history/volunteer/${volunteerId}/monthly/${year}/${month}`
@@ -420,7 +376,7 @@ class ProgressHistoryApiService {
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
 
     // Fallback
     return this.getMonthlySummaryFallback(volunteerId, year, month);
@@ -434,54 +390,32 @@ class ProgressHistoryApiService {
     startDate?: string, 
     endDate?: string
   ): Promise<VolunteerWeeklyHistoryDto> {
-    if (this.isOnline) {
-      try {
-        const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
 
-        const response = await httpClient.get<VolunteerWeeklyHistoryDto>(
-          `/progress-history/volunteer/${volunteerId}/weekly-history?${params.toString()}`
-        );
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
-    }
-
-    // Fallback
-    return this.getVolunteerWeeklyHistoryFallback(volunteerId, startDate, endDate);
+    return httpClient.get<VolunteerWeeklyHistoryDto>(
+      `/progress-history/volunteer/${volunteerId}/weekly-history${params.toString() ? '?' + params : ''}`
+    );
   }
 
   /**
    * Get current user's weekly history
    */
   async getMyWeeklyHistory(startDate?: string, endDate?: string): Promise<VolunteerWeeklyHistoryDto> {
-    if (this.isOnline) {
-      try {
-        const params = new URLSearchParams();
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
 
-        const response = await httpClient.get<VolunteerWeeklyHistoryDto>(
-          `/progress-history/my-weekly-history?${params.toString()}`
-        );
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
-    }
-
-    // Fallback
-    const currentUserId = localStorage.getItem('currentUserId') || 'current-user';
-    return this.getVolunteerWeeklyHistoryFallback(currentUserId, startDate, endDate);
+    return httpClient.get<VolunteerWeeklyHistoryDto>(
+      `/progress-history/my-weekly-history${params.toString() ? '?' + params : ''}`
+    );
   }
 
   /**
    * Get most productive day for volunteer
    */
   async getVolunteerMostProductiveDay(volunteerId: string): Promise<MostProductiveDayDto> {
-    if (this.isOnline) {
       try {
         const response = await httpClient.get<MostProductiveDayDto>(
           `/progress-history/volunteer/${volunteerId}/productive-day`
@@ -490,7 +424,7 @@ class ProgressHistoryApiService {
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
 
     // Fallback
     return this.getMostProductiveDayFallback(volunteerId);
@@ -500,14 +434,13 @@ class ProgressHistoryApiService {
    * Get current user's most productive day
    */
   async getMyMostProductiveDay(): Promise<MostProductiveDayDto> {
-    if (this.isOnline) {
       try {
         const response = await httpClient.get<MostProductiveDayDto>('/progress-history/my-productive-day');
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
 
     // Fallback
     const currentUserId = localStorage.getItem('currentUserId') || 'current-user';
@@ -520,17 +453,20 @@ class ProgressHistoryApiService {
    * Get analytics summary (Admin only)
    */
   async getAnalyticsSummary(): Promise<AnalyticsSummaryDto> {
-    if (this.isOnline) {
       try {
         const response = await httpClient.get<AnalyticsSummaryDto>('/progress-history/analytics/summary');
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
-    }
+    
+  }
 
-    // Fallback
-    return this.getAnalyticsSummaryFallback();
+  /**
+   * Generate weekly progress entry for current user
+   */
+  async generateWeeklyEntry(goalId: string, notes?: string): Promise<any> {
+    return httpClient.post(`/progress-history/weekly-entry`, { goalId, notes });
   }
 
   // UTILITY METHODS
@@ -538,33 +474,33 @@ class ProgressHistoryApiService {
   /**
    * Generate weekly progress entry for current user
    */
-  async generateWeeklyEntry(goalId: string, notes?: string): Promise<ProgressHistoryResponseDto> {
-    const goals = JSON.parse(localStorage.getItem('goals') || '[]');
-    const goal = goals.find((g: any) => g.id === goalId);
+  // async generateWeeklyEntry(goalId: string, notes?: string): Promise<ProgressHistoryResponseDto> {
+  //   const goals = JSON.parse(localStorage.getItem('goals') || '[]');
+  //   const goal = goals.find((g: any) => g.id === goalId);
     
-    if (!goal) {
-      throw new Error('Goal not found');
-    }
+  //   if (!goal) {
+  //     throw new Error('Goal not found');
+  //   }
 
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+  //   const now = new Date();
+  //   const weekStart = new Date(now);
+  //   weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+  //   const weekEnd = new Date(weekStart);
+  //   weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
 
-    const data: CreateProgressHistoryDto = {
-      goalId: goal.id,
-      volunteerId: goal.volunteerId || localStorage.getItem('currentUserId') || 'current-user',
-      title: goal.title,
-      status: goal.status,
-      progress: goal.progress,
-      notes: notes || '',
-      weekStart: weekStart.toISOString(),
-      weekEnd: weekEnd.toISOString()
-    };
+  //   const data: CreateProgressHistoryDto = {
+  //     goalId: goal.id,
+  //     volunteerId: goal.volunteerId || localStorage.getItem('currentUserId') || 'current-user',
+  //     title: goal.title,
+  //     status: goal.status,
+  //     progress: goal.progress,
+  //     notes: notes || '',
+  //     weekStart: weekStart.toISOString(),
+  //     weekEnd: weekEnd.toISOString()
+  //   };
 
-    return this.create(data);
-  }
+  //   return this.create(data);
+  // }
 
   /**
    * Get week boundaries for a given date
@@ -779,68 +715,6 @@ class ProgressHistoryApiService {
     };
   }
 
-  private async getVolunteerWeeklyHistoryFallback(
-    volunteerId: string, 
-    startDate?: string, 
-    endDate?: string
-  ): Promise<VolunteerWeeklyHistoryDto> {
-    const weeks: HistoricalWeekDto[] = [];
-    const goals = JSON.parse(localStorage.getItem('goals') || '[]');
-
-    // Generate mock weekly history
-    for (let i = 11; i >= 0; i--) {
-      const weekDate = new Date();
-      weekDate.setDate(weekDate.getDate() - (i * 7));
-      const { start, end } = this.getWeekBoundaries(weekDate);
-
-      // Create mock goals for this week
-      const weekGoals: HistoricalGoalDto[] = goals.slice(0, 3).map((goal: any) => ({
-        id: goal.id,
-        title: goal.title,
-        status: goal.status,
-        progress: Math.max(0, goal.progress - (i * 5)),
-        priority: goal.priority?.toLowerCase() || 'medium',
-        category: goal.category,
-        notes: `Week ${12 - i} notes`
-      }));
-
-      const totalGoals = weekGoals.length;
-      const completedGoals = weekGoals.filter(g => g.status === 'completed').length;
-      const averageProgress = totalGoals > 0 ? 
-        Math.round(weekGoals.reduce((sum, g) => sum + g.progress, 0) / totalGoals) : 0;
-      const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
-
-      weeks.push({
-        weekStart: start,
-        weekEnd: end,
-        totalGoals,
-        completedGoals,
-        averageProgress,
-        completionRate,
-        goals: weekGoals
-      });
-    }
-
-    const totalWeeks = weeks.length;
-    const totalGoals = weeks.reduce((sum, w) => sum + w.totalGoals, 0);
-    const completedGoals = weeks.reduce((sum, w) => sum + w.completedGoals, 0);
-    const averageProgress = totalWeeks > 0 ? 
-      Math.round(weeks.reduce((sum, w) => sum + w.averageProgress, 0) / totalWeeks) : 0;
-    const averageCompletionRate = totalWeeks > 0 ? 
-      Math.round(weeks.reduce((sum, w) => sum + w.completionRate, 0) / totalWeeks) : 0;
-
-    return {
-      volunteerId,
-      volunteerName: 'Current User',
-      weeks,
-      totalWeeks,
-      totalGoals,
-      completedGoals,
-      averageProgress,
-      averageCompletionRate
-    };
-  }
-
   private async getMostProductiveDayFallback(volunteerId: string): Promise<MostProductiveDayDto> {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
@@ -871,73 +745,6 @@ class ProgressHistoryApiService {
     };
   }
 
-  private async getAnalyticsSummaryFallback(): Promise<AnalyticsSummaryDto> {
-    const totalProgressEntries = Math.floor(Math.random() * 500) + 200;
-    const totalVolunteersWithHistory = Math.floor(Math.random() * 20) + 10;
-    const averageWeeklyProgress = Math.floor(Math.random() * 30) + 70;
-
-    const topPerformers: TopPerformerData[] = [
-      {
-        volunteerId: '1',
-        volunteerName: 'John Doe',
-        completionRate: 95,
-        averageProgress: 88,
-        totalEntries: 25
-      },
-      {
-        volunteerId: '2',
-        volunteerName: 'Jane Smith',
-        completionRate: 90,
-        averageProgress: 85,
-        totalEntries: 23
-      }
-    ];
-
-    const recentActivity: RecentActivityData[] = [
-      {
-        id: '1',
-        userId: '1',
-        userName: 'John Doe',
-        action: 'UPDATE_GOAL_PROGRESS',
-        resource: 'goal',
-        resourceId: 'goal-1',
-        createdAt: new Date().toISOString(),
-        details: { newProgress: 85, oldProgress: 75 }
-      }
-    ];
-
-    const weeklyGrowth: WeeklyGrowthData[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const weekDate = new Date();
-      weekDate.setDate(weekDate.getDate() - (i * 7));
-      const { start, end } = this.getWeekBoundaries(weekDate);
-
-      weeklyGrowth.push({
-        weekStart: start,
-        weekEnd: end,
-        totalEntries: Math.floor(Math.random() * 20) + 10,
-        averageProgress: Math.floor(Math.random() * 30) + 70,
-        completionRate: Math.floor(Math.random() * 40) + 60
-      });
-    }
-
-    const categoryDistribution: CategoryDistributionData[] = [
-      { category: 'Community Service', totalEntries: 45, averageProgress: 85, completionRate: 80 },
-      { category: 'Training', totalEntries: 30, averageProgress: 90, completionRate: 95 },
-      { category: 'Administration', totalEntries: 25, averageProgress: 75, completionRate: 70 }
-    ];
-
-    return {
-      totalProgressEntries,
-      totalVolunteersWithHistory,
-      averageWeeklyProgress,
-      topPerformers,
-      recentActivity,
-      weeklyGrowth,
-      categoryDistribution
-    };
-  }
-
   private transformError(error: any): Error {
     if (error.status === 404) {
       return new Error('Progress history entry not found');
@@ -956,7 +763,6 @@ class ProgressHistoryApiService {
   getDebugInfo(): object {
     return {
       serviceReady: true,
-      isOnline: this.isOnline,
       endpoints: {
         base: '/progress-history',
         myHistory: '/progress-history/my-history',

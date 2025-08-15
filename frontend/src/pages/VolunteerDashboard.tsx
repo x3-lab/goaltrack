@@ -55,7 +55,7 @@ const VolunteerDashboard: React.FC = () => {
 
   const loadDashboardData = async () => {
     try {
-      console.log('📊 Loading volunteer dashboard data...');
+      console.log('Loading volunteer dashboard data...');
       
       if (!user?.id) {
         throw new Error('User ID not available');
@@ -71,7 +71,7 @@ const VolunteerDashboard: React.FC = () => {
           console.warn('Failed to load trends:', error);
           return null;
         }),
-        analyticsApi.getPersonalAnalytics({ volunteerId: user.id }).catch(error => {
+        analyticsApi.getPersonalAnalytics(user.id).catch(error => {
           console.warn('Failed to load analytics:', error);
           return null;
         })
@@ -80,10 +80,10 @@ const VolunteerDashboard: React.FC = () => {
       setTrends(trendsData);
       setAnalytics(analyticsData);
 
-      console.log('✅ Dashboard data loaded successfully');
+      console.log('Dashboard data loaded successfully');
       
     } catch (error: any) {
-      console.error('❌ Error loading dashboard:', error);
+      console.error('Error loading dashboard:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data. Please refresh the page.",
@@ -102,7 +102,7 @@ const VolunteerDashboard: React.FC = () => {
 
   const handleCreateGoal = async (goalData: any) => {
     try {
-      console.log('🎯 Creating new goal...');
+      console.log('Creating new goal...');
       
       await goalsApi.create({
         ...goalData,
@@ -113,12 +113,12 @@ const VolunteerDashboard: React.FC = () => {
       setShowCreateGoal(false);
       
       toast({
-        title: "Goal Created! 🎯",
+        title: "Goal Created!",
         description: "Your new goal has been added successfully.",
       });
       
     } catch (error: any) {
-      console.error('❌ Error creating goal:', error);
+      console.error('Error creating goal:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create goal",
@@ -199,7 +199,7 @@ const VolunteerDashboard: React.FC = () => {
       await refreshData();
 
       toast({
-        title: "Goal Completed! 🎉",
+        title: "Goal Completed!",
         description: "Congratulations on completing your goal!",
       });
     } catch (error: any) {

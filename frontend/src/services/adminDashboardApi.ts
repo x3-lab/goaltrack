@@ -40,17 +40,6 @@ export interface AdminNotificationDto {
   linkText?: string;
 }
 
-export interface SystemHealthDto {
-  status: 'healthy' | 'warning' | 'critical';
-  checks: Array<{
-    name: string;
-    status: 'pass' | 'warn' | 'fail';
-    message?: string;
-    details?: Record<string, any>;
-  }>;
-  lastCheck: string;
-}
-
 export interface RecentUserDto {
   id: string;
   name: string;
@@ -75,10 +64,10 @@ class AdminDashboardApiService {
     try {
       await httpClient.get(`${this.baseURL}/health`);
       this.isOnline = true;
-      console.log('✅ Admin Dashboard API connected to backend');
+      console.log('Admin Dashboard API connected to backend');
     } catch (error) {
       this.isOnline = false;
-      console.log('🔄 Admin Dashboard API using fallback mode');
+      console.log('Admin Dashboard API using fallback mode');
     }
   }
 
@@ -88,11 +77,11 @@ class AdminDashboardApiService {
   async getDashboardMetrics(): Promise<DashboardMetricsDto> {
     if (this.isOnline) {
       try {
-        console.log('📊 Getting dashboard metrics...');
+        console.log('Getting dashboard metrics...');
         
         const response = await httpClient.get<DashboardMetricsDto>(`${this.baseURL}/metrics`);
         
-        console.log('✅ Dashboard metrics loaded successfully');
+        console.log('Dashboard metrics loaded successfully');
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
@@ -137,21 +126,18 @@ class AdminDashboardApiService {
   async getAdminNotifications(limit: number = 10): Promise<AdminNotificationDto[]> {
     if (this.isOnline) {
       try {
-        console.log(`🔔 Getting admin notifications (limit: ${limit})...`);
+        console.log(`Getting admin notifications (limit: ${limit})...`);
         
         const response = await httpClient.get<AdminNotificationDto[]>(
           `${this.baseURL}/notifications?limit=${limit}`
         );
         
-        console.log(`✅ Admin notifications loaded successfully (${response.length} items)`);
+        console.log(`Admin notifications loaded successfully (${response.length} items)`);
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
       }
     }
-
-    // Fallback - generate mock notifications
-    return this.generateMockNotifications(limit);
   }
 
   /**
@@ -164,33 +150,15 @@ class AdminDashboardApiService {
         
         await httpClient.put(`${this.baseURL}/notifications/${notificationId}/read`);
         
-        console.log('✅ Notification marked as read successfully');
+        console.log('Notification marked as read successfully');
       } catch (error: any) {
         console.warn('Backend failed');
         throw error;
       }
     } else {
-      console.log('📝 Simulating marking notification as read');
+      console.log('Simulating marking notification as read');
       // Simulate success in offline mode
       await new Promise(resolve => setTimeout(resolve, 300));
-    }
-  }
-
-  /**
-   * Get system health status
-   */
-  async getSystemHealth(): Promise<SystemHealthDto> {
-    if (this.isOnline) {
-      try {
-        console.log('🔍 Checking system health...');
-        
-        const response = await httpClient.get<SystemHealthDto>(`${this.baseURL}/health`);
-        
-        console.log(`✅ System health check complete: ${response.status}`);
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
     }
   }
 
@@ -200,13 +168,13 @@ class AdminDashboardApiService {
   async getRecentUsers(limit: number = 5): Promise<RecentUserDto[]> {
     if (this.isOnline) {
       try {
-        console.log(`👥 Getting recent users (limit: ${limit})...`);
+        console.log(`Getting recent users (limit: ${limit})...`);
         
         const response = await httpClient.get<RecentUserDto[]>(
           `${this.baseURL}/recent-users?limit=${limit}`
         );
         
-        console.log(`✅ Recent users loaded successfully (${response.length} users)`);
+        console.log(`Recent users loaded successfully (${response.length} users)`);
         return response;
       } catch (error: any) {
         console.warn('Backend failed, using fallback data');
@@ -219,43 +187,6 @@ class AdminDashboardApiService {
   private calculatePercentage(change: number, total: number): number {
     if (total === 0) return 0;
     return Math.round((change / total) * 100);
-  }
-
-  private generateMockNotifications(limit: number): AdminNotificationDto[] {
-    const notifications: AdminNotificationDto[] = [
-      {
-        id: 'notif1',
-        type: 'warning',
-        title: 'Overdue Goals',
-        message: 'There are 5 overdue goals that require attention.',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        read: false,
-        link: '/admin-dashboard/goals?status=overdue',
-        linkText: 'View Overdue Goals'
-      },
-      {
-        id: 'notif2',
-        type: 'info',
-        title: 'New User Registration',
-        message: 'Alice Johnson has registered as a new volunteer.',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        read: false,
-        link: '/admin-dashboard/volunteers',
-        linkText: 'View Volunteers'
-      },
-      {
-        id: 'notif3',
-        type: 'success',
-        title: 'Weekly Summary',
-        message: '10 goals were completed last week, 85% completion rate.',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        read: true,
-        link: '/admin-dashboard/analytics',
-        linkText: 'View Analytics'
-      }
-    ];
-
-    return notifications.slice(0, limit);
   }
 }
 
