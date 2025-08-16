@@ -70,10 +70,10 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
       setTrends(trendsResult);
       setProductivityData(productivityResult);
       
-      console.log('✅ Personal analytics data loaded successfully');
+      console.log('Personal analytics data loaded successfully');
       
     } catch (error: any) {
-      console.error('❌ Error loading personal analytics:', error);
+      console.error('Error loading personal analytics:', error);
       toast({
         title: "Error",
         description: "Failed to load personal analytics data.",
@@ -147,6 +147,30 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
   }
 
   const performanceLevel = getPerformanceLevel(analytics.performanceScore);
+  const hasProductivity =
+    !!productivityData &&
+    !!productivityData.mostProductiveDay &&
+    typeof productivityData.mostProductiveDay.dayName === 'string';
+  const hasTrends =
+    !!trends &&
+    Array.isArray(trends.weeklyTrends) &&
+    trends.weeklyTrends.length > 0;
+
+  // Normalize weekly trends
+  const normalizedWeeklyTrends = hasTrends
+    ? trends!.weeklyTrends.map((t: any) => ({
+        weekStart: t.weekStart || t.week || t.startDate || t.start || t.date || '',
+        completionRate: t.completionRate ?? t.completion_rate ?? t.rate ?? 0,
+        averageProgress: t.averageProgress ?? t.avgProgress ?? t.progress ?? 0,
+        totalGoals: t.totalGoals ?? t.total ?? 0,
+        completedGoals: t.completedGoals ?? t.completed ?? 0
+      }))
+    : [];
+
+  const bestWeek = trends?.bestWeek || null;
+  const worstWeek = trends?.worstWeek || null;
+  const hasBestWeek = !!bestWeek && typeof bestWeek.completionRate === 'number';
+  const hasWorstWeek = !!worstWeek && typeof worstWeek.completionRate === 'number';
 
   // Compact version
   if (compact) {
@@ -385,178 +409,224 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={trends.weeklyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="weekStart" 
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                  />
-                  <YAxis />
-                  <Tooltip 
-                    labelFormatter={(value) => `Week of ${new Date(value).toLocaleDateString()}`}
-                    formatter={(value: any, name: string) => [
-                      name === 'completionRate' ? `${value}%` : value,
-                      name === 'completionRate' ? 'Completion Rate' : 
-                      name === 'averageProgress' ? 'Avg Progress' :
-                      name === 'totalGoals' ? 'Total Goals' : 'Completed Goals'
-                    ]}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="completionRate" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    name="completionRate"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="averageProgress" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2}
-                    name="averageProgress"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {normalizedWeeklyTrends.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  No weekly trend data available yet.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={normalizedWeeklyTrends}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="weekStart"
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) =>
+                        value ? new Date(value).toLocaleDateString() : ''
+                      }
+                    />
+                    <YAxis />
+                    <Tooltip
+                      labelFormatter={(value) =>
+                        `Week of ${value ? new Date(value).toLocaleDateString() : ''}`
+                      }
+                      formatter={(value: any, name: string) => [
+                        name === 'completionRate' ? `${value}%` : value,
+                        name === 'completionRate'
+                          ? 'Completion Rate'
+                          : name === 'averageProgress'
+                          ? 'Avg Progress'
+                          : name === 'totalGoals'
+                          ? 'Total Goals'
+                          : 'Completed Goals'
+                      ]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="completionRate"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      name="completionRate"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="averageProgress"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      name="averageProgress"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
           {/* Best/Worst Week Analysis */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-green-600">Best Week</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-green-600">
-                    {trends.bestWeek.completionRate}%
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Week of {new Date(trends.bestWeek.weekStart).toLocaleDateString()}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Your highest completion rate week
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {(hasBestWeek || hasWorstWeek) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {hasBestWeek && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-green-600">Best Week</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-bold text-green-600">
+                        {bestWeek.completionRate}%
+                      </p>
+                      {bestWeek.weekStart && (
+                        <p className="text-sm text-gray-600">
+                          Week of {new Date(bestWeek.weekStart).toLocaleDateString()}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        Your highest completion rate week
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
+              {hasWorstWeek && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-orange-600">Improvement Opportunity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-bold text-orange-600">
+                        {worstWeek.completionRate}%
+                      </p>
+                      {worstWeek.weekStart && (
+                        <p className="text-sm text-gray-600">
+                          Week of {new Date(worstWeek.weekStart).toLocaleDateString()}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        Room for improvement from this week
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {!hasBestWeek && !hasWorstWeek && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-orange-600">Improvement Opportunity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-orange-600">
-                    {trends.worstWeek.completionRate}%
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Week of {new Date(trends.worstWeek.weekStart).toLocaleDateString()}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Room for improvement from this week
-                  </p>
-                </div>
+              <CardContent className="text-center py-8 text-gray-500 text-sm">
+                No best/worst week analytics available yet.
               </CardContent>
             </Card>
-          </div>
+          )}
         </>
       )}
 
       {/* Productivity Tab */}
-      {activeTab === 'productivity' && productivityData && (
+      {activeTab === 'productivity' && (
         <>
-          {/* Most Productive Day */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Your Most Productive Day
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
-                  <div className="text-3xl font-bold text-indigo-600 mb-2">
-                    {productivityData.mostProductiveDay.dayName}
-                  </div>
-                  <div className="text-sm text-gray-600 mb-2">Most Productive Day</div>
-                  <div className="text-lg font-semibold text-indigo-700">
-                    Score: {productivityData.mostProductiveDay.productivityScore}
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Activities</span>
-                    <span className="font-medium">{productivityData.mostProductiveDay.activitiesCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Goals Worked On</span>
-                    <span className="font-medium">{productivityData.mostProductiveDay.goalsWorkedOn}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Avg Progress</span>
-                    <span className="font-medium">{productivityData.mostProductiveDay.averageProgress}%</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Recommended Days</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {productivityData.recommendedWorkingDays.map((day) => (
-                      <Badge key={day} variant="secondary" className="text-xs">
-                        {day}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {!hasProductivity && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Most Productive Day</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center py-10 text-gray-500">
+                No productivity pattern data available yet.
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Weekly Productivity Pattern */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Productivity Pattern</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={productivityData.weeklyPattern}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="dayName" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="productivityScore" fill="#8884d8" name="Productivity Score" />
-                  <Bar dataKey="activitiesCount" fill="#82ca9d" name="Activities" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          {hasProductivity && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Your Most Productive Day
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
+                    <div className="text-3xl font-bold text-indigo-600 mb-2">
+                      {productivityData!.mostProductiveDay.dayName}
+                    </div>
+                    <div className="text-sm text-gray-600 mb-2">Most Productive Day</div>
+                    <div className="text-lg font-semibold text-indigo-700">
+                      Score: {productivityData!.mostProductiveDay.productivityScore}
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Activities</span>
+                      <span className="font-medium">{productivityData!.mostProductiveDay.activitiesCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Goals Worked On</span>
+                      <span className="font-medium">{productivityData!.mostProductiveDay.goalsWorkedOn}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Avg Progress</span>
+                      <span className="font-medium">{productivityData!.mostProductiveDay.averageProgress}%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Recommended Days</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {(productivityData!.recommendedWorkingDays || []).map((day) => (
+                        <Badge key={day} variant="secondary" className="text-xs">
+                          {day}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Weekly pattern */}
+          {hasProductivity && Array.isArray(productivityData!.weeklyPattern) && productivityData!.weeklyPattern.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Productivity Pattern</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={productivityData!.weeklyPattern}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="dayName" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="productivityScore" fill="#8884d8" name="Productivity Score" />
+                    <Bar dataKey="activitiesCount" fill="#82ca9d" name="Activities" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Productivity Insights */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Productivity Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {productivityData.insights.map((insight, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-blue-600 text-xs font-bold">{index + 1}</span>
+          {hasProductivity && Array.isArray(productivityData!.insights) && productivityData!.insights.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Productivity Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {productivityData!.insights.map((insight, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-blue-600 text-xs font-bold">{index + 1}</span>
+                      </div>
+                      <p className="text-sm text-blue-800">{insight}</p>
                     </div>
-                    <p className="text-sm text-blue-800">{insight}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
@@ -610,8 +680,8 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
                   {analytics.streakCount < 2 && (
                     <p>• Try to maintain consistent weekly progress to build momentum</p>
                   )}
-                  {productivityData && (
-                    <p>• Schedule important tasks on {productivityData.mostProductiveDay.dayName}s for best results</p>
+                  {hasProductivity && (
+                    <p>• Schedule important tasks on {productivityData!.mostProductiveDay.dayName}s for best results</p>
                   )}
                   <p>• Continue your excellent progress and consider mentoring others</p>
                 </div>

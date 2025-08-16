@@ -142,111 +142,71 @@ export interface AdminStats {
 }
 
 class AdminApiService {
-  private isOnline = false;
-
-  constructor() {
-    this.checkConnection();
-  }
-
-  private async checkConnection(): Promise<void> {
-    try {
-      await httpClient.get('/admin/profile');
-      this.isOnline = true;
-      console.log('✅ Admin API connected to backend');
-    } catch (error) {
-      this.isOnline = false;
-      console.log('🔄 Admin API using fallback mode');
-    }
-  }
-
   // ADMIN PROFILE MANAGEMENT
 
   /**
    * Get current admin profile
    */
   async getProfile(): Promise<AdminProfileDto> {
-    if (this.isOnline) {
-      try {
-        console.log('👨‍💼 Getting admin profile...');
-        
-        const response = await httpClient.get<AdminProfileDto>('/admin/profile');
-        
-        console.log('✅ Admin profile loaded successfully');
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
+    try {
+      console.log('Getting admin profile...');
+      
+      const response = await httpClient.get<AdminProfileDto>('/admin/profile');
+      
+      console.log('Admin profile loaded successfully');
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed');
     }
 
-    // Fallback
-    return this.getProfileFallback();
   }
 
   /**
    * Update admin profile
    */
   async updateProfile(updates: UpdateAdminProfileDto): Promise<AdminProfileDto> {
-    if (this.isOnline) {
-      try {
-        console.log('👨‍💼 Updating admin profile:', updates);
-        
-        const response = await httpClient.patch<AdminProfileDto>('/admin/profile', updates);
-        
-        console.log('✅ Admin profile updated successfully');
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback');
-        throw this.transformError(error);
-      }
+    try {
+      console.log('Updating admin profile:', updates);
+      
+      const response = await httpClient.patch<AdminProfileDto>('/admin/profile', updates);
+      
+      console.log('Admin profile updated successfully');
+      return response;
+    } catch (error: any) {
+      throw this.transformError(error);
     }
-
-    // Fallback
-    return this.updateProfileFallback(updates);
   }
 
   /**
    * Update admin preferences
    */
   async updatePreferences(preferences: UpdateAdminPreferencesDto): Promise<AdminProfileDto> {
-    if (this.isOnline) {
-      try {
-        console.log('⚙️ Updating admin preferences:', preferences);
-        
-        const response = await httpClient.patch<AdminProfileDto>('/admin/preferences', preferences);
-        
-        console.log('✅ Admin preferences updated successfully');
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback');
-        throw this.transformError(error);
-      }
+    try {
+      console.log('Updating admin preferences:', preferences);
+      
+      const response = await httpClient.patch<AdminProfileDto>('/admin/preferences', preferences);
+      
+      console.log('Admin preferences updated successfully');
+      return response;
+    } catch (error: any) {
+      throw this.transformError(error);
     }
-
-    // Fallback
-    return this.updatePreferencesFallback(preferences);
   }
 
   /**
    * Change admin password
    */
   async changePassword(passwordData: ChangeAdminPasswordDto): Promise<{ success: boolean }> {
-    if (this.isOnline) {
-      try {
-        console.log('🔒 Changing admin password...');
-        
-        const response = await httpClient.post<{ success: boolean }>('/admin/change-password', passwordData);
-        
-        console.log('✅ Admin password changed successfully');
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback');
-        throw this.transformError(error);
-      }
+    try {
+      console.log('Changing admin password...');
+      
+      const response = await httpClient.post<{ success: boolean }>('/admin/change-password', passwordData);
+      
+      console.log('Admin password changed successfully');
+      return response;
+    } catch (error: any) {
+      throw this.transformError(error);
     }
-
-    // Fallback - simulate password change
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { success: true };
   }
 
   // DASHBOARD STATISTICS
@@ -255,84 +215,64 @@ class AdminApiService {
    * Get dashboard statistics
    */
   async getDashboardStats(): Promise<DashboardStatsDto> {
-    if (this.isOnline) {
-      try {
-        console.log('📊 Getting dashboard statistics...');
-        
-        const response = await httpClient.get<DashboardStatsDto>('/admin/dashboard/stats');
-        
-        console.log('✅ Dashboard statistics loaded successfully');
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
+    try {
+      console.log('Getting dashboard statistics...');
+      
+      const response = await httpClient.get<DashboardStatsDto>('/admin/dashboard/stats');
+      
+      console.log('Dashboard statistics loaded successfully');
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed');
     }
-
-    // Fallback
-    return this.getDashboardStatsFallback();
   }
 
   /**
    * Get recent activity logs
    */
   async getRecentActivity(limit: number = 10): Promise<ActivityDto[]> {
-    if (this.isOnline) {
-      try {
-        console.log(`📋 Getting recent activity (limit: ${limit})...`);
-        
-        const response = await httpClient.get<ActivityDto[]>(`/admin/dashboard/activity?limit=${limit}`);
-        
-        console.log(`✅ Recent activity loaded successfully (${response.length} items)`);
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
+    try {
+      console.log(`Getting recent activity (limit: ${limit})...`);
+      
+      const response = await httpClient.get<ActivityDto[]>(`/admin/dashboard/activity?limit=${limit}`);
+      
+      console.log(`Recent activity loaded successfully (${response.length} items)`);
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed');
     }
-
-    // Fallback
-    return this.getRecentActivityFallback(limit);
   }
 
   /**
    * Get upcoming deadlines
    */
   async getUpcomingDeadlines(limit: number = 10): Promise<DeadlineDto[]> {
-    if (this.isOnline) {
-      try {
-        console.log(`⏰ Getting upcoming deadlines (limit: ${limit})...`);
-        
-        const response = await httpClient.get<DeadlineDto[]>(`/admin/dashboard/deadlines?limit=${limit}`);
-        
-        console.log(`✅ Upcoming deadlines loaded successfully (${response.length} items)`);
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
+    try {
+      console.log(`Getting upcoming deadlines (limit: ${limit})...`);
+      
+      const response = await httpClient.get<DeadlineDto[]>(`/admin/dashboard/deadlines?limit=${limit}`);
+      
+      console.log(`Upcoming deadlines loaded successfully (${response.length} items)`);
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed, using fallback data');
     }
-
-    // Fallback
-    return this.getUpcomingDeadlinesFallback(limit);
   }
 
   /**
    * Get volunteers with their goals summary
    */
   async getVolunteersWithGoals(): Promise<VolunteerWithGoalsDto[]> {
-    if (this.isOnline) {
-      try {
-        console.log('👥 Getting volunteers with goals...');
-        
-        const response = await httpClient.get<VolunteerWithGoalsDto[]>('/admin/volunteers-with-goals');
-        
-        console.log(`✅ Volunteers with goals loaded successfully (${response.length} volunteers)`);
-        return response;
-      } catch (error: any) {
-        console.warn('Backend failed, using fallback data');
-      }
+    try {
+      console.log('Getting volunteers with goals...');
+      
+      const response = await httpClient.get<VolunteerWithGoalsDto[]>('/admin/volunteers-with-goals');
+      
+      console.log(`Volunteers with goals loaded successfully (${response.length} volunteers)`);
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed, using fallback data');
     }
-
-    // Fallback
-    return this.getVolunteersWithGoalsFallback();
   }
 
   // LEGACY METHODS (for backward compatibility)
@@ -572,276 +512,6 @@ class AdminApiService {
     };
   }
 
-  // FALLBACK METHODS (Local Data Simulation)
-
-  private async getProfileFallback(): Promise<AdminProfileDto> {
-    const stored = localStorage.getItem('adminProfile');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-
-    const defaultProfile: AdminProfileDto = {
-      id: 'admin-1',
-      name: 'John Administrator',
-      email: 'admin@x3lab.com',
-      phone: '+1234567890',
-      role: 'admin',
-      department: 'Administration',
-      title: 'System Administrator',
-      lastLogin: new Date().toISOString(),
-      permissions: this.getAdminPermissions('admin'),
-      preferences: {
-        weeklyReports: true,
-        systemAlerts: true,
-        theme: 'light',
-        timezone: 'UTC',
-        dashboardRefreshInterval: 60,
-        emailNotifications: true,
-        smsNotifications: false
-      },
-      stats: {
-        totalVolunteersManaged: 25,
-        totalGoalsOversaw: 150,
-        lastSystemMaintenance: new Date().toISOString()
-      }
-    };
-
-    localStorage.setItem('adminProfile', JSON.stringify(defaultProfile));
-    return defaultProfile;
-  }
-
-  private async updateProfileFallback(updates: UpdateAdminProfileDto): Promise<AdminProfileDto> {
-    const currentProfile = await this.getProfileFallback();
-    const updatedProfile = {
-      ...currentProfile,
-      ...updates,
-      lastLogin: new Date().toISOString()
-    };
-    
-    localStorage.setItem('adminProfile', JSON.stringify(updatedProfile));
-    return updatedProfile;
-  }
-
-  private async updatePreferencesFallback(preferences: UpdateAdminPreferencesDto): Promise<AdminProfileDto> {
-    const currentProfile = await this.getProfileFallback();
-    const updatedProfile = {
-      ...currentProfile,
-      preferences: {
-        ...currentProfile.preferences,
-        ...preferences
-      }
-    };
-    
-    localStorage.setItem('adminProfile', JSON.stringify(updatedProfile));
-    return updatedProfile;
-  }
-
-  private async getDashboardStatsFallback(): Promise<DashboardStatsDto> {
-    const stored = localStorage.getItem('dashboardStats');
-    if (stored) {
-      const stats = JSON.parse(stored);
-      // Check if data is recent (within last hour)
-      if (Date.now() - new Date(stats.lastUpdated).getTime() < 3600000) {
-        return stats.data;
-      }
-    }
-
-    // Generate mock data
-    const mockStats: DashboardStatsDto = {
-      activeVolunteers: 25,
-      totalGoals: 150,
-      completionRate: 78,
-      overdueGoals: 8,
-      monthlyChanges: {
-        volunteers: 3,
-        goals: 12,
-        completion: 5,
-        overdue: -2
-      }
-    };
-
-    localStorage.setItem('dashboardStats', JSON.stringify({
-      data: mockStats,
-      lastUpdated: new Date().toISOString()
-    }));
-
-    return mockStats;
-  }
-
-  private async getRecentActivityFallback(limit: number): Promise<ActivityDto[]> {
-    const stored = localStorage.getItem('recentActivity');
-    if (stored) {
-      const activities = JSON.parse(stored);
-      return activities.slice(0, limit);
-    }
-
-    // Generate mock activity
-    const mockActivities: ActivityDto[] = [
-      {
-        id: '1',
-        userId: 'user-1',
-        userName: 'Sarah Johnson',
-        action: 'completed',
-        resource: 'goal',
-        resourceId: 'goal-1',
-        details: { goalTitle: 'First Aid Training' },
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        timeAgo: '2 hours ago'
-      },
-      {
-        id: '2',
-        userId: 'user-2',
-        userName: 'Mike Chen',
-        action: 'started',
-        resource: 'goal',
-        resourceId: 'goal-2',
-        details: { goalTitle: 'Community Outreach' },
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        timeAgo: '4 hours ago'
-      },
-      {
-        id: '3',
-        userId: 'user-3',
-        userName: 'Emma Davis',
-        action: 'updated progress on',
-        resource: 'goal',
-        resourceId: 'goal-3',
-        details: { goalTitle: 'Fundraising Event', progress: 65 },
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-        timeAgo: '6 hours ago'
-      }
-    ];
-
-    localStorage.setItem('recentActivity', JSON.stringify(mockActivities));
-    return mockActivities.slice(0, limit);
-  }
-
-  private async getUpcomingDeadlinesFallback(limit: number): Promise<DeadlineDto[]> {
-    const stored = localStorage.getItem('upcomingDeadlines');
-    if (stored) {
-      const deadlines = JSON.parse(stored);
-      return deadlines.slice(0, limit);
-    }
-
-    // Generate mock deadlines
-    const mockDeadlines: DeadlineDto[] = [
-      {
-        id: '1',
-        volunteer: 'Sarah Johnson',
-        volunteerEmail: 'sarah.johnson@email.com',
-        goal: 'Complete Safety Training',
-        deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        priority: 'high',
-        status: 'in-progress',
-        daysUntilDeadline: 5
-      },
-      {
-        id: '2',
-        volunteer: 'Mike Chen',
-        volunteerEmail: 'mike.chen@email.com',
-        goal: 'Submit Monthly Report',
-        deadline: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        priority: 'medium',
-        status: 'pending',
-        daysUntilDeadline: 8
-      },
-      {
-        id: '3',
-        volunteer: 'Emma Davis',
-        volunteerEmail: 'emma.davis@email.com',
-        goal: 'Event Planning Completion',
-        deadline: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        priority: 'medium',
-        status: 'in-progress',
-        daysUntilDeadline: 12
-      }
-    ];
-
-    localStorage.setItem('upcomingDeadlines', JSON.stringify(mockDeadlines));
-    return mockDeadlines.slice(0, limit);
-  }
-
-  private async getVolunteersWithGoalsFallback(): Promise<VolunteerWithGoalsDto[]> {
-    const stored = localStorage.getItem('volunteersWithGoals');
-    if (stored) {
-      return JSON.parse(stored);
-    }
-
-    // Generate mock data
-    const mockData: VolunteerWithGoalsDto[] = [
-      {
-        volunteerId: 'vol-1',
-        volunteerName: 'Sarah Johnson',
-        volunteerEmail: 'sarah.johnson@email.com',
-        totalGoals: 8,
-        completedGoals: 6,
-        pendingGoals: 1,
-        inProgressGoals: 1,
-        completionRate: 75,
-        lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        recentGoals: [
-          {
-            id: 'goal-1',
-            title: 'Safety Training',
-            status: 'completed',
-            progress: 100,
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ]
-      },
-      {
-        volunteerId: 'vol-2',
-        volunteerName: 'Mike Chen',
-        volunteerEmail: 'mike.chen@email.com',
-        totalGoals: 5,
-        completedGoals: 3,
-        pendingGoals: 1,
-        inProgressGoals: 1,
-        completionRate: 60,
-        lastActivity: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        recentGoals: [
-          {
-            id: 'goal-2',
-            title: 'Community Outreach',
-            status: 'in-progress',
-            progress: 45,
-            dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ]
-      }
-    ];
-
-    localStorage.setItem('volunteersWithGoals', JSON.stringify(mockData));
-    return mockData;
-  }
-
-  private getAdminPermissions(role: string): string[] {
-    const basePermissions = [
-      'view_users',
-      'view_goals',
-      'view_analytics',
-      'view_activity_logs'
-    ];
-
-    if (role === 'admin') {
-      return [
-        ...basePermissions,
-        'create_users',
-        'edit_users',
-        'delete_users',
-        'create_goals',
-        'edit_goals',
-        'delete_goals',
-        'system_settings',
-        'bulk_operations',
-        'manage_templates',
-        'view_system_stats',
-        'manage_preferences'
-      ];
-    }
-
-    return basePermissions;
-  }
 
   private transformError(error: any): Error {
     if (error.status === 403) {
@@ -861,7 +531,6 @@ class AdminApiService {
   getDebugInfo(): object {
     return {
       serviceReady: true,
-      isOnline: this.isOnline,
       endpoints: {
         profile: '/admin/profile',
         preferences: '/admin/preferences',
