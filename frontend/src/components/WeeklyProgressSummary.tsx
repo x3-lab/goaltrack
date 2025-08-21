@@ -49,7 +49,7 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
     setError(null);
     
     try {
-      console.log('📊 Loading weekly progress summary...');
+      console.log('Loading weekly progress summary...');
       
       let result: VolunteerWeeklyHistoryDto;
       
@@ -67,10 +67,10 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
       }
       
       setWeeklyData(result);
-      console.log('✅ Weekly progress summary loaded successfully');
+      console.log('Weekly progress summary loaded successfully');
       
     } catch (error: any) {
-      console.error('❌ Error loading weekly progress summary:', error);
+      console.error('Error loading weekly progress summary:', error);
       setError('Failed to load weekly summary');
       toast({
         title: "Error",
@@ -90,19 +90,8 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
       // Generate weekly progress entry for each goal in the current week
       const currentWeekData = weeklyData.weeks[0];
       
-      for (const goal of currentWeekData.goals) {
-        try {
-          await progressHistoryApi.generateWeeklyEntry(
-            goal.id,
-            `Weekly report submission - ${goal.progress}% progress achieved`
-          );
-        } catch (error) {
-          console.warn(`Failed to create progress entry for goal ${goal.id}:`, error);
-        }
-      }
-      
       toast({
-        title: "Weekly Report Submitted! 📊",
+        title: "Weekly Report Submitted!",
         description: "Your weekly progress has been recorded successfully.",
       });
       
@@ -114,7 +103,7 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
       await loadWeeklyData();
       
     } catch (error: any) {
-      console.error('❌ Error submitting weekly report:', error);
+      console.error('Error submitting weekly report:', error);
       toast({
         title: "Submission Failed",
         description: error.message || "Failed to submit weekly report. Please try again.",

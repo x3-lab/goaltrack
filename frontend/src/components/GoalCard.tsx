@@ -138,11 +138,8 @@ const GoalCard: React.FC<GoalCardProps> = ({
       // Create progress history entry
       try {
         const statusNote = newStatus === 'completed' 
-          ? '🎉oal marked as complete!' 
+          ? '🎉Goal marked as complete!' 
           : `Status changed to ${newStatus.replace('-', ' ')}`;
-        
-        await progressHistoryApi.generateWeeklyEntry(goal.id, statusNote);
-        console.log('Progress history entry created for status change');
         
         // Refresh history if visible
         if (showProgressHistory) {
@@ -171,8 +168,7 @@ const GoalCard: React.FC<GoalCardProps> = ({
     onUpdate(goal.id, {
       title: editData.title,
       description: editData.description,
-      notes: editData.notes,
-      updatedAt: new Date().toISOString()
+      notes: editData.notes
     });
     setIsEditing(false);
     
@@ -204,17 +200,17 @@ const GoalCard: React.FC<GoalCardProps> = ({
       }
 
       // Create progress history entry
-      try {
-        await progressHistoryApi.generateWeeklyEntry(goal.id, progressData.notes);
-        console.log('✅ Progress history entry created');
+      // try {
+      //   await progressHistoryApi.generateWeeklyEntry(goal.id, progressData.notes);
+      //   console.log('Progress history entry created');
         
-        // Refresh history if visible
-        if (showProgressHistory) {
-          setTimeout(() => loadProgressHistory(), 500);
-        }
-      } catch (historyError) {
-        console.warn('⚠️ Failed to create progress history entry:', historyError);
-      }
+      //   // Refresh history if visible
+      //   if (showProgressHistory) {
+      //     setTimeout(() => loadProgressHistory(), 500);
+      //   }
+      // } catch (historyError) {
+      //   console.warn('Failed to create progress history entry:', historyError);
+      // }
 
       setShowProgressUpdate(false);
       setProgressData({ progress: progressData.progress, notes: '' });
@@ -225,7 +221,7 @@ const GoalCard: React.FC<GoalCardProps> = ({
       });
 
     } catch (error: any) {
-      console.error('❌ Error updating progress:', error);
+      console.error('Error updating progress:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update progress",
@@ -242,7 +238,7 @@ const GoalCard: React.FC<GoalCardProps> = ({
         await handleStatusChange('completed');
       }
     } catch (error: any) {
-      console.error('❌ Error marking goal complete:', error);
+      console.error('Error marking goal complete:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to mark goal as complete",

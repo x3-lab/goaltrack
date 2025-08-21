@@ -248,6 +248,7 @@ class GoalsApiService {
   async update(id: string, updates: UpdateGoalDto): Promise<Goal> {
     try {
       const payload: any = { ...updates };
+      if (payload.updatedAt) delete payload.updatedAt;
       if (updates.status) payload.status = this.mapFrontendStatus(updates.status);
       if (updates.priority) payload.priority = this.mapFrontendPriority(updates.priority);
       if (updates.dueDate) {
