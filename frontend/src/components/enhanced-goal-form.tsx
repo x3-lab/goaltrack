@@ -54,9 +54,12 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     priority: goalData?.priority || 'medium',
     category: goalData?.category || '',
     tags: goalData?.tags || [],
+    startDate: goalData?.startDate
+      ? goalData.startDate.split('T')[0]
+      : new Date().toISOString().split('T')[0],
     dueDate: goalData?.dueDate ? goalData.dueDate.split('T')[0] : '',
     volunteerId: goalData?.volunteerId || volunteerId || '',
-    notes: goalData?.notes || ''
+    notes: goalData?.notes && Array.isArray(goalData.notes) ? goalData.notes[0] || '' : (goalData as any)?.notes || ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -182,6 +185,15 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
       newErrors.category = 'Category is required';
     }
 
+    if (!formData.startDate) {
+      newErrors.startDate = 'Start date is required';
+    }
+    if (formData.startDate && formData.dueDate) {
+      const s = new Date(formData.startDate);
+      const d = new Date(formData.dueDate);
+      if (s > d) newErrors.startDate = 'Start date cannot be after due date';
+    }
+
     if (!formData.dueDate) {
       newErrors.dueDate = 'Due date is required';
     } else {
@@ -207,6 +219,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     return formData.title.trim() && 
            formData.description.trim() && 
            formData.category.trim() && 
+           formData.startDate &&
            formData.dueDate &&
            (!isAdminMode || formData.volunteerId);
   };
@@ -221,11 +234,17 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     setLoading(true);
     try {
       const goalData = {
-        ...formData,
-        // Convert priority to lowercase for API consistency
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
         priority: formData.priority.toLowerCase(),
-        // Include volunteer assignment
-        volunteerId: isAdminMode ? formData.volunteerId : (volunteerId || formData.volunteerId)
+        startDate: formData.startDate,
+        dueDate: formData.dueDate,
+        volunteerId: isAdminMode ? formData.volunteerId : (volunteerId || formData.volunteerId),
+        tags: formData.tags,
+
+        notes: formData.notes && typeof formData.notes === 'string' && formData.notes.trim() ? [formData.notes.trim()] : undefined,
+        progress: 0
       };
       
       await onSubmit(goalData);
@@ -243,6 +262,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
           priority: 'medium',
           category: '',
           tags: [],
+          startDate: new Date().toISOString().split('T')[0],
           dueDate: '',
           volunteerId: isAdminMode ? '' : (volunteerId || ''),
           notes: ''
@@ -505,6 +525,22 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
+            <Label htmlFor="startDate">Start Date *</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={formData.startDate}
+              onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+              className={errors.startDate ? 'border-red-500' : ''}
+              aria-describedby={errors.startDate ? 'startDate-error' : undefined}
+            />
+            {errors.startDate && (
+              <p id="startDate-error" className="text-sm text-red-500" role="alert">
+                {errors.startDate}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="dueDate">Due Date *</Label>
             <Input
               id="dueDate"
@@ -513,6 +549,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
               onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
               className={errors.dueDate ? 'border-red-500' : ''}
               aria-describedby={errors.dueDate ? 'dueDate-error' : undefined}
+              min={formData.startDate}
             />
             {errors.dueDate && (
               <p id="dueDate-error" className="text-sm text-red-500" role="alert">

@@ -20,6 +20,7 @@ export interface Goal {
   priority: 'low' | 'medium' | 'high';
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue';
   progress: number;
+  startDate: string;
   dueDate: string;
   volunteerId: string;
   createdAt: string;

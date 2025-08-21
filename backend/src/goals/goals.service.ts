@@ -52,9 +52,19 @@ export class GoalsService {
             throw new ForbiddenException('You can only create goals for yourself');
         }
 
+        const startDateObj = new Date(createGoalDto.startDate);
+        const dueDateObj = new Date(createGoalDto.dueDate);
+        if (isNaN(startDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
+            throw new BadRequestException('Invalid start or due date');
+        }
+        if (startDateObj > dueDateObj) {
+            throw new BadRequestException('Start date cannot be after due date');
+        }
+
         const goal = this.goalRepository.create({
             ...createGoalDto,
-            dueDate: new Date(createGoalDto.dueDate),
+            startDate: startDateObj,
+            dueDate: dueDateObj,
             status: GoalStatus.PENDING,
             progress: createGoalDto.progress || 0,
             priority: createGoalDto.priority || GoalPriority.MEDIUM,
@@ -153,10 +163,14 @@ export class GoalsService {
             throw new ForbiddenException('You do not have permission to update this goal');
         }
 
+        let dueDate: Date | undefined;
         if (updateGoalDto.dueDate) {
-            updateGoalDto.dueDate = new Date(updateGoalDto.dueDate as any);
+            dueDate = new Date(updateGoalDto.dueDate);
         }
-
+        Object.assign(goal, updateGoalDto);
+        if (dueDate) {
+            goal.dueDate = dueDate;
+        }
         Object.assign(goal, updateGoalDto);
         const updatedGoal = await this.goalRepository.save(goal);
 

@@ -118,7 +118,7 @@ const Goals: React.FC = () => {
 
       // Use real backend API calls
       const [goalsResponse, statsData, volunteersData, categoriesData] = await Promise.all([
-        goalsApi.getAll(filters),
+        goalsApi.list(filters),
         goalsApi.getStatistics(),
         usersApi.getAll({ role: 'volunteer' }),
         goalsApi.getCategories().catch(() => [])
@@ -126,7 +126,7 @@ const Goals: React.FC = () => {
       
       setState(prev => ({
         ...prev,
-        goals: goalsResponse.data,
+        goals: goalsResponse.goals,
         stats: statsData,
         volunteers: volunteersData,
         categories: categoriesData,

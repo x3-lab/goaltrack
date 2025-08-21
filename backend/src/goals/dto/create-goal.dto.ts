@@ -37,10 +37,10 @@ export class CreateGoalDto {
     category: string;
 
     @IsDateString()
-    startDate: Date;
+    startDate: string;
 
     @IsDateString()
-    dueDate: Date;
+    dueDate: string;
 
     @IsOptional()
     @IsArray()

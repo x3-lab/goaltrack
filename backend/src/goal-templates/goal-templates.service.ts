@@ -232,8 +232,8 @@ export class GoalTemplatesService {
             category: template.category,
             priority: template.priority as any,
             volunteerId: targetVolunteerId,
-            dueDate: new Date(useTemplateDto.dueDate),
-            startDate: new Date,
+            dueDate: useTemplateDto.dueDate,
+            startDate: new Date().toISOString(),
             status: GoalStatus.PENDING,
             tags: template.tags,
             notes: useTemplateDto.customNotes ? [useTemplateDto.customNotes] : []

@@ -39,6 +39,9 @@ export class Goal {
     @Column()
     category: string;
 
+    @Column({ type: 'date' })
+    startDate: Date;
+
     @Column({ type: 'date'})
     dueDate: Date;
 

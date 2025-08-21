@@ -9,6 +9,7 @@ export interface GoalResponseDto {
   priority: string;         // backend: LOW | MEDIUM | HIGH
   status: string;           // backend: PENDING | IN_PROGRESS | COMPLETED | CANCELLED | OVERDUE
   progress: number;
+  startDate?: string;
   dueDate: string;
   volunteerId: string;
   createdAt: string;
@@ -27,7 +28,7 @@ export interface CreateGoalDto {
   startDate?: string;       // required by backend; we will ensure it
   volunteerId?: string;
   tags?: string[];
-  notes?: string[];
+  notes?: string | string[];
   progress?: number;
 }
 
@@ -78,13 +79,18 @@ export interface WeeklyProcessingResult {
 class GoalsApiService {
   private baseURL = '/goals';
 
-  // Map backend enums -> frontend
+  // Map backend -> frontend
   private mapBackendStatus(status: string): Goal['status'] {
     const map: Record<string, Goal['status']> = {
+      pending: 'pending',
       PENDING: 'pending',
+      in_progress: 'in-progress',
       IN_PROGRESS: 'in-progress',
+      completed: 'completed',
       COMPLETED: 'completed',
+      cancelled: 'cancelled',
       CANCELLED: 'cancelled',
+      overdue: 'overdue',
       OVERDUE: 'overdue'
     };
     return map[status] || (status.toLowerCase() as Goal['status']);
@@ -92,34 +98,32 @@ class GoalsApiService {
 
   private mapBackendPriority(priority: string): Goal['priority'] {
     const map: Record<string, Goal['priority']> = {
+      low: 'low',
       LOW: 'low',
+      medium: 'medium',
       MEDIUM: 'medium',
+      high: 'high',
       HIGH: 'high'
     };
     return map[priority] || (priority.toLowerCase() as Goal['priority']);
   }
 
-  // Map frontend -> backend enums
+  // Frontend -> backend
   private mapFrontendStatus(status?: string): string | undefined {
     if (!status) return undefined;
     const map: Record<string, string> = {
-      'pending': 'PENDING',
-      'in-progress': 'IN_PROGRESS',
-      'completed': 'COMPLETED',
-      'cancelled': 'CANCELLED',
-      'overdue': 'OVERDUE'
+      'pending': 'pending',
+      'in-progress': 'in_progress',
+      'completed': 'completed',
+      'cancelled': 'cancelled',
+      'overdue': 'overdue'
     };
     return map[status] || status;
   }
 
   private mapFrontendPriority(priority?: string): string | undefined {
     if (!priority) return undefined;
-    const map: Record<string, string> = {
-      'low': 'LOW',
-      'medium': 'MEDIUM',
-      'high': 'HIGH'
-    };
-    return map[priority] || priority;
+    return priority.toLowerCase();
   }
 
   private toFrontend(goal: GoalResponseDto): Goal {
@@ -131,6 +135,7 @@ class GoalsApiService {
       priority: this.mapBackendPriority(goal.priority),
       status: this.mapBackendStatus(goal.status),
       progress: goal.progress,
+      startDate: goal.startDate || new Date().toISOString().split('T')[0],
       dueDate: goal.dueDate,
       volunteerId: goal.volunteerId,
       createdAt: goal.createdAt,
@@ -202,19 +207,37 @@ class GoalsApiService {
 
   async create(data: CreateGoalDto): Promise<Goal> {
     try {
+      const normalizeDate = (d?: string) => {
+        if (!d) return undefined;
+        // accept YYYY-MM-DD or full ISO; if date-only, leave as is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+        const dt = new Date(d);
+        return isNaN(dt.getTime()) ? undefined : dt.toISOString();
+      };
+
+      const notesArray = (() => {
+        if (!data.notes) return undefined;
+        if (Array.isArray(data.notes)) return data.notes;
+        if (typeof data.notes === 'string') {
+          const t = data.notes.trim();
+          return t ? [t] : undefined;
+        }
+        return undefined;
+      })();
+
       const payload: any = {
         title: data.title,
         description: data.description,
         category: data.category,
         volunteerId: data.volunteerId,
         priority: this.mapFrontendPriority(data.priority || 'medium'),
-        status: this.mapFrontendStatus('pending'),
-        dueDate: data.dueDate,
-        startDate: data.startDate || new Date().toISOString(),
+        startDate: normalizeDate(data.startDate) || new Date().toISOString().split('T')[0],
+        dueDate: normalizeDate(data.dueDate),
         tags: data.tags,
-        notes: data.notes,
-        progress: data.progress ?? 0
+        notes: notesArray,
+        progress: typeof data.progress === 'number' ? data.progress : 0
       };
+
       const response = await httpClient.post<GoalResponseDto>(this.baseURL, payload);
       return this.toFrontend(response);
     } catch (e: any) {
@@ -227,6 +250,13 @@ class GoalsApiService {
       const payload: any = { ...updates };
       if (updates.status) payload.status = this.mapFrontendStatus(updates.status);
       if (updates.priority) payload.priority = this.mapFrontendPriority(updates.priority);
+      if (updates.dueDate) {
+        const dt = new Date(updates.dueDate);
+        if (!isNaN(dt.getTime())) payload.dueDate = dt.toISOString();
+      }
+      if (payload.notes && !Array.isArray(payload.notes)) {
+        delete payload.notes;
+      }
       const response = await httpClient.patch<GoalResponseDto>(`${this.baseURL}/${id}`, payload);
       return this.toFrontend(response);
     } catch (e: any) {
