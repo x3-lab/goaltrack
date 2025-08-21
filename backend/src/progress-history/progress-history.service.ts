@@ -93,21 +93,21 @@ export class ProgressHistoryService {
             .leftJoinAndSelect('ph.volunteer', 'volunteer');
 
         if (currentUser.role === UserRole.VOLUNTEER) {
-            queryBuilder.where('ph.volunteerId = userId', { userId: currentUser.id});
+            queryBuilder.where('ph.volunteerId = :userId', { userId: currentUser.id });
         } else if (filters.volunteerId) {
             queryBuilder.where('ph.volunteerId = :volunteerId', { volunteerId: filters.volunteerId });
         }
 
         await this.applyFilters(queryBuilder, filters);
 
-        const sortBy = filters.sortBy || 'weekStart';
-        const sortOrder = filters.sortOrder || 'DESC';
+        const allowedSort = new Set(['weekStart','createdAt','progress']);
+        const sortBy = (filters.sortBy && allowedSort.has(filters.sortBy)) ? filters.sortBy : 'weekStart';
+        const sortOrder = (filters.sortOrder === 'ASC' ? 'ASC' : 'DESC');
         queryBuilder.orderBy(`ph.${sortBy}`, sortOrder);
 
         const page = filters.page || 1;
         const limit = filters.limit || 10;
         const skip = (page - 1) * limit;
-
         queryBuilder.skip(skip).take(limit);
 
         const [progressHistoryEntries, total] = await queryBuilder.getManyAndCount();
@@ -878,7 +878,16 @@ export class ProgressHistoryService {
         }
 
         if (filters.status) {
-            queryBuilder.andWhere('ph.status = :status', { status: filters.status });
+            const raw = filters.status.toLowerCase();
+            const map: Record<string,string> = {
+                'in-progress': GoalStatus.IN_PROGRESS,
+                'in_progress': GoalStatus.IN_PROGRESS,
+                'pending': GoalStatus.PENDING,
+                'completed': GoalStatus.COMPLETED,
+                'overdue': GoalStatus.OVERDUE
+            };
+            const normalized = map[raw] || filters.status;
+            queryBuilder.andWhere('ph.status = :status', { status: normalized });
         }
 
         if (filters.category) {
