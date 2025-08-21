@@ -22,11 +22,9 @@ export interface EnhancedGoalFormProps {
   onCancel?: () => void;
   volunteerId?: string;
   initialData?: Partial<Goal>;
-  goal?: GoalResponseDto; // For editing existing goals
+  goal?: GoalResponseDto;
   mode?: 'create' | 'edit';
   showTemplates?: boolean;
-  
-  // Admin-specific props
   volunteers?: Volunteer[];
   categories?: string[];
 }
@@ -40,7 +38,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   mode = 'create',
   showTemplates = true,
   volunteers = [],
-  categories = []
+  categories: categoriesProp
 }) => {
   const { toast } = useToast();
   
@@ -68,53 +66,104 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [templateSearch, setTemplateSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [availableCategories, setAvailableCategories] = useState<string[]>(categories);
+  const [availableCategories, setAvailableCategories] = useState<string[]>(categoriesProp ?? []);
+
+  const initializedRef = React.useRef(false);
+  const loadedTemplatesRef = React.useRef(false);
+  const loadedCategoriesRef = React.useRef(false);
+  const abortRef = React.useRef(false);
+
+  useEffect(() => () => { abortRef.current = true; }, []);
 
   useEffect(() => {
-    if (showTemplates && !goalData && mode === 'create') {
-      loadTemplates();
+    if (!initializedRef.current) {
+      if (showTemplates && !goalData && mode === 'create' && !loadedTemplatesRef.current) {
+        loadTemplates().finally(() => {
+          loadedTemplatesRef.current = true;
+        });
+      }
+      if (categoriesProp && categoriesProp.length > 0) {
+        setAvailableCategories(categoriesProp);
+        loadedCategoriesRef.current = true;
+      } else if (!loadedCategoriesRef.current) {
+        loadCategories().finally(() => {
+          loadedCategoriesRef.current = true;
+        });
+      }
+      initializedRef.current = true;
+      return;
     }
-    if (categories.length === 0) {
-      loadCategories();
-    } else {
-      setAvailableCategories(categories);
+
+    if (
+      categoriesProp &&
+      categoriesProp.length > 0 &&
+      !loadedCategoriesRef.current
+    ) {
+      setAvailableCategories(categoriesProp);
+      loadedCategoriesRef.current = true;
     }
-  }, [showTemplates, goalData, mode, categories]);
+  }, [
+    showTemplates,
+    mode,
+    goalData ? true : false,
+    categoriesProp ? categoriesProp.length : 0
+  ]);
 
   const loadTemplates = async () => {
+    if (loadedTemplatesRef.current) return;
     setLoadingTemplates(true);
     try {
-      console.log('📋 Loading goal templates...');
+      console.log('Loading goal templates...');
       
       // Get popular templates for quick access
       const popularTemplates = await goalTemplatesApi.getPopular(15);
-      setTemplates(popularTemplates);
+      if (!abortRef.current) setTemplates(popularTemplates);
       
-      console.log(`✅ Loaded ${popularTemplates.length} templates`);
+      console.log(`Loaded ${popularTemplates.length} templates`);
     } catch (error) {
-      console.error('❌ Error loading templates:', error);
+      console.error('Error loading templates:', error);
       toast({
         title: "Warning",
         description: "Failed to load templates. You can still create goals manually.",
         variant: "destructive"
       });
     } finally {
-      setLoadingTemplates(false);
+      if (!abortRef.current) setLoadingTemplates(false);
     }
   };
 
   const loadCategories = async () => {
+    if (loadedCategoriesRef.current) return;
     try {
-      console.log('📂 Loading template categories...');
+      console.log('Loading template categories...');
       
       const categoryList = await goalTemplatesApi.getCategories();
-      setAvailableCategories(categoryList);
+      if (!abortRef.current) setAvailableCategories(categoryList);
       
-      console.log(`✅ Loaded ${categoryList.length} categories`);
+      if (categoryList.length === 0) {
+        setAvailableCategories([
+          'Training',
+          'Community Service',
+          'Education',
+          'Healthcare',
+          'Environment',
+          'Professional Development'
+        ]);
+      }
+      console.log(`Loaded ${categoryList.length} categories`);
     } catch (error) {
-      console.error('❌ Error loading categories:', error);
+      console.error('Error loading categories:', error);
       // Fallback categories
-      setAvailableCategories(['Training', 'Community Service', 'Education', 'Healthcare', 'Environment', 'Professional Development']);
+      if (!abortRef.current) {
+        setAvailableCategories([
+          'Training',
+          'Community Service',
+          'Education',
+          'Healthcare',
+          'Environment',
+          'Professional Development'
+        ]);
+      }
     }
   };
 
@@ -213,7 +262,7 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
 
   const applyTemplate = async (template: GoalTemplateResponseDto) => {
     try {
-      console.log(`📋 Applying template: ${template.name}`);
+      console.log(`Applying template: ${template.name}`);
       
       // Calculate default due date based on template duration
       const dueDate = new Date();
@@ -230,13 +279,13 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
       }));
 
       toast({
-        title: "Template Applied! 📋",
+        title: "Template Applied!",
         description: `Applied template: ${template.name}`,
       });
       
-      console.log(`✅ Template applied successfully`);
+      console.log(`Template applied successfully`);
     } catch (error) {
-      console.error('❌ Error applying template:', error);
+      console.error('Error applying template:', error);
       toast({
         title: "Error",
         description: "Failed to apply template",
