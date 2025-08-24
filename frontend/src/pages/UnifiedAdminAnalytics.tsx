@@ -37,7 +37,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedVolunteerId, setSelectedVolunteerId] = useState<string>('');
+  const [selectedVolunteerId, setSelectedVolunteerId] = useState<string>('all-volunteers');
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -107,9 +107,9 @@ const UnifiedAdminAnalytics: React.FC = () => {
         console.warn('⚠️ Advanced analytics partially failed, continuing with basic analytics');
       }
       
-      console.log('✅ Analytics data loaded successfully');
+      console.log('Analytics data loaded successfully');
     } catch (error: any) {
-      console.error('❌ Error loading analytics data:', error);
+      console.error('Error loading analytics data:', error);
       setError(error.message || 'Failed to load analytics data');
       toast({
         title: "Error",
@@ -129,7 +129,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
   const generateReport = async (type: string) => {
     try {
       setExporting(type);
-      console.log(`📋 Generating ${type} report...`);
+      console.log(`Generating ${type} report...`);
       
       const result = await analyticsApi.exportReport({
         type: type as any,
@@ -157,9 +157,9 @@ const UnifiedAdminAnalytics: React.FC = () => {
         description: `${type} report has been downloaded successfully`,
       });
       
-      console.log(`✅ ${type} report generated and downloaded`);
+      console.log(`${type} report generated and downloaded`);
     } catch (error: any) {
-      console.error('❌ Report generation failed:', error);
+      console.error('Report generation failed:', error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to generate report",
@@ -198,7 +198,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
         description: `Advanced ${type} report downloaded successfully`,
       });
     } catch (error: any) {
-      console.error('❌ Advanced export failed:', error);
+      console.error('Advanced export failed:', error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to export advanced analytics",
@@ -211,7 +211,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
 
   // Render key metrics overview
   const renderKeyMetrics = () => {
-    if (!basicAnalyticsData || !summaryData) {
+    if (!basicAnalyticsData && !summaryData) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[1, 2, 3, 4].map((i) => (
@@ -367,7 +367,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
                     <SelectValue placeholder="All volunteers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Volunteers</SelectItem>
+                    <SelectItem value="all-volunteers">All Volunteers</SelectItem>
                     {volunteerList.map(volunteer => (
                       <SelectItem key={volunteer.id} value={volunteer.id}>
                         {volunteer.name}

@@ -264,11 +264,11 @@ export const RiskAssessmentCard = ({ data, loading, error }: any) => {
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-blue-50 p-2 rounded-md">
                 <p className="text-xs text-blue-800">This Week</p>
-                <p className="text-lg font-bold text-blue-900">{data.expectedCompletions.thisWeek}</p>
+                <p className="text-lg font-bold text-blue-900">{data.expectedCompletions?.thisWeek || 0}</p>
               </div>
               <div className="bg-green-50 p-2 rounded-md">
                 <p className="text-xs text-green-800">Next Week</p>
-                <p className="text-lg font-bold text-green-900">{data.expectedCompletions.nextWeek}</p>
+                <p className="text-lg font-bold text-green-900">{data.expectedCompletions?.nextWeek || 0}</p>
               </div>
             </div>
           </div>

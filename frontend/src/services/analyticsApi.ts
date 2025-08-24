@@ -11,22 +11,22 @@ class AnalyticsApiService {
   // SYSTEM ANALYTICS
   async getSystemOverview(params?: { startDate?: string; endDate?: string }): Promise<SystemOverviewDto> {
     const qs = new URLSearchParams();
-    if (params?.startDate) qs.append('startDate', params.startDate);
-    if (params?.endDate) qs.append('endDate', params.endDate);
+    if (params?.startDate) qs.append('start', params.startDate);
+    if (params?.endDate) qs.append('end', params.endDate);
     return httpClient.get<SystemOverviewDto>(`/analytics/system-overview${qs.toString() ? '?' + qs : ''}`);
   }
 
   async getAnalyticsData(params?: { startDate?: string; endDate?: string }): Promise<AnalyticsDataDto> {
     const qs = new URLSearchParams();
-    if (params?.startDate) qs.append('startDate', params.startDate);
-    if (params?.endDate) qs.append('endDate', params.endDate);
+    if (params?.startDate) qs.append('start', params.startDate);
+    if (params?.endDate) qs.append('end', params.endDate);
     return httpClient.get<AnalyticsDataDto>(`/analytics/data${qs.toString() ? '?' + qs : ''}`);
   }
 
   async getCompletionTrends(params?: { startDate?: string; endDate?: string }): Promise<AnalyticsDataDto['completionTrends']> {
     const qs = new URLSearchParams();
-    if (params?.startDate) qs.append('startDate', params.startDate);
-    if (params?.endDate) qs.append('endDate', params.endDate);
+    if (params?.startDate) qs.append('start', params.startDate);
+    if (params?.endDate) qs.append('end', params.endDate);
     return httpClient.get<AnalyticsDataDto['completionTrends']>(`/analytics/completion-trends${qs.toString() ? '?' + qs : ''}`);
   }
 
@@ -36,15 +36,15 @@ class AnalyticsApiService {
 
   async getCategoryBreakdown(params?: { startDate?: string; endDate?: string }): Promise<AnalyticsDataDto['categoryBreakdown']> {
     const qs = new URLSearchParams();
-    if (params?.startDate) qs.append('startDate', params.startDate);
-    if (params?.endDate) qs.append('endDate', params.endDate);
+    if (params?.startDate) qs.append('start', params.startDate);
+    if (params?.endDate) qs.append('end', params.endDate);
     return httpClient.get<AnalyticsDataDto['categoryBreakdown']>(`/analytics/category-breakdown${qs.toString() ? '?' + qs : ''}`);
   }
 
   async getVolunteerActivity(params?: { startDate?: string; endDate?: string }): Promise<AnalyticsDataDto['volunteerActivity']> {
     const qs = new URLSearchParams();
-    if (params?.startDate) qs.append('startDate', params.startDate);
-    if (params?.endDate) qs.append('endDate', params.endDate);
+    if (params?.startDate) qs.append('start', params.startDate);
+    if (params?.endDate) qs.append('end', params.endDate);
     return httpClient.get<AnalyticsDataDto['volunteerActivity']>(`/analytics/volunteer-activity${qs.toString() ? '?' + qs : ''}`);
   }
 
