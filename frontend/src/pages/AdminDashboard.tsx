@@ -62,22 +62,26 @@ const AdminDashboard: React.FC = () => {
       setVolunteersLoading(true);
       const volunteers = await adminApi.getVolunteersWithGoals();
       setVolunteersWithGoals(volunteers);
+      return volunteers;
     } catch (error: any) {
       console.error('Error loading volunteers:', error);
+      // Return error to handle in calling function
+      throw error;
+    } finally {
+      setVolunteersLoading(false);
+    }
+  }, []); // Empty dependency array to prevent re-creation
+
+  // Initialize volunteers data on mount
+  React.useEffect(() => {
+    loadVolunteersData().catch((error) => {
       toast({
         title: "Error",
         description: "Failed to load volunteer data",
         variant: "destructive"
       });
-    } finally {
-      setVolunteersLoading(false);
-    }
-  }, [toast]);
-
-  // Initialize volunteers data on mount
-  React.useEffect(() => {
-    loadVolunteersData();
-  }, [loadVolunteersData]);
+    });
+  }, []); // Empty dependency array - only run once on mount
 
   // Comprehensive refresh function
   const handleRefresh = async () => {

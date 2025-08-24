@@ -43,7 +43,7 @@ export class UserFiltersDto {
     limit?: number;
 
     @IsOptional()
-    @IsString()
+    @IsEnum(['name', 'email', 'joinDate', 'lastActivity', 'createdAt', 'updatedAt'])
     sortBy?: string;
 
     @IsOptional()

@@ -1,10 +1,10 @@
 import httpClient from './httpClient';
 import { ENDPOINTS } from './config';
-import type { 
+import type {
   User,
   PaginatedResponse,
   CreateUserRequest,
-  ApiErrorResponse 
+  ApiErrorResponse
 } from '../types/api';
 
 export interface Volunteer extends User {
@@ -70,20 +70,26 @@ class UsersApiService {
   async getAll(filters?: UserFilters): Promise<Volunteer[]> {
     try {
       const params = new URLSearchParams();
-      
+
       if (filters?.status) params.append('status', filters.status);
       if (filters?.role) params.append('role', filters.role);
       if (filters?.search) params.append('search', filters.search);
       if (filters?.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder);
+      if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder.toUpperCase());
       if (filters?.page) params.append('page', filters.page.toString());
       if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await httpClient.get<PaginatedResponse<User>>(
+      const response = await httpClient.get<{
+        users: User[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      }>(
         `${ENDPOINTS.USERS.BASE}?${params.toString()}`
       );
 
-      return response.data.map(user => this.transformUserToVolunteer(user));
+      return response.users.map(user => this.transformUserToVolunteer(user));
     } catch (error: any) {
       console.error('Failed to get users:', error);
       throw this.transformError(error);
@@ -93,24 +99,33 @@ class UsersApiService {
   async getAllPaginated(filters?: UserFilters): Promise<PaginatedResponse<Volunteer>> {
     try {
       const params = new URLSearchParams();
-      
+
       if (filters?.status) params.append('status', filters.status);
       if (filters?.role) params.append('role', filters.role);
       if (filters?.search) params.append('search', filters.search);
       if (filters?.sortBy) params.append('sortBy', filters.sortBy);
-      if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder);
+      if (filters?.sortOrder) params.append('sortOrder', filters.sortOrder.toUpperCase());
       if (filters?.page) params.append('page', filters.page.toString());
       if (filters?.limit) params.append('limit', filters.limit.toString());
 
-      const response = await httpClient.get<PaginatedResponse<User>>(
+      const response = await httpClient.get<{
+        users: User[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      }>(
         `${ENDPOINTS.USERS.BASE}?${params.toString()}`
       );
 
-      const volunteers = response.data.map(user => this.transformUserToVolunteer(user));
+      const volunteers = response.users.map(user => this.transformUserToVolunteer(user));
 
       return {
-        ...response,
-        data: volunteers
+        data: volunteers,
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
       };
     } catch (error: any) {
       console.error('Failed to get users:', error);
@@ -323,7 +338,7 @@ class UsersApiService {
     } else if (error.status >= 500) {
       return new Error('Server error. Please try again later.');
     }
-    
+
     return new Error(error.message || 'An unexpected error occurred');
   }
 

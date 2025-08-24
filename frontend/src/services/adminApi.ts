@@ -271,7 +271,8 @@ class AdminApiService {
       console.log(`Volunteers with goals loaded successfully (${response.length} volunteers)`);
       return response;
     } catch (error: any) {
-      console.warn('Backend failed, using fallback data');
+      console.error('Failed to get volunteers with goals:', error);
+      throw this.transformError(error);
     }
   }
 
