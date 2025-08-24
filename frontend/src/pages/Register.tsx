@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import { Target, Eye, EyeOff, AlertCircle, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
+import { Target, Eye, EyeOff, AlertCircle, Mail, Lock, User, Phone, MapPin, Shield } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
@@ -19,6 +20,7 @@ const Register: React.FC = () => {
     password: '',
     firstName: '',
     lastName: '',
+    role: 'volunteer',
     phoneNumber: '',
     address: '',
     skills: [],
@@ -163,6 +165,7 @@ const Register: React.FC = () => {
         password: formData.password,
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
+        role: formData.role,
         phoneNumber: formData.phoneNumber?.trim() || undefined,
         address: formData.address?.trim() || undefined,
         skills: formData.skills?.length ? formData.skills : undefined,
@@ -196,7 +199,7 @@ const Register: React.FC = () => {
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">Join X3Goals</CardTitle>
           <CardDescription className="text-gray-600">
-            Create your account to start tracking your goals
+            Create your account as a volunteer or administrator
           </CardDescription>
         </CardHeader>
         
@@ -255,6 +258,48 @@ const Register: React.FC = () => {
                   <p className="text-sm text-red-600">{validationErrors.lastName}</p>
                 )}
               </div>
+            </div>
+
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+                Account Type *
+              </Label>
+              <Select 
+                value={formData.role} 
+                onValueChange={(value: 'admin' | 'volunteer') => handleInputChange('role', value)}
+                disabled={isFormDisabled}
+              >
+                <SelectTrigger className="w-full">
+                  <div className="flex items-center">
+                    <Shield className="h-4 w-4 text-gray-400 mr-2" />
+                    <SelectValue placeholder="Select account type" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="volunteer">
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="font-medium">Volunteer</div>
+                        <div className="text-sm text-gray-500">Track and manage your goals</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex items-center">
+                      <Shield className="h-4 w-4 mr-2" />
+                      <div>
+                        <div className="font-medium">Administrator</div>
+                        <div className="text-sm text-gray-500">Manage volunteers and system settings</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Choose "Administrator" if you need to manage volunteers and system settings
+              </p>
             </div>
 
             <div className="space-y-2">

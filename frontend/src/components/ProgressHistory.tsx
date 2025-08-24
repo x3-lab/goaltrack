@@ -202,8 +202,8 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({
       totalGoals,
       completedGoals,
       averageCompletionRate,
-      overallAverageProgress: weeklyHistory.averageProgress,
-      overallCompletionRate: weeklyHistory.averageCompletionRate
+      overallAverageProgress: weeklyHistory.overallStats.averageProgress,
+      overallCompletionRate: weeklyHistory.overallStats.averageCompletionRate
     };
   }, [filteredData, weeklyHistory]);
 

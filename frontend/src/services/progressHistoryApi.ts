@@ -118,10 +118,12 @@ export interface VolunteerWeeklyHistoryDto {
   volunteerName?: string;
   weeks: HistoricalWeekDto[];
   totalWeeks: number;
-  totalGoals: number;
-  completedGoals: number;
-  averageProgress: number;
-  averageCompletionRate: number;
+  overallStats: {
+    totalGoals: number;
+    completedGoals: number;
+    averageProgress: number;
+    averageCompletionRate: number;
+  }
 }
 
 export interface HistoricalWeekDto {

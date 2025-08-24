@@ -92,7 +92,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  role?: 'volunteer';
+  role?: 'admin' | 'volunteer';
   phoneNumber?: string;
   address?: string;
   skills?: string[];

@@ -92,10 +92,10 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
         setLastWeekProgress(previousEntry.progress);
       }
       
-      console.log('✅ Progress history loaded successfully');
+      console.log('Progress history loaded successfully');
       
     } catch (error: any) {
-      console.error('❌ Error loading progress history:', error);
+      console.error('Error loading progress history:', error);
       toast({
         title: "Error",
         description: "Failed to load progress history.",
@@ -135,7 +135,7 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       // Also create a progress history entry if backend is available
       if (goalId) {
         try {
-          await progressHistoryApi.generateWeeklyEntry(goalId, notes);
+          // await progressHistoryApi.generateWeeklyEntry(goalId, notes);
           console.log('✅ Progress history entry created');
         } catch (historyError) {
           console.warn('⚠️ Failed to create progress history entry:', historyError);
@@ -186,12 +186,12 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       // Create completion progress history entry
       if (goalId) {
         try {
-          await progressHistoryApi.generateWeeklyEntry(
-            goalId, 
-            `Goal marked as complete! 🎉 Final achievement reached.`
-          );
+          // await progressHistoryApi.generateWeeklyEntry(
+          //   goalId, 
+          //   `Goal marked as complete! 🎉 Final achievement reached.`
+          // );
         } catch (historyError) {
-          console.warn('⚠️ Failed to create completion history entry:', historyError);
+          console.warn('Failed to create completion history entry:', historyError);
         }
       }
       
@@ -201,12 +201,12 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       }
       
       toast({
-        title: "Goal Completed! 🎉",
+        title: "Goal Completed!",
         description: "Congratulations on completing your goal!",
       });
       
     } catch (error: any) {
-      console.error('❌ Error marking goal complete:', error);
+      console.error('Error marking goal complete:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to mark goal as complete.",
@@ -228,7 +228,7 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       // Create history entry
       if (goalId) {
         try {
-          await progressHistoryApi.generateWeeklyEntry(goalId, quickNote);
+          // await progressHistoryApi.generateWeeklyEntry(goalId, quickNote);
         } catch (historyError) {
           console.warn('⚠️ Failed to create quick progress history entry:', historyError);
         }

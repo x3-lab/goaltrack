@@ -34,15 +34,15 @@ const ProgressHistoryPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('📊 Loading progress history page data...');
+      console.log('Loading progress history page data...');
       
       const progressData = await progressHistoryApi.getMyWeeklyHistory();
       setWeeklyHistory(progressData);
       
-      console.log('✅ Progress history page loaded successfully');
+      console.log('Progress history page loaded successfully');
       
     } catch (err: any) {
-      console.error('❌ Error loading progress history:', err);
+      console.error('Error loading progress history:', err);
       setError('Failed to load progress history');
       toast({
         title: 'Error',
@@ -75,10 +75,10 @@ const ProgressHistoryPage: React.FC = () => {
         weeklyHistory: weeklyHistory,
         summary: {
           totalWeeks: weeklyHistory?.totalWeeks || 0,
-          totalGoals: weeklyHistory?.totalGoals || 0,
-          completedGoals: weeklyHistory?.completedGoals || 0,
-          averageProgress: weeklyHistory?.averageProgress || 0,
-          averageCompletionRate: weeklyHistory?.averageCompletionRate || 0
+          totalGoals: weeklyHistory?.overallStats.totalGoals || 0,
+          completedGoals: weeklyHistory?.overallStats.completedGoals || 0,
+          averageProgress: weeklyHistory?.overallStats.averageProgress || 0,
+          averageCompletionRate: weeklyHistory?.overallStats.averageCompletionRate || 0
         }
       };
       
@@ -211,28 +211,28 @@ const ProgressHistoryPage: React.FC = () => {
           
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{weeklyHistory.totalGoals}</div>
+              <div className="text-2xl font-bold text-purple-600">{weeklyHistory.overallStats.totalGoals}</div>
               <div className="text-sm text-gray-600">Total Goals</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{weeklyHistory.completedGoals}</div>
+              <div className="text-2xl font-bold text-green-600">{weeklyHistory.overallStats.completedGoals}</div>
               <div className="text-sm text-gray-600">Completed</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">{weeklyHistory.averageProgress}%</div>
+              <div className="text-2xl font-bold text-orange-600">{weeklyHistory.overallStats.averageProgress}%</div>
               <div className="text-sm text-gray-600">Avg Progress</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-indigo-600">{weeklyHistory.averageCompletionRate}%</div>
+              <div className="text-2xl font-bold text-indigo-600">{weeklyHistory.overallStats.averageCompletionRate}%</div>
               <div className="text-sm text-gray-600">Completion Rate</div>
             </CardContent>
           </Card>

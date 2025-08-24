@@ -34,7 +34,7 @@ export class GoalsService {
         @InjectRepository(ProgressHistory)
         private readonly progressHistoryRepository: Repository<ProgressHistory>,
         @InjectRepository(ActivityLog)
-        private readonly activityLogRepository: Repository<ActivityLog>
+        private readonly activityLogRepository: Repository<ActivityLog>,
     ) {}
 
     async create(
@@ -71,6 +71,8 @@ export class GoalsService {
         });
 
         const savedGoal = await this.goalRepository.save(goal);
+
+        await this.createProgressHistoryEntry(savedGoal, 'Goal created');
 
         await this.updateUserGoalsCount(createGoalDto.volunteerId);
 
@@ -214,6 +216,8 @@ export class GoalsService {
 
         const updatedGoal = await this.goalRepository.save(goal);
 
+        await this.createProgressHistoryEntry(updatedGoal, `Status changed from ${previousStatus} to ${updatedGoal.status}`);
+
         await this.updateUserGoalsCount(goal.volunteerId);
 
         await this.logActivity(
@@ -265,6 +269,8 @@ export class GoalsService {
         }
 
         const updatedGoal = await this.goalRepository.save(goal);
+
+        await this.createProgressHistoryEntry(updatedGoal, updateGoalProgressDto.notes);
 
         await this.updateUserGoalsCount(goal.volunteerId);
 
@@ -503,6 +509,59 @@ export class GoalsService {
         
         console.log('Weekly goal processing completed:', result);
         return result;
+    }
+
+    /**
+     * Create a progress history entry for a goal update
+     */
+    private async createProgressHistoryEntry(goal: Goal, notes?: string): Promise<void> {
+        try {
+            // Calculate current week boundaries
+            const now = new Date();
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+            weekStart.setHours(0, 0, 0, 0);
+
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+            weekEnd.setHours(23, 59, 59, 999);
+
+            // Check if there's already a progress history entry for this goal this week
+            const existingEntry = await this.progressHistoryRepository.findOne({
+                where: {
+                    goalId: goal.id,
+                    weekStart: weekStart,
+                    weekEnd: weekEnd,
+                },
+            });
+
+            if (existingEntry) {
+                // Update existing entry with latest progress
+                existingEntry.progress = goal.progress;
+                existingEntry.status = goal.status;
+                existingEntry.notes = notes || existingEntry.notes;
+                existingEntry.updatedAt = new Date();
+                await this.progressHistoryRepository.save(existingEntry);
+            } else {
+                // Create new progress history entry
+                const progressHistory = this.progressHistoryRepository.create({
+                    goalId: goal.id,
+                    title: goal.title,
+                    volunteerId: goal.volunteerId,
+                    progress: goal.progress,
+                    status: goal.status,
+                    weekStart,
+                    weekEnd,
+                    notes: notes || (goal.notes ? goal.notes.join(', ') : undefined),
+                });
+
+                await this.progressHistoryRepository.save(progressHistory);
+            }
+
+            console.log(`Progress history entry created/updated for goal: ${goal.title}`);
+        } catch (error) {
+            console.error('Error creating progress history entry:', error);
+        }
     }
 
     async processOverdueGoals(): Promise<{ message: string; processedGoals: number }> {
