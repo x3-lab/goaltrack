@@ -13,9 +13,10 @@ interface NavigationItem {
 
 interface NavigationProps {
   items?: NavigationItem[];
+  onNavigate?: () => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ items }) => {
+const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -42,40 +43,43 @@ const Navigation: React.FC<NavigationProps> = ({ items }) => {
   const navItems = items || (user.role === 'admin' ? adminNavItems : volunteerNavItems);
 
   return (
-    <nav className="bg-gray-50 border-r border-gray-200 w-64 min-h-screen">
-      <div className="p-4">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            {user.role === 'admin' ? 'Admin Panel' : 'Volunteer Portal'}
-          </h2>
-          <p className="text-sm text-gray-600">
-            Welcome, {user.name}
-          </p>
+    <nav className="bg-white border-r border-gray-200 h-screen flex flex-col shadow-sm fixed w-64 z-30">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {user.role === 'admin' ? 'Admin Panel' : 'Volunteer Portal'}
+            </h2>
+            <p className="text-sm text-gray-600">
+              Welcome, {user.firstName}
+            </p>
+          </div>
+          <ul className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const path = item.path || item.href || '';
+              const label = item.label || item.title || '';
+              const isActive = location.pathname === path;
+              
+              return (
+                <li key={path}>
+                  <Link
+                    to={path}
+                    onClick={onNavigate}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`} />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-        <ul className="space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const path = item.path || item.href || '';
-            const label = item.label || item.title || '';
-            const isActive = location.pathname === path;
-            
-            return (
-              <li key={path}>
-                <Link
-                  to={path}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
       </div>
     </nav>
   );
