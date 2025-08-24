@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { analyticsApi } from '../services/analyticsApi';
 import { progressHistoryApi } from '../services/progressHistoryApi';
 import PersonalAnalytics from '../components/PersonalAnalytics';
+import VolunteerLayout from '../components/VolunteerLayout';
 import type { PersonalAnalyticsDto } from '../types/analytics';
 
 const PersonalAnalyticsPage: React.FC = () => {
@@ -121,75 +122,82 @@ const PersonalAnalyticsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
-            <p className="text-gray-600 mt-1">Loading your performance metrics...</p>
+      <VolunteerLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
+              <p className="text-gray-600 mt-1">Loading your performance metrics...</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <LoadingSpinner size="lg" />
+            <span className="ml-3 text-lg">Loading your analytics...</span>
           </div>
         </div>
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner size="lg" />
-          <span className="ml-3 text-lg">Loading your analytics...</span>
-        </div>
-      </div>
+      </VolunteerLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
+      <VolunteerLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg">
+            <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Analytics</h3>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={handleRefresh} disabled={refreshing}>
+              {refreshing ? <LoadingSpinner size="sm" className="mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              Try Again
+            </Button>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg">
-          <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Analytics</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={handleRefresh} disabled={refreshing}>
-            {refreshing ? <LoadingSpinner size="sm" className="mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            Try Again
-          </Button>
-        </div>
-      </div>
+      </VolunteerLayout>
     );
   }
 
   if (!analyticsData) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
+      <VolunteerLayout>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Personal Analytics</h1>
+            </div>
+          </div>
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">No analytics data available</p>
+            <Button onClick={loadAnalyticsData} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
         </div>
-        <div className="text-center py-12">
-          <p className="text-gray-600 mb-4">No analytics data available</p>
-          <Button onClick={loadAnalyticsData} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+      </VolunteerLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <VolunteerLayout>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -217,10 +225,9 @@ const PersonalAnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      <PersonalAnalytics 
-        analytics={analyticsData} 
-        onRefresh={handleRefresh}
+      <PersonalAnalytics
         volunteerId={user?.id}
+        showInsights={true}
       />
 
       {/* Export indicator */}
@@ -231,6 +238,7 @@ const PersonalAnalyticsPage: React.FC = () => {
         </div>
       )}
     </div>
+    </VolunteerLayout>
   );
 };
 

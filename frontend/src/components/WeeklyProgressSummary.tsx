@@ -60,10 +60,8 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
           currentWeek.end
         );
       } else {
-        result = await progressHistoryApi.getMyWeeklyHistory(
-          currentWeek.start,
-          currentWeek.end
-        );
+        console.error('No volunteerId provided to WeeklyProgressSummary component');
+        throw new Error('Volunteer ID is required to load weekly progress summary');
       }
       
       setWeeklyData(result);

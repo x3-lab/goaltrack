@@ -19,10 +19,13 @@ import AdminVolunteerManagement from './pages/AdminVolunteerManagement';
 import AdminGoalManagement from './pages/AdminGoalManagement';
 import UnifiedAdminAnalytics from './pages/UnifiedAdminAnalytics';
 import AdminSettings from './pages/AdminSettings';
+import AdminGoalTemplates from './pages/AdminGoalTemplates';
 
 // Volunteer pages
 import VolunteerProfile from './pages/VolunteerProfile';
 import VolunteerGoals from './pages/VolunteerGoals';
+import ProgressHistory from './pages/ProgressHistory';
+import PersonalAnalyticsPage from './pages/PersonalAnalytics';
 
 // Shared pages
 import Goals from './pages/Goals';
@@ -96,6 +99,12 @@ function App() {
                 <AdminSettings />
               </AdminRoute>
             } />
+
+            <Route path="/admin-dashboard/goal-templates" element={
+              <AdminRoute>
+                <AdminGoalTemplates />
+              </AdminRoute>
+            } />
             
             
             {/* Volunteer routes */}
@@ -122,6 +131,18 @@ function App() {
               <ProtectedRoute>
                 <Goals />
               </ProtectedRoute>
+            } />
+
+            <Route path="/volunteer-dashboard/progress-history" element={
+              <VolunteerRoute>
+                <ProgressHistory />
+              </VolunteerRoute>
+            } />
+
+            <Route path="/volunteer-dashboard/analytics" element={
+              <VolunteerRoute>
+                <PersonalAnalyticsPage />
+              </VolunteerRoute>
             } />
             
             {/* Catch-all route */}

@@ -8,8 +8,7 @@ import {
   Clock,
   BarChart3,
   History,
-  RefreshCw,
-  Filter
+  RefreshCw
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -27,7 +26,8 @@ import WeeklyProgressSummary from '../components/WeeklyProgressSummary';
 import PersonalAnalytics from '../components/PersonalAnalytics';
 import ProgressUpdate from '../components/ProgressUpdate';
 import { EnhancedGoalForm } from '../components/enhanced-goal-form';
-import { Goal } from '../types/api'
+import { Goal } from '../types/api';
+import VolunteerLayout from '../components/VolunteerLayout';
 
 
 const VolunteerDashboard: React.FC = () => {
@@ -41,11 +41,6 @@ const VolunteerDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateGoal, setShowCreateGoal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'goals' | 'analytics' | 'history'>('overview');
-  
-  // Filters
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   useEffect(() => {
     if (user?.id) {
@@ -223,13 +218,6 @@ const VolunteerDashboard: React.FC = () => {
     }
   };
 
-  // Filter goals based on current filters
-  const filteredGoals = goals.filter(goal => {
-    const matchesStatus = statusFilter === 'all' || goal.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || goal.category === categoryFilter;
-    return matchesStatus && matchesCategory;
-  });
-
   // Calculate statistics
   const stats = {
     total: goals.length,
@@ -243,21 +231,24 @@ const VolunteerDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-lg">Loading your dashboard...</p>
+      <VolunteerLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-lg">Loading your dashboard...</p>
+          </div>
         </div>
-      </div>
+      </VolunteerLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <VolunteerLayout>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.name}!</h1>
+          <h1 className="text-3xl font-bold">Welcome back!</h1>
           <p className="text-gray-600">
             Track your goals and monitor your progress
           </p>
@@ -274,34 +265,8 @@ const VolunteerDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="border-b">
-        <nav className="flex space-x-8">
-          {[
-            { key: 'overview', label: 'Overview', icon: BarChart3 },
-            { key: 'goals', label: 'Goals', icon: Target },
-            { key: 'analytics', label: 'Analytics', icon: TrendingUp },
-            { key: 'history', label: 'History', icon: History }
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === tab.key
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
+      {/* Overview Content */}
+      <div className="space-y-6">
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
@@ -420,139 +385,11 @@ const VolunteerDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setActiveTab('analytics')}
-                    className="w-full"
-                  >
-                    View Detailed Analytics
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           )}
         </div>
-      )}
-
-      {/* Goals Tab */}
-      {activeTab === 'goals' && (
-        <div className="space-y-6">
-          {/* Filters */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  <span className="text-sm font-medium">Filters:</span>
-                </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-1 border rounded text-sm"
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="overdue">Overdue</option>
-                </select>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-1 border rounded text-sm"
-                >
-                  <option value="all">All Categories</option>
-                  <option value="Community Service">Community Service</option>
-                  <option value="Training">Training</option>
-                  <option value="Environmental">Environmental</option>
-                  <option value="Education">Education</option>
-                  <option value="Administration">Administration</option>
-                </select>
-                {(statusFilter !== 'all' || categoryFilter !== 'all') && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setStatusFilter('all');
-                      setCategoryFilter('all');
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Goals List */}
-          {filteredGoals.length > 0 ? (
-            <div className="grid gap-4">
-              {filteredGoals.map((goal) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  onUpdate={handleUpdateGoal}
-                  onDelete={handleDeleteGoal}
-                  onProgressUpdate={handleProgressUpdate}
-                  onMarkComplete={handleMarkComplete}
-                  compact={false}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500 mb-4">
-                  {statusFilter !== 'all' || categoryFilter !== 'all' 
-                    ? 'No goals match your current filters' 
-                    : 'No goals yet'}
-                </p>
-                <Button onClick={() => setShowCreateGoal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New Goal
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {/* Analytics Tab */}
-      {activeTab === 'analytics' && (
-        <PersonalAnalytics 
-          volunteerId={user?.id}
-          showInsights={true}
-        />
-      )}
-
-      {/* History Tab */}
-      {activeTab === 'history' && (
-        <div className="space-y-6">
-          <WeeklyProgressSummary 
-            volunteerId={user?.id}
-            showSubmitButton={false}
-          />
-          
-          {/* Add ProgressHistory component here when ready */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
-                Progress History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                View your complete progress history and track your journey over time.
-              </p>
-              <Button onClick={() => setActiveTab('analytics')}>
-                View Analytics for Detailed History
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* Create Goal Modal */}
       {showCreateGoal && (
@@ -570,6 +407,7 @@ const VolunteerDashboard: React.FC = () => {
         </div>
       )}
     </div>
+    </VolunteerLayout>
   );
 };
 

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { LoadingSpinner } from './ui/loading-spinner';
-import { Target, BarChart3, History, User } from 'lucide-react';
+import { Target, BarChart3, History, User, Menu, X } from 'lucide-react';
 
 interface VolunteerLayoutProps {
   children?: React.ReactNode;
@@ -11,6 +11,7 @@ interface VolunteerLayoutProps {
 
 const VolunteerLayout: React.FC<VolunteerLayoutProps> = ({ children }) => {
   const { user, isLoading } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -61,9 +62,51 @@ const VolunteerLayout: React.FC<VolunteerLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation items={navigationItems} />
-      <main className="container mx-auto px-4 py-8">
-        {children || <Outlet />}
+      {/* Mobile Menu Button */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 rounded-lg bg-white shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+        >
+          {isMobileMenuOpen ? (
+            <X className="h-6 w-6 text-gray-600" />
+          ) : (
+            <Menu className="h-6 w-6 text-gray-600" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40">
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="relative w-64 h-full">
+            <Navigation 
+              items={navigationItems} 
+              onNavigate={() => setIsMobileMenuOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Desktop Sidebar Navigation */}
+      <div className="hidden md:block">
+        <Navigation items={navigationItems} />
+      </div>
+      
+      {/* Main Content Area */}
+      <main className="md:ml-64">
+        {/* Mobile Header Spacer */}
+        <div className="md:hidden h-16" />
+        
+        <div className="min-h-screen">
+          <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 max-w-7xl">
+            {children || <Outlet />}
+          </div>
+        </div>
       </main>
     </div>
   );

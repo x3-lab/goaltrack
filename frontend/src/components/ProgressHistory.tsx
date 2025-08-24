@@ -80,10 +80,8 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({
           dateRangeEnd?.toISOString().split('T')[0]
         );
       } else {
-        result = await progressHistoryApi.getMyWeeklyHistory(
-          dateRangeStart?.toISOString().split('T')[0],
-          dateRangeEnd?.toISOString().split('T')[0]
-        );
+        console.error('No volunteerId provided to ProgressHistory component');
+        throw new Error('Volunteer ID is required to load progress history');
       }
       
       setWeeklyHistory(result);

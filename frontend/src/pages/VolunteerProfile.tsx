@@ -28,6 +28,7 @@ import {
   XCircle
 } from 'lucide-react';
 import type { User as UserType } from '../types/api';
+import VolunteerLayout from '../components/VolunteerLayout';
 
 const VolunteerProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -104,7 +105,12 @@ const VolunteerProfile: React.FC = () => {
       
       // If editing own profile, update auth context
       if (isOwnProfile) {
-        await updateUser(updatedVolunteer);
+        // Convert skills from string to string[] to match AuthUser type
+        const authUserUpdate = {
+          ...updatedVolunteer,
+          skills: updatedVolunteer.skills ? updatedVolunteer.skills.split(',').map(s => s.trim()) : []
+        };
+        await updateUser(authUserUpdate);
       }
       
       toast({
@@ -168,7 +174,8 @@ const VolunteerProfile: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <VolunteerLayout>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -398,6 +405,7 @@ const VolunteerProfile: React.FC = () => {
         </div>
       </div>
     </div>
+    </VolunteerLayout>
   );
 };
 
