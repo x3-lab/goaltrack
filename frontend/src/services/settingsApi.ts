@@ -95,7 +95,7 @@ class SettingsApiService {
         console.log(`⚙️ Getting ${scope || 'all'} settings...`);
         
         const params = new URLSearchParams();
-        if (scope) params.append('scope', scope);
+        if (scope) params.append('scope', scope.toLowerCase());
         if (userId) params.append('userId', userId);
 
         const response = await httpClient.get<SettingResponseDto[]>(`${this.baseURL}?${params.toString()}`);
@@ -301,7 +301,7 @@ class SettingsApiService {
         console.log('📤 Exporting settings...');
         
         const params = new URLSearchParams();
-        if (exportDto.scope) params.append('scope', exportDto.scope);
+        if (exportDto.scope) params.append('scope', exportDto.scope.toLowerCase());
         if (exportDto.format) params.append('format', exportDto.format);
 
         const response = await httpClient.get(`${this.baseURL}/export?${params.toString()}`, {
