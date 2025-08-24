@@ -412,148 +412,246 @@ export const AnalyticsDashboard = ({
   milestonesData,
   loading,
   error,
+  activeView = 'overview',
   onRefresh
 }: any) => {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
-          <p className="text-gray-600">Real-time insights and performance metrics</p>
+      {/* Only show header if we're in the default view mode */}
+      {!activeView || activeView === 'overview' ? (
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
+            <p className="text-gray-600">Real-time insights and performance metrics</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+              {loading ? <LoadingSpinner size="sm" className="mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </Button>
+            <Button variant="default" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
-            {loading ? <LoadingSpinner size="sm" className="mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </Button>
-          <Button variant="default" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
+      ) : null}
 
-      {/* Key Metrics Overview */}
-      <KeyMetrics 
-        data={summaryData} 
-        loading={loading} 
-        error={error} 
-      />
+      {/* Key Metrics Overview - show only in overview mode */}
+      {(!activeView || activeView === 'overview') && (
+        <KeyMetrics 
+          data={summaryData} 
+          loading={loading} 
+          error={error} 
+        />
+      )}
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="predictions">Predictions</TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
+      {/* Render specific view based on activeView prop */}
+      {activeView === 'trends' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Completion Trends
+            </CardTitle>
+            <CardDescription>Goal completion rate over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CompletionTrendsChart 
+              data={trendsData} 
+              loading={loading} 
+              error={error} 
+            />
+          </CardContent>
+        </Card>
+      ) : activeView === 'performance' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Volunteer Performance
+            </CardTitle>
+            <CardDescription>Completion rates by volunteer</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <VolunteerPerformanceChart 
+              data={performanceData} 
+              loading={loading} 
+              error={error} 
+            />
+          </CardContent>
+        </Card>
+      ) : activeView === 'categories' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Completion Trends
+                <ChartIcon className="h-5 w-5" />
+                Category Distribution
               </CardTitle>
-              <CardDescription>Goal completion rate over time</CardDescription>
+              <CardDescription>Goals by category</CardDescription>
             </CardHeader>
             <CardContent>
-              <CompletionTrendsChart 
-                data={trendsData} 
+              <CategoryDistributionChart 
+                data={categoriesData} 
                 loading={loading} 
                 error={error} 
               />
             </CardContent>
           </Card>
+          <TopCategoriesCard 
+            data={categoriesData} 
+            loading={loading} 
+            error={error} 
+          />
+        </div>
+      ) : activeView === 'predictions' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <RiskAssessmentCard 
+            data={predictionsData} 
+            loading={loading} 
+            error={error} 
+          />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Upcoming Completions
+              </CardTitle>
+              <CardDescription>Predicted goal completions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-medium text-green-800 mb-1">Expected This Month</h3>
+                  <div className="text-3xl font-bold text-green-900">
+                    {predictionsData?.expectedCompletions?.thisWeek + predictionsData?.expectedCompletions?.nextWeek || 0}
+                  </div>
+                  <p className="text-sm text-green-700 mt-1">
+                    Projected completion rate: {predictionsData?.projectedCompletionRate || 0}%
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        // Default overview with tabs
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="predictions">Predictions</TabsTrigger>
+          </TabsList>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ChartIcon className="h-5 w-5" />
-                  Category Distribution
+                  <TrendingUp className="h-5 w-5" />
+                  Completion Trends
                 </CardTitle>
-                <CardDescription>Goals by category</CardDescription>
+                <CardDescription>Goal completion rate over time</CardDescription>
               </CardHeader>
               <CardContent>
-                <CategoryDistributionChart 
-                  data={categoriesData} 
+                <CompletionTrendsChart 
+                  data={trendsData} 
                   loading={loading} 
                   error={error} 
                 />
               </CardContent>
             </Card>
 
-            <div className="space-y-6">
-              <TopCategoriesCard 
-                data={categoriesData} 
-                loading={loading} 
-                error={error} 
-              />
-              <RecentMilestonesCard 
-                data={milestonesData} 
-                loading={loading} 
-                error={error} 
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ChartIcon className="h-5 w-5" />
+                    Category Distribution
+                  </CardTitle>
+                  <CardDescription>Goals by category</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CategoryDistributionChart 
+                    data={categoriesData} 
+                    loading={loading} 
+                    error={error} 
+                  />
+                </CardContent>
+              </Card>
+
+              <div className="space-y-6">
+                <TopCategoriesCard 
+                  data={categoriesData} 
+                  loading={loading} 
+                  error={error} 
+                />
+                <RecentMilestonesCard 
+                  data={milestonesData} 
+                  loading={loading} 
+                  error={error} 
+                />
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Performance Tab */}
-        <TabsContent value="performance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Volunteer Performance
-              </CardTitle>
-              <CardDescription>Completion rates by volunteer</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <VolunteerPerformanceChart 
-                data={performanceData} 
-                loading={loading} 
-                error={error} 
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Predictions Tab */}
-        <TabsContent value="predictions" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RiskAssessmentCard 
-              data={predictionsData} 
-              loading={loading} 
-              error={error} 
-            />
-            
+          {/* Performance Tab */}
+          <TabsContent value="performance" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Upcoming Completions
+                  <Users className="h-5 w-5" />
+                  Volunteer Performance
                 </CardTitle>
-                <CardDescription>Predicted goal completions</CardDescription>
+                <CardDescription>Completion rates by volunteer</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {/* Simplified content for demonstration */}
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-green-800 mb-1">Expected This Month</h3>
-                    <div className="text-3xl font-bold text-green-900">
-                      {predictionsData?.expectedCompletions?.thisWeek + predictionsData?.expectedCompletions?.nextWeek || 0}
-                    </div>
-                    <p className="text-sm text-green-700 mt-1">
-                      Projected completion rate: {predictionsData?.projectedCompletionRate || 0}%
-                    </p>
-                  </div>
-                </div>
+                <VolunteerPerformanceChart 
+                  data={performanceData} 
+                  loading={loading} 
+                  error={error} 
+                />
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+
+          {/* Predictions Tab */}
+          <TabsContent value="predictions" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <RiskAssessmentCard 
+                data={predictionsData} 
+                loading={loading} 
+                error={error} 
+              />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Upcoming Completions
+                  </CardTitle>
+                  <CardDescription>Predicted goal completions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-green-800 mb-1">Expected This Month</h3>
+                      <div className="text-3xl font-bold text-green-900">
+                        {predictionsData?.expectedCompletions?.thisWeek + predictionsData?.expectedCompletions?.nextWeek || 0}
+                      </div>
+                      <p className="text-sm text-green-700 mt-1">
+                        Projected completion rate: {predictionsData?.projectedCompletionRate || 0}%
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 };

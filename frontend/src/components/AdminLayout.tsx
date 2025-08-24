@@ -49,14 +49,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: Target
     },
     {
-      title: "Basic Analytics",
+      title: "Analytics",
       href: "/admin-dashboard/analytics",
       icon: BarChart
-    },
-    {
-      title: "Advanced Analytics",
-      href: "/admin-dashboard/advanced-analytics",
-      icon: TrendingUp
     },
     {
       title: "Goal Templates",

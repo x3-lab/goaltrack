@@ -17,9 +17,8 @@ import VolunteerDashboard from './pages/VolunteerDashboard';
 import AdminProfile from './pages/AdminProfile';
 import AdminVolunteerManagement from './pages/AdminVolunteerManagement';
 import AdminGoalManagement from './pages/AdminGoalManagement';
-import AdminAnalytics from './pages/AdminAnalytics';
+import UnifiedAdminAnalytics from './pages/UnifiedAdminAnalytics';
 import AdminSettings from './pages/AdminSettings';
-import AdminAdvancedAnalytics from './pages/AdminAdvancedAnalytics';
 
 // Volunteer pages
 import VolunteerProfile from './pages/VolunteerProfile';
@@ -88,7 +87,7 @@ function App() {
             
             <Route path="/admin-dashboard/analytics" element={
               <AdminRoute>
-                <AdminAnalytics />
+                <UnifiedAdminAnalytics />
               </AdminRoute>
             } />
             
@@ -98,11 +97,6 @@ function App() {
               </AdminRoute>
             } />
             
-            <Route path="/admin-dashboard/advanced-analytics" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminAdvancedAnalytics />
-              </ProtectedRoute>
-            } />
             
             {/* Volunteer routes */}
             <Route path="/volunteer-dashboard" element={
