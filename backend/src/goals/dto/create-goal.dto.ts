@@ -57,4 +57,8 @@ export class CreateGoalDto {
     @IsArray()
     @IsString({ each: true })
     notes?: string[];
+
+    @IsOptional()
+    @IsUUID('4', { message: 'Template ID must be a valid UUID' })
+    templateId?: string;
 }

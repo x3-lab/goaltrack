@@ -30,6 +30,7 @@ export interface CreateGoalDto {
   tags?: string[];
   notes?: string | string[];
   progress?: number;
+  templateId?: string;
 }
 
 export interface UpdateGoalDto {
@@ -81,6 +82,7 @@ class GoalsApiService {
 
   // Map backend -> frontend
   private mapBackendStatus(status: string): Goal['status'] {
+    if (!status || typeof status !== 'string') return 'pending';
     const map: Record<string, Goal['status']> = {
       pending: 'pending',
       PENDING: 'pending',
@@ -97,6 +99,7 @@ class GoalsApiService {
   }
 
   private mapBackendPriority(priority: string): Goal['priority'] {
+    if (!priority || typeof priority !== 'string') return 'medium';
     const map: Record<string, Goal['priority']> = {
       low: 'low',
       LOW: 'low',
@@ -123,6 +126,7 @@ class GoalsApiService {
 
   private mapFrontendPriority(priority?: string): string | undefined {
     if (!priority) return undefined;
+    if (typeof priority !== 'string') return undefined;
     return priority.toLowerCase();
   }
 
@@ -132,8 +136,8 @@ class GoalsApiService {
       title: goal.title,
       description: goal.description,
       category: goal.category,
-      priority: this.mapBackendPriority(goal.priority),
-      status: this.mapBackendStatus(goal.status),
+      priority: goal.priority ? this.mapBackendPriority(goal.priority) : 'medium',
+      status: goal.status ? this.mapBackendStatus(goal.status) : 'pending',
       progress: goal.progress,
       startDate: goal.startDate || new Date().toISOString().split('T')[0],
       dueDate: goal.dueDate,
@@ -235,7 +239,8 @@ class GoalsApiService {
         dueDate: normalizeDate(data.dueDate),
         tags: data.tags,
         notes: notesArray,
-        progress: typeof data.progress === 'number' ? data.progress : 0
+        progress: typeof data.progress === 'number' ? data.progress : 0,
+        templateId: data.templateId
       };
 
       const response = await httpClient.post<GoalResponseDto>(this.baseURL, payload);

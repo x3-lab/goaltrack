@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { ProgressHistory } from './progress-history.entity';
+import { GoalTemplate } from './goal-template.entity';
 import { GoalStatus, GoalPriority } from '../enums/goals.enums';
 
 
@@ -51,6 +52,9 @@ export class Goal {
     @Column( 'simple-array', {nullable: true })
     notes: string[];
 
+    @Column('uuid', { nullable: true })
+    templateId: string;
+
     @CreateDateColumn()
     createdAt: Date;
 
@@ -63,4 +67,8 @@ export class Goal {
 
     @OneToMany(() => ProgressHistory, progressHistory => progressHistory.goal, { cascade: true })
     progressHistory: ProgressHistory[];
+
+    @ManyToOne(() => GoalTemplate, { nullable: true })
+    @JoinColumn({ name: 'templateId' })
+    template: GoalTemplate;
 }

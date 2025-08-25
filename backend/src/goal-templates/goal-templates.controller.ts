@@ -72,6 +72,20 @@ export class GoalTemplatesController {
         return this.goalTemplatesService.getPopularTemplates(limitNum);
     }
 
+    @Get('analytics')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    async getAnalytics() {
+        return this.goalTemplatesService.getTemplateAnalytics();
+    }
+
+    @Get('category-stats')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    async getCategoryStats() {
+        return this.goalTemplatesService.getCategoryStats();
+    }
+
     @Get(':id')
     async findOne(
         @Param('id', ParseUUIDPipe) id: string,
@@ -80,12 +94,12 @@ export class GoalTemplatesController {
         return this.goalTemplatesService.findOne(id, currentUser);
     }
 
-    // @Get(':id/usage-stats')
-    // @UseGuards(RolesGuard)
-    // @Roles(UserRole.ADMIN)
-    // async getUsageStats(@Param('id', ParseUUIDPipe) id: string) {
-    //     return this.goalTemplatesService.getTemplateUsageStats(id);
-    // }
+    @Get(':id/usage-stats')
+    @UseGuards(RolesGuard)
+    @Roles(UserRole.ADMIN)
+    async getUsageStats(@Param('id', ParseUUIDPipe) id: string) {
+        return this.goalTemplatesService.getTemplateUsageStats(id);
+    }
 
     @Patch(':id')
     @UseGuards(RolesGuard)

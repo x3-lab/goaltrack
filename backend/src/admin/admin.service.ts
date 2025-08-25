@@ -259,15 +259,19 @@ export class AdminService {
             take: limit,
         });
 
-        return goals.map(goal => ({
-            id: goal.id,
-            volunteer: goal.volunteer ? `${goal.volunteer.firstName} ${goal.volunteer.lastName}` : 'Unknown',
-            volunteerEmail: goal.volunteer?.email || '',
-            goal: goal.title,
-            deadline: goal.dueDate.toISOString().split('T')[0],
-            priority: goal.priority?.toLowerCase() as 'high' | 'medium' | 'low' || 'medium',
-            status: goal.status.toLowerCase() as 'pending' | 'in-progress' | 'completed',
-        }));
+        return goals.map(goal => {
+            const dueDate = goal.dueDate instanceof Date ? goal.dueDate : new Date(goal.dueDate);
+            
+            return {
+                id: goal.id,
+                volunteer: goal.volunteer ? `${goal.volunteer.firstName} ${goal.volunteer.lastName}` : 'Unknown',
+                volunteerEmail: goal.volunteer?.email || '',
+                goal: goal.title,
+                deadline: dueDate.toISOString().split('T')[0],
+                priority: goal.priority?.toLowerCase() as 'high' | 'medium' | 'low' || 'medium',
+                status: goal.status.toLowerCase() as 'pending' | 'in-progress' | 'completed',
+            };
+        });
     }
 
     async getVolunteersWithGoals(): Promise<VolunteerWithGoalsDto[]> {

@@ -1,0 +1,39 @@
+### Test Goal Status Update Issue Fix
+### Step 1: Login to get authentication token
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "admin123"
+}
+
+###
+### Step 2: Get all goals to find a goal ID
+GET http://localhost:3000/goals
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 3: Try updating a goal status (this should now work without errors)
+PATCH http://localhost:3000/goals/GOAL_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "in-progress"
+}
+
+###
+### Step 4: Test with just status update using the dedicated endpoint
+PATCH http://localhost:3000/goals/GOAL_ID_HERE/status
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+###
+### Step 5: Verify the goal was updated
+GET http://localhost:3000/goals/GOAL_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE

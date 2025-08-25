@@ -59,7 +59,8 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
       : new Date().toISOString().split('T')[0],
     dueDate: goalData?.dueDate ? goalData.dueDate.split('T')[0] : '',
     volunteerId: goalData?.volunteerId || volunteerId || '',
-    notes: goalData?.notes && Array.isArray(goalData.notes) ? goalData.notes[0] || '' : (goalData as any)?.notes || ''
+    notes: goalData?.notes && Array.isArray(goalData.notes) ? goalData.notes[0] || '' : (goalData as any)?.notes || '',
+    templateId: (goalData as any)?.templateId || ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -242,9 +243,9 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
         dueDate: formData.dueDate,
         volunteerId: isAdminMode ? formData.volunteerId : (volunteerId || formData.volunteerId),
         tags: formData.tags,
-
         notes: formData.notes && typeof formData.notes === 'string' && formData.notes.trim() ? [formData.notes.trim()] : undefined,
-        progress: 0
+        progress: 0,
+        templateId: formData.templateId || undefined // Include templateId if present
       };
       
       await onSubmit(goalData);
@@ -265,7 +266,8 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
           startDate: new Date().toISOString().split('T')[0],
           dueDate: '',
           volunteerId: isAdminMode ? '' : (volunteerId || ''),
-          notes: ''
+          notes: '',
+          templateId: ''
         });
         setErrors({});
       }
@@ -308,8 +310,11 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
         priority: template.priority,
         tags: [...template.tags],
         startDate: startDate,
-        dueDate: dueDate
+        dueDate: dueDate,
+        templateId: template.id
       }));
+
+      console.log(`Template ${template.id} applied to form`);
 
       toast({
         title: "Template Applied!",

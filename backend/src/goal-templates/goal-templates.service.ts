@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, MoreThan } from 'typeorm';
 import { GoalTemplate } from '../database/entities/goal-template.entity';
 import { TemplateStatus } from '../database/enums/goal-template.enums';
 import { User } from '../database/entities/user.entity';
@@ -243,18 +243,27 @@ export class GoalTemplatesService {
             priority: template.priority as any,
             volunteerId: targetVolunteerId,
             dueDate: useTemplateDto.dueDate,
-            startDate: new Date().toISOString(),
+            startDate: new Date().toISOString().split('T')[0],
             status: GoalStatus.PENDING,
             tags: template.tags,
-            notes: useTemplateDto.customNotes ? [useTemplateDto.customNotes] : []
+            notes: useTemplateDto.customNotes ? [useTemplateDto.customNotes] : [],
+            templateId: template.id
         };
 
-        const createdGoal = await this.goalsService.create(createGoalDto, currentUser.id);
+        try {
+            const createdGoal = await this.goalsService.create(createGoalDto, currentUser.id);
 
-        template.usageCount += 1;
-        await this.templateRepository.save(template);
+            // Update template usage count after successful goal creation
+            template.usageCount += 1;
+            await this.templateRepository.save(template);
 
-        return createdGoal;
+            console.log(`Template ${template.id} usage count updated to ${template.usageCount}`);
+
+            return createdGoal;
+        } catch (error) {
+            console.error('Error creating goal from template:', error);
+            throw error;
+        }
     }
 
     async getCategories(): Promise<string[]> {
@@ -278,39 +287,211 @@ export class GoalTemplatesService {
         return templates.map(template => new GoalTemplateResponseDto(template));
     }
 
-    // async getTemplateUsageStats(templateId: string): Promise<{
-    //     totalUsage: number;
-    //     recentUsage: number;
-    //     avgCompletionRate: number;
-    // }> {
-    //     const template = await this.templateRepository.findOne({
-    //         where: { id: templateId }
-    //     });
+    async getTemplateUsageStats(templateId: string): Promise<{
+        totalUsage: number;
+        recentUsage: number;
+        avgCompletionRate: number;
+        goalsCreated: number;
+        completedGoals: number;
+        activeGoals: number;
+        usageByMonth: { month: string; count: number }[];
+    }> {
+        const template = await this.templateRepository.findOne({
+            where: { id: templateId }
+        });
 
-    //     if (!template) {
-    //         throw new NotFoundException('Goal template not found');
-    //     }
+        if (!template) {
+            throw new NotFoundException('Goal template not found');
+        }
 
-    //     const totalUsage = template.usageCount;
+        // Get all goals created from this template
+        const goalsFromTemplate = await this.goalRepository.find({
+            where: { templateId: templateId },
+            select: ['id', 'status', 'createdAt']
+        });
 
-    //     const thirtyDaysAgo = new Date();
-    //     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const totalUsage = template.usageCount;
+        const goalsCreated = goalsFromTemplate.length;
 
+        // Calculate recent usage (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const recentGoals = goalsFromTemplate.filter(goal => 
+            goal.createdAt >= thirtyDaysAgo
+        );
+        const recentUsage = recentGoals.length;
 
-    //    TODO: I should add a field to the Goal entity to track which template (if any) it was created from.
-    //    Then, I can correctly calculate the recent usage and average from throwDeprecation.
-    //     
-    //      const recentUsage = Math.floor(totalUsage * 0.3);
+        // Calculate completion statistics
+        const completedGoals = goalsFromTemplate.filter(goal => 
+            goal.status === GoalStatus.COMPLETED
+        ).length;
 
-    //  
-    //     const avgCompletionRate = 75;
+        const activeGoals = goalsFromTemplate.filter(goal => 
+            goal.status === GoalStatus.IN_PROGRESS || goal.status === GoalStatus.PENDING
+        ).length;
 
-    //     return {
-    //         totalUsage,
-    //         recentUsage,
-    //         avgCompletionRate
-    //     };
-    // }
+        // Calculate average completion rate
+        const avgCompletionRate = goalsCreated > 0 
+            ? Math.round((completedGoals / goalsCreated) * 100) 
+            : 0;
+
+        // Calculate usage by month for the last 12 months
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+        const monthlyUsage = new Map<string, number>();
+        
+        // Initialize the last 12 months with 0 counts
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date();
+            date.setMonth(date.getMonth() - i);
+            const monthKey = date.toISOString().slice(0, 7); // YYYY-MM format
+            monthlyUsage.set(monthKey, 0);
+        }
+
+        // Count actual usage
+        goalsFromTemplate
+            .filter(goal => goal.createdAt >= twelveMonthsAgo)
+            .forEach(goal => {
+                const monthKey = goal.createdAt.toISOString().slice(0, 7);
+                if (monthlyUsage.has(monthKey)) {
+                    monthlyUsage.set(monthKey, monthlyUsage.get(monthKey)! + 1);
+                }
+            });
+
+        const usageByMonth = Array.from(monthlyUsage.entries()).map(([month, count]) => ({
+            month,
+            count
+        }));
+
+        return {
+            totalUsage,
+            recentUsage,
+            avgCompletionRate,
+            goalsCreated,
+            completedGoals,
+            activeGoals,
+            usageByMonth
+        };
+    }
+
+    async getTemplateAnalytics(): Promise<{
+        totalTemplates: number;
+        activeTemplates: number;
+        totalUsage: number;
+        avgUsagePerTemplate: number;
+        topCategories: any[];
+        recentlyCreated: GoalTemplateResponseDto[];
+        mostUsed: GoalTemplateResponseDto[];
+        trendingTemplates: GoalTemplateResponseDto[];
+    }> {
+        // Get basic template counts
+        const [totalTemplates, activeTemplates] = await Promise.all([
+            this.templateRepository.count(),
+            this.templateRepository.count({ where: { status: TemplateStatus.ACTIVE } })
+        ]);
+
+        // Get total usage across all templates
+        const usageResult = await this.templateRepository
+            .createQueryBuilder('template')
+            .select('SUM(template.usageCount)', 'totalUsage')
+            .getRawOne();
+        
+        const totalUsage = parseInt(usageResult?.totalUsage || '0');
+        const avgUsagePerTemplate = totalTemplates > 0 ? Math.round(totalUsage / totalTemplates) : 0;
+
+        // Get category statistics
+        const categoryStats = await this.getCategoryStats();
+
+        // Get recently created templates (last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const recentlyCreated = await this.templateRepository.find({
+            where: { 
+                status: TemplateStatus.ACTIVE,
+                createdAt: MoreThan(thirtyDaysAgo)
+            },
+            relations: ['createdBy'],
+            order: { createdAt: 'DESC' },
+            take: 5
+        });
+
+        // Get most used templates
+        const mostUsed = await this.templateRepository.find({
+            where: { status: TemplateStatus.ACTIVE },
+            relations: ['createdBy'],
+            order: { usageCount: 'DESC' },
+            take: 5
+        });
+
+        // Get trending templates (high recent usage)
+        const trendingTemplates = await this.templateRepository.find({
+            where: { status: TemplateStatus.ACTIVE },
+            relations: ['createdBy'],
+            order: { usageCount: 'DESC', createdAt: 'DESC' },
+            take: 5
+        });
+
+        return {
+            totalTemplates,
+            activeTemplates,
+            totalUsage,
+            avgUsagePerTemplate,
+            topCategories: categoryStats.slice(0, 5), // Top 5 categories
+            recentlyCreated: recentlyCreated.map(template => new GoalTemplateResponseDto(template)),
+            mostUsed: mostUsed.map(template => new GoalTemplateResponseDto(template)),
+            trendingTemplates: trendingTemplates.map(template => new GoalTemplateResponseDto(template))
+        };
+    }
+
+    async getCategoryStats(): Promise<{
+        category: string;
+        totalTemplates: number;
+        totalUsage: number;
+        avgRating: number;
+        popularTemplates: GoalTemplateResponseDto[];
+    }[]> {
+        // Get category statistics with usage counts
+        const categoryData = await this.templateRepository
+            .createQueryBuilder('template')
+            .select([
+                'template.category as category',
+                'COUNT(template.id) as totalTemplates',
+                'SUM(template.usageCount) as totalUsage',
+                'AVG(template.usageCount) as avgUsage'
+            ])
+            .where('template.status = :status', { status: TemplateStatus.ACTIVE })
+            .groupBy('template.category')
+            .orderBy('totalUsage', 'DESC')
+            .getRawMany();
+
+        // For each category, get the most popular templates
+        const categoryStats = await Promise.all(
+            categoryData.map(async (cat) => {
+                const popularTemplates = await this.templateRepository.find({
+                    where: { 
+                        category: cat.category,
+                        status: TemplateStatus.ACTIVE 
+                    },
+                    relations: ['createdBy'],
+                    order: { usageCount: 'DESC' },
+                    take: 3
+                });
+
+                return {
+                    category: cat.category,
+                    totalTemplates: parseInt(cat.totalTemplates),
+                    totalUsage: parseInt(cat.totalUsage || '0'),
+                    avgRating: 4.2, // Placeholder - implement rating system later
+                    popularTemplates: popularTemplates.map(template => new GoalTemplateResponseDto(template))
+                };
+            })
+        );
+
+        return categoryStats;
+    }
 
     private async applyFilters(
         queryBuilder: SelectQueryBuilder<GoalTemplate>,

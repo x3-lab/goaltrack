@@ -1,0 +1,51 @@
+### Test Goal Template Usage Stats and Goal Creation
+### Step 1: Get all templates to find a template ID
+GET http://localhost:3000/goal-templates
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 2: Get the current usage count for a specific template (replace with actual template ID)
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 3: Create a goal from the template (this should increment usage count)
+POST http://localhost:3000/goal-templates/TEMPLATE_ID_HERE/use
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Test Goal from Template",
+  "description": "Testing template usage tracking",
+  "dueDate": "2025-09-25"
+}
+
+###
+### Step 4: Check the template again to verify usage count increased
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 5: Check the goals list to verify the goal was created with templateId
+GET http://localhost:3000/goals
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 6: Get usage stats for the template (Admin only)
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE/usage-stats
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 7: Get overall template analytics (Admin only)
+GET http://localhost:3000/goal-templates/analytics
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 8: Get category statistics (Admin only)
+GET http://localhost:3000/goal-templates/category-stats
+Authorization: Bearer YOUR_JWT_TOKEN_HERE
+
+###
+### Step 9: Check admin dashboard (this should not error with date issues)
+GET http://localhost:3000/admin/dashboard
+Authorization: Bearer YOUR_JWT_TOKEN_HERE

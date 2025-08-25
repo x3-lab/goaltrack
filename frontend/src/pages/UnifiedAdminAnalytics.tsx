@@ -89,7 +89,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
         setCategoriesData(analyticsResult.categoryBreakdown || []);
         setPerformanceData(performanceResult || []);
         setPredictionsData(predictionsResult || []);
-        setMilestonesData([]); // Will be populated when backend is implemented
+        setMilestonesData([]);
         
         // Extract available categories and volunteers
         if (analyticsResult.categoryBreakdown) {
@@ -104,7 +104,7 @@ const UnifiedAdminAnalytics: React.FC = () => {
         }
         
       } catch (advancedError) {
-        console.warn('⚠️ Advanced analytics partially failed, continuing with basic analytics');
+        console.warn('Advanced analytics partially failed, continuing with basic analytics');
       }
       
       console.log('Analytics data loaded successfully');

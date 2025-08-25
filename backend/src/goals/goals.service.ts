@@ -12,6 +12,7 @@ import { Goal } from '../database/entities/goal.entity';
 import { User } from '../database/entities/user.entity';
 import { ProgressHistory } from '../database/entities/progress-history.entity';
 import { ActivityLog } from '../database/entities/activity-log.entity';
+import { GoalTemplate } from '../database/entities/goal-template.entity';
 import { GoalStatus, GoalPriority } from '../database/enums/goals.enums';
 import { UserRole } from '../database/enums/user.enums';
 import { CreateGoalDto } from './dto/create-goal.dto';
@@ -35,6 +36,8 @@ export class GoalsService {
         private readonly progressHistoryRepository: Repository<ProgressHistory>,
         @InjectRepository(ActivityLog)
         private readonly activityLogRepository: Repository<ActivityLog>,
+        @InjectRepository(GoalTemplate)
+        private readonly goalTemplateRepository: Repository<GoalTemplate>,
     ) {}
 
     async create(
@@ -76,12 +79,21 @@ export class GoalsService {
 
         await this.updateUserGoalsCount(createGoalDto.volunteerId);
 
+        // Update template usage count if goal was created from a template
+        if (createGoalDto.templateId) {
+            await this.updateTemplateUsageCount(createGoalDto.templateId);
+        }
+
         await this.logActivity(
             currentUserId,
             'CREATE_GOAL',
             'goal',
             savedGoal.id,
-            { goalTitle: savedGoal.title, volunteerId: createGoalDto.volunteerId }
+            { 
+                goalTitle: savedGoal.title, 
+                volunteerId: createGoalDto.volunteerId,
+                templateId: createGoalDto.templateId || undefined
+            }
         );
 
         return new GoalResponseDto(savedGoal);
@@ -663,5 +675,26 @@ export class GoalsService {
         });
 
         await this.activityLogRepository.save(activityLog);
+    }
+
+    /**
+     * Update template usage count when a goal is created from a template
+     */
+    private async updateTemplateUsageCount(templateId: string): Promise<void> {
+        try {
+            const template = await this.goalTemplateRepository.findOne({
+                where: { id: templateId }
+            });
+
+            if (template) {
+                template.usageCount += 1;
+                await this.goalTemplateRepository.save(template);
+                console.log(`Template ${templateId} usage count updated to ${template.usageCount}`);
+            } else {
+                console.warn(`Template ${templateId} not found for usage count update`);
+            }
+        } catch (error) {
+            console.error(`Error updating template usage count for ${templateId}:`, error);
+        }
     }
 }
