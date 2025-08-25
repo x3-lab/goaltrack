@@ -44,8 +44,10 @@ interface GoalTemplateFormData {
   name: string;
   description: string;
   category: string;
-  priority: 'low' | 'medium' | 'high';
-  estimatedDuration: number;
+  priority: 'High' | 'Medium' | 'Low';
+  defaultDuration: number;
+  startDate?: string;
+  dueDate?: string;
   tags: string[];
   status: 'active' | 'inactive';
 }
@@ -203,7 +205,7 @@ const AdminGoalTemplates: React.FC = () => {
         description: templateData.description,
         category: templateData.category,
         priority: templateData.priority,
-        estimatedDuration: templateData.estimatedDuration,
+        defaultDuration: templateData.defaultDuration,
         tags: templateData.tags,
         status: templateData.status
       };
@@ -238,7 +240,7 @@ const AdminGoalTemplates: React.FC = () => {
         description: templateData.description,
         category: templateData.category,
         priority: templateData.priority,
-        estimatedDuration: templateData.estimatedDuration,
+        defaultDuration: templateData.defaultDuration,
         tags: templateData.tags,
         status: templateData.status
       };
@@ -436,12 +438,29 @@ const AdminGoalTemplates: React.FC = () => {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-gray-500" />
-              <span>{template.estimatedDuration} days</span>
+              <span>{template.defaultDuration} days</span>
             </div>
             <Badge variant="outline" className={getPriorityColor(template.priority)}>
               {template.priority}
             </Badge>
           </div>
+          
+          {(template.startDate || template.dueDate) && (
+            <div className="flex items-center gap-4 text-xs text-gray-500">
+              {template.startDate && (
+                <div className="flex items-center gap-1">
+                  <span>Start:</span>
+                  <span>{new Date(template.startDate).toLocaleDateString()}</span>
+                </div>
+              )}
+              {template.dueDate && (
+                <div className="flex items-center gap-1">
+                  <span>Due:</span>
+                  <span>{new Date(template.dueDate).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          )}
           
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
@@ -492,6 +511,7 @@ const AdminGoalTemplates: React.FC = () => {
               <TableHead>Category</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Duration</TableHead>
+              <TableHead>Dates</TableHead>
               <TableHead>Usage</TableHead>
               <TableHead>Status</TableHead>
               <TableHead 
@@ -520,7 +540,20 @@ const AdminGoalTemplates: React.FC = () => {
                     {template.priority}
                   </Badge>
                 </TableCell>
-                <TableCell>{template.estimatedDuration} days</TableCell>
+                <TableCell>{template.defaultDuration} days</TableCell>
+                <TableCell>
+                  <div className="space-y-1 text-sm">
+                    {template.startDate && (
+                      <div>Start: {new Date(template.startDate).toLocaleDateString()}</div>
+                    )}
+                    {template.dueDate && (
+                      <div>Due: {new Date(template.dueDate).toLocaleDateString()}</div>
+                    )}
+                    {!template.startDate && !template.dueDate && (
+                      <span className="text-gray-400">No dates set</span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{template.usageCount}</TableCell>
                 <TableCell>{getStatusBadge(template.status)}</TableCell>
                 <TableCell>{formatDate(template.createdAt)}</TableCell>
@@ -814,8 +847,10 @@ const GoalTemplateForm: React.FC<{
     name: template?.name || '',
     description: template?.description || '',
     category: template?.category || 'General',
-    priority: template?.priority || 'medium',
-    estimatedDuration: template?.estimatedDuration || 7,
+    priority: template?.priority || 'Medium',
+    defaultDuration: template?.defaultDuration || 7,
+    startDate: template?.startDate || '',
+    dueDate: template?.dueDate || '',
     tags: template?.tags || [],
     status: template?.status || 'active'
   });
@@ -834,8 +869,17 @@ const GoalTemplateForm: React.FC<{
     if (!formData.category.trim()) {
       newErrors.category = 'Category is required';
     }
-    if (formData.estimatedDuration < 1 || formData.estimatedDuration > 365) {
-      newErrors.estimatedDuration = 'Duration must be between 1 and 365 days';
+    if (formData.defaultDuration < 1 || formData.defaultDuration > 365) {
+      newErrors.defaultDuration = 'Duration must be between 1 and 365 days';
+    }
+    
+    // Validate date fields
+    if (formData.startDate && formData.dueDate) {
+      const startDate = new Date(formData.startDate);
+      const dueDate = new Date(formData.dueDate);
+      if (startDate >= dueDate) {
+        newErrors.dueDate = 'Due date must be after start date';
+      }
     }
 
     setErrors(newErrors);
@@ -917,31 +961,57 @@ const GoalTemplateForm: React.FC<{
 
         <div>
           <Label htmlFor="priority">Priority</Label>
-          <Select value={formData.priority} onValueChange={(value: 'low' | 'medium' | 'high') => setFormData(prev => ({ ...prev, priority: value }))}>
+          <Select value={formData.priority} onValueChange={(value: 'High' | 'Medium' | 'Low') => setFormData(prev => ({ ...prev, priority: value }))}>
             <SelectTrigger>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="High">High</SelectItem>
+              <SelectItem value="Medium">Medium</SelectItem>
+              <SelectItem value="Low">Low</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <Label htmlFor="duration">Estimated Duration (days) *</Label>
+        <Label htmlFor="duration">Default Duration (days) *</Label>
         <Input
           id="duration"
           type="number"
-          value={formData.estimatedDuration}
-          onChange={(e) => setFormData(prev => ({ ...prev, estimatedDuration: parseInt(e.target.value) || 7 }))}
+          value={formData.defaultDuration}
+          onChange={(e) => setFormData(prev => ({ ...prev, defaultDuration: parseInt(e.target.value) || 7 }))}
           min="1"
           max="365"
-          className={errors.estimatedDuration ? 'border-red-500' : ''}
+          className={errors.defaultDuration ? 'border-red-500' : ''}
         />
-        {errors.estimatedDuration && <p className="text-red-500 text-xs mt-1">{errors.estimatedDuration}</p>}
+        {errors.defaultDuration && <p className="text-red-500 text-xs mt-1">{errors.defaultDuration}</p>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Start Date (optional)</Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={formData.startDate}
+            onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+            className={errors.startDate ? 'border-red-500' : ''}
+          />
+          {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate}</p>}
+        </div>
+        
+        <div>
+          <Label htmlFor="dueDate">Due Date (optional)</Label>
+          <Input
+            id="dueDate"
+            type="date"
+            value={formData.dueDate}
+            onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+            className={errors.dueDate ? 'border-red-500' : ''}
+          />
+          {errors.dueDate && <p className="text-red-500 text-xs mt-1">{errors.dueDate}</p>}
+        </div>
       </div>
 
       <div>

@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsOptional, IsNumber, IsArray, Min, Max, MaxLength } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsNumber, IsArray, Min, Max, MaxLength, IsDateString } from 'class-validator';
 import { TemplatePriority, TemplateStatus } from '../../database/enums/goal-template.enums';
 
 
@@ -21,6 +21,14 @@ export class CreateGoalTemplateDto {
     @Min(1)
     @Max(365)
     defaultDuration: number;
+
+    @IsOptional()
+    @IsDateString()
+    startDate?: string;
+
+    @IsOptional()
+    @IsDateString()
+    dueDate?: string;
 
     @IsOptional()
     @IsArray()

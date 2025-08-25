@@ -46,7 +46,9 @@ export class GoalTemplatesService {
         const template = this.templateRepository.create({
             ...createTemplateDto,
             createdById: currentUser.id,
-            status: createTemplateDto.status || TemplateStatus.ACTIVE
+            status: createTemplateDto.status || TemplateStatus.ACTIVE,
+            startDate: createTemplateDto.startDate ? new Date(createTemplateDto.startDate) : undefined,
+            dueDate: createTemplateDto.dueDate ? new Date(createTemplateDto.dueDate) : undefined
         });
 
         const savedTemplate = await this.templateRepository.save(template);
@@ -135,7 +137,15 @@ export class GoalTemplatesService {
             }
         }
 
-        Object.assign(template, updateTemplateDto);
+        const updateData = { ...updateTemplateDto };
+        if (updateData.startDate) {
+            updateData.startDate = new Date(updateData.startDate) as any;
+        }
+        if (updateData.dueDate) {
+            updateData.dueDate = new Date(updateData.dueDate) as any;
+        }
+
+        Object.assign(template, updateData);
         const updatedTemplate = await this.templateRepository.save(template);
 
         return new GoalTemplateResponseDto(updatedTemplate);

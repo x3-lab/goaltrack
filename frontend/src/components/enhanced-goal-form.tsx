@@ -284,23 +284,36 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
     try {
       console.log(`Applying template: ${template.name}`);
       
-      // Calculate default due date based on template duration
-      const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + (template.estimatedDuration || 7));
+      let startDate = formData.startDate;
+      let dueDate = formData.dueDate;
+      
+      if (template.startDate) {
+        startDate = new Date(template.startDate).toISOString().split('T')[0];
+      }
+      
+      if (template.dueDate) {
+        dueDate = new Date(template.dueDate).toISOString().split('T')[0];
+      } else if (template.defaultDuration && !template.dueDate) {
+        // Calculate due date based on default duration if no template due date
+        const calculatedDueDate = new Date(startDate);
+        calculatedDueDate.setDate(calculatedDueDate.getDate() + template.defaultDuration);
+        dueDate = calculatedDueDate.toISOString().split('T')[0];
+      }
       
       setFormData(prev => ({
         ...prev,
         title: template.name,
         description: template.description,
         category: template.category,
-        priority: template.priority, // Keep backend format (lowercase)
+        priority: template.priority,
         tags: [...template.tags],
-        dueDate: dueDate.toISOString().split('T')[0]
+        startDate: startDate,
+        dueDate: dueDate
       }));
 
       toast({
         title: "Template Applied!",
-        description: `Applied template: ${template.name}`,
+        description: `Applied template: ${template.name}${template.startDate || template.dueDate ? ' with template dates' : ''}`,
       });
       
       console.log(`Template applied successfully`);

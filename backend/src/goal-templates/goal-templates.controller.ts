@@ -43,15 +43,22 @@ export class GoalTemplatesController {
 
     @Get()
     async findAll(
-        @Query(ValidationPipe) filters: GoalTemplateFiltersDto,
-        @Query('page') page: string = '1',
-        @Query('limit') limit: string = '20',
+        @Query() query: any,
         @CurrentUser() currentUser: User
     ) {
-        const pageNum = parseInt(page, 10) || 1;
-        const limitNum = parseInt(limit, 10) || 20;
+        // Extract pagination parameters
+        const page = parseInt(query.page, 10) || 1;
+        const limit = parseInt(query.limit, 10) || 20;
         
-        return this.goalTemplatesService.findAll(filters, currentUser, pageNum, limitNum);
+        // Extract and validate filter parameters
+        const filters = new GoalTemplateFiltersDto();
+        if (query.search) filters.search = query.search;
+        if (query.category) filters.category = query.category;
+        if (query.priority) filters.priority = query.priority;
+        if (query.status) filters.status = query.status;
+        if (query.createdBy) filters.createdBy = query.createdBy;
+        
+        return this.goalTemplatesService.findAll(filters, currentUser, page, limit);
     }
 
     @Get('categories')
