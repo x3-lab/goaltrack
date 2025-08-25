@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User, LucideIcon } from 'lucide-react';
+import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User, LogOut, LucideIcon } from 'lucide-react';
 
 interface NavigationItem {
   path?: string;
@@ -17,8 +17,19 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      if (onNavigate) onNavigate();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   if (!user) return null;
 
@@ -80,6 +91,17 @@ const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
             })}
           </ul>
         </div>
+      </div>
+      
+      {/* Logout Button */}
+      <div className="p-6 border-t border-gray-200">
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium w-full text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-200 group"
+        >
+          <LogOut className="h-5 w-5 text-gray-500 group-hover:text-red-600" />
+          <span>Logout</span>
+        </button>
       </div>
     </nav>
   );
