@@ -284,12 +284,12 @@ const AdminVolunteerManagement: React.FC = () => {
     return (
       <AdminLayout>
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Add New Volunteer</h1>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Add New Volunteer</h1>
               <p className="text-muted-foreground">Create a new volunteer account</p>
             </div>
-            <Button variant="outline" onClick={() => setShowAddForm(false)}>
+            <Button variant="outline" onClick={() => setShowAddForm(false)} className="w-full sm:w-auto">
               Back to List
             </Button>
           </div>
@@ -308,28 +308,29 @@ const AdminVolunteerManagement: React.FC = () => {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Volunteer Management</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Volunteer Management</h1>
             <p className="text-muted-foreground">
               Manage volunteer accounts, roles, and permissions
             </p>
           </div>
-          <Button onClick={() => setShowAddForm(true)} className="gap-2">
+          <Button onClick={() => setShowAddForm(true)} className="gap-2 w-full sm:w-auto">
             <UserPlus className="h-4 w-4" />
             Add Volunteer
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Volunteers</CardTitle>
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalItems}</div>
+              <p className="text-xs text-muted-foreground">volunteers</p>
             </CardContent>
           </Card>
           
@@ -342,6 +343,7 @@ const AdminVolunteerManagement: React.FC = () => {
               <div className="text-2xl font-bold text-green-600">
                 {volunteers.filter(v => v.status === 'active').length}
               </div>
+              <p className="text-xs text-muted-foreground">online</p>
             </CardContent>
           </Card>
           
@@ -354,6 +356,7 @@ const AdminVolunteerManagement: React.FC = () => {
               <div className="text-2xl font-bold text-red-600">
                 {volunteers.filter(v => v.status === 'inactive').length}
               </div>
+              <p className="text-xs text-muted-foreground">offline</p>
             </CardContent>
           </Card>
           
@@ -366,6 +369,7 @@ const AdminVolunteerManagement: React.FC = () => {
               <div className="text-2xl font-bold text-blue-600">
                 {selectedVolunteers.length}
               </div>
+              <p className="text-xs text-muted-foreground">chosen</p>
             </CardContent>
           </Card>
         </div>
@@ -373,9 +377,9 @@ const AdminVolunteerManagement: React.FC = () => {
         {/* Filters and Search */}
         <Card>
           <CardHeader>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="space-y-4">
               {/* Search */}
-              <div className="relative flex-1">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search volunteers by name or email..."
@@ -385,45 +389,48 @@ const AdminVolunteerManagement: React.FC = () => {
                 />
               </div>
 
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active Only</SelectItem>
-                  <SelectItem value="inactive">Inactive Only</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Filters Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                  <SelectTrigger className="sm:w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active Only</SelectItem>
+                    <SelectItem value="inactive">Inactive Only</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Sort */}
-              <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
-                const [field, order] = value.split('-');
-                setSortBy(field as typeof sortBy);
-                setSortOrder(order as typeof sortOrder);
-              }}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                  <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                  <SelectItem value="email-asc">Email (A-Z)</SelectItem>
-                  <SelectItem value="email-desc">Email (Z-A)</SelectItem>
-                  <SelectItem value="joinDate-desc">Newest First</SelectItem>
-                  <SelectItem value="joinDate-asc">Oldest First</SelectItem>
-                </SelectContent>
-              </Select>
+                {/* Sort */}
+                <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+                  const [field, order] = value.split('-');
+                  setSortBy(field as typeof sortBy);
+                  setSortOrder(order as typeof sortOrder);
+                }}>
+                  <SelectTrigger className="sm:w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="email-asc">Email (A-Z)</SelectItem>
+                    <SelectItem value="email-desc">Email (Z-A)</SelectItem>
+                    <SelectItem value="joinDate-desc">Newest First</SelectItem>
+                    <SelectItem value="joinDate-asc">Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Bulk Actions */}
             {selectedVolunteers.length > 0 && (
-              <div className="flex items-center gap-2 pt-4 border-t">
-                <span className="text-sm text-muted-foreground">
+              <div className="pt-4 border-t space-y-3">
+                <div className="text-sm text-muted-foreground">
                   {selectedVolunteers.length} volunteer(s) selected
-                </span>
-                <div className="flex gap-2">
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -457,7 +464,7 @@ const AdminVolunteerManagement: React.FC = () => {
           </CardHeader>
         </Card>
 
-        {/* Volunteers Table */}
+        {/* Volunteers Table/Cards */}
         <Card>
           <CardContent className="p-0">
             {loading ? (
@@ -482,135 +489,236 @@ const AdminVolunteerManagement: React.FC = () => {
                 )}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox
-                        checked={selectedVolunteers.length === volunteers.length}
-                        onCheckedChange={handleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort('name')}
-                    >
-                      Name {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort('email')}
-                    >
-                      Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleSort('joinDate')}
-                    >
-                      Join Date {sortBy === 'joinDate' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </TableHead>
-                    <TableHead>Goals</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]">
+                          <Checkbox
+                            checked={selectedVolunteers.length === volunteers.length}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('name')}
+                        >
+                          Name {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('email')}
+                        >
+                          Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('joinDate')}
+                        >
+                          Join Date {sortBy === 'joinDate' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </TableHead>
+                        <TableHead>Goals</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {volunteers.map((volunteer) => (
+                        <TableRow key={volunteer.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedVolunteers.includes(volunteer.id)}
+                              onCheckedChange={(checked) => 
+                                handleSelectVolunteer(volunteer.id, checked as boolean)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <div className="font-medium">{volunteer.name}</div>
+                          </TableCell>
+                          <TableCell>{volunteer.email}</TableCell>
+                          <TableCell>{volunteer.phone || 'N/A'}</TableCell>
+                          <TableCell>{getStatusBadge(volunteer.status)}</TableCell>
+                          <TableCell>{formatDate(volunteer.joinDate || volunteer.createdAt)}</TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{volunteer.goals || 0} total</div>
+                              <div className="text-muted-foreground">
+                                {volunteer.completedGoals || 0} completed
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetails(volunteer.id)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditVolunteer(volunteer.id)}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleStatusToggle(volunteer.id, volunteer.status)}
+                                >
+                                  {volunteer.status === 'active' ? (
+                                    <>
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Deactivate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Activate
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteVolunteer(volunteer.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-4 p-4">
                   {volunteers.map((volunteer) => (
-                    <TableRow key={volunteer.id}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedVolunteers.includes(volunteer.id)}
-                          onCheckedChange={(checked) => 
-                            handleSelectVolunteer(volunteer.id, checked as boolean)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div className="font-medium">{volunteer.name}</div>
+                    <Card key={volunteer.id} className="relative">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={selectedVolunteers.includes(volunteer.id)}
+                              onCheckedChange={(checked) => 
+                                handleSelectVolunteer(volunteer.id, checked as boolean)
+                              }
+                            />
+                            <div>
+                              <h3 className="font-semibold text-lg text-left">{volunteer.name}</h3>
+                              <p className="text-sm text-muted-foreground text-left">{volunteer.email}</p>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewDetails(volunteer.id)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditVolunteer(volunteer.id)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusToggle(volunteer.id, volunteer.status)}
+                              >
+                                {volunteer.status === 'active' ? (
+                                  <>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Activate
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteVolunteer(volunteer.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                      </TableCell>
-                      <TableCell>{volunteer.email}</TableCell>
-                      <TableCell>{volunteer.phone || 'N/A'}</TableCell>
-                      <TableCell>{getStatusBadge(volunteer.status)}</TableCell>
-                      <TableCell>{formatDate(volunteer.joinDate || volunteer.createdAt)}</TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>{volunteer.goals || 0} total</div>
-                          <div className="text-muted-foreground">
-                            {volunteer.completedGoals || 0} completed
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Status</span>
+                            {getStatusBadge(volunteer.status)}
+                          </div>
+                          
+                          {volunteer.phone && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-muted-foreground">Phone</span>
+                              <span className="text-sm">{volunteer.phone}</span>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Joined</span>
+                            <span className="text-sm">{formatDate(volunteer.joinDate || volunteer.createdAt)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Goals</span>
+                            <div className="text-sm text-right">
+                              <div>{volunteer.goals || 0} total</div>
+                              <div className="text-muted-foreground text-xs">
+                                {volunteer.completedGoals || 0} completed
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(volunteer.id)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditVolunteer(volunteer.id)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleStatusToggle(volunteer.id, volunteer.status)}
-                            >
-                              {volunteer.status === 'active' ? (
-                                <>
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Deactivate
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteVolunteer(volunteer.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </CardContent>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground order-2 sm:order-1">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
               {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} volunteers
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 order-1 sm:order-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
+                className="px-3"
               >
-                Previous
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
-              <div className="flex items-center gap-1">
+              
+              {/* Desktop Pagination */}
+              <div className="hidden sm:flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
                   if (totalPages <= 5) {
@@ -636,13 +744,23 @@ const AdminVolunteerManagement: React.FC = () => {
                   );
                 })}
               </div>
+              
+              {/* Mobile Pagination - Simple */}
+              <div className="sm:hidden flex items-center gap-2">
+                <span className="text-sm font-medium bg-muted px-2 py-1 rounded">
+                  {currentPage} / {totalPages}
+                </span>
+              </div>
+              
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
+                className="px-3"
               >
-                Next
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
               </Button>
             </div>
           </div>

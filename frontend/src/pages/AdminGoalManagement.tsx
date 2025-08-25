@@ -440,14 +440,14 @@ const AdminGoalManagement: React.FC = () => {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Goals Management</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Goals Management</h1>
             <p className="text-muted-foreground">
               Create, assign, and track goals for volunteers
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Button 
               variant="outline" 
               onClick={handleRefresh}
@@ -469,13 +469,14 @@ const AdminGoalManagement: React.FC = () => {
 
         {/* Stats Overview */}
         {state.stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Goals</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total</p>
                     <h3 className="text-2xl font-bold">{state.stats.totalGoals}</h3>
+                    <p className="text-xs text-muted-foreground">goals</p>
                   </div>
                   <Target className="h-8 w-8 text-muted-foreground" />
                 </div>
@@ -485,8 +486,9 @@ const AdminGoalManagement: React.FC = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Completion Rate</p>
+                    <p className="text-sm font-medium text-muted-foreground">Complete</p>
                     <h3 className="text-2xl font-bold">{state.stats.completionRate}%</h3>
+                    <p className="text-xs text-muted-foreground">rate</p>
                   </div>
                   <CheckCircle className="h-8 w-8 text-green-500" />
                 </div>
@@ -499,6 +501,7 @@ const AdminGoalManagement: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Overdue</p>
                     <h3 className="text-2xl font-bold">{state.stats.overdueGoals}</h3>
+                    <p className="text-xs text-muted-foreground">goals</p>
                   </div>
                   <AlertCircle className="h-8 w-8 text-amber-500" />
                 </div>
@@ -508,8 +511,9 @@ const AdminGoalManagement: React.FC = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+                    <p className="text-sm font-medium text-muted-foreground">Progress</p>
                     <h3 className="text-2xl font-bold">{state.stats.inProgressGoals}</h3>
+                    <p className="text-xs text-muted-foreground">active</p>
                   </div>
                   <Clock className="h-8 w-8 text-blue-500" />
                 </div>
@@ -521,21 +525,22 @@ const AdminGoalManagement: React.FC = () => {
         {/* Filters & Search */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search goals by title, description, or volunteer..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search goals by title, description, or volunteer..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-8"
+                />
               </div>
-              <div className="flex flex-wrap gap-2">
+              
+              {/* Filter Controls */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <Select value={filterStatus} onValueChange={(value) => handleFilterChange('status', value)}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -548,7 +553,7 @@ const AdminGoalManagement: React.FC = () => {
                 </Select>
                 
                 <Select value={filterPriority} onValueChange={(value) => handleFilterChange('priority', value)}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger>
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -560,7 +565,7 @@ const AdminGoalManagement: React.FC = () => {
                 </Select>
                 
                 <Select value={filterCategory} onValueChange={(value) => handleFilterChange('category', value)}>
-                  <SelectTrigger className="w-[160px]">
+                  <SelectTrigger>
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -572,7 +577,7 @@ const AdminGoalManagement: React.FC = () => {
                 </Select>
                 
                 <Select value={filterVolunteer} onValueChange={(value) => handleFilterChange('volunteer', value)}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger>
                     <SelectValue placeholder="Volunteer" />
                   </SelectTrigger>
                   <SelectContent>
@@ -587,11 +592,11 @@ const AdminGoalManagement: React.FC = () => {
 
             {/* Bulk Actions */}
             {state.selectedGoals.length > 0 && (
-              <div className="flex items-center gap-2 pt-4 border-t mt-4">
-                <span className="text-sm text-muted-foreground">
+              <div className="pt-4 border-t mt-4 space-y-3">
+                <div className="text-sm text-muted-foreground">
                   {state.selectedGoals.length} goal(s) selected
-                </span>
-                <div className="flex gap-2">
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
@@ -650,9 +655,9 @@ const AdminGoalManagement: React.FC = () => {
         {/* Goals Table */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <CardTitle>Goals</CardTitle>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -684,7 +689,8 @@ const AdminGoalManagement: React.FC = () => {
                   ) : (
                     <BarChart3 className="h-4 w-4 mr-2" />
                   )}
-                  Process Weekly
+                  <span className="hidden sm:inline">Process Weekly</span>
+                  <span className="sm:hidden">Weekly</span>
                 </Button>
               </div>
             </div>
@@ -712,161 +718,253 @@ const AdminGoalManagement: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-3 px-2 text-left w-12">
-                        <Checkbox 
-                          checked={state.selectedGoals.length === state.goals.length && state.goals.length > 0} 
-                          onCheckedChange={handleSelectAll}
-                        />
-                      </th>
-                      <th 
-                        className="py-3 px-2 text-left font-medium cursor-pointer"
-                        onClick={() => handleSort('title')}
-                      >
-                        <div className="flex items-center">
-                          Title
-                          {sortBy === 'title' && (
-                            sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />
-                          )}
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 text-left font-medium">Status</th>
-                      <th className="py-3 px-2 text-left font-medium">Priority</th>
-                      <th className="py-3 px-2 text-left font-medium">Category</th>
-                      <th className="py-3 px-2 text-left font-medium">Progress</th>
-                      <th 
-                        className="py-3 px-2 text-left font-medium cursor-pointer"
-                        onClick={() => handleSort('dueDate')}
-                      >
-                        <div className="flex items-center">
-                          Due Date
-                          {sortBy === 'dueDate' && (
-                            sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />
-                          )}
-                        </div>
-                      </th>
-                      <th 
-                        className="py-3 px-2 text-left font-medium cursor-pointer"
-                        onClick={() => handleSort('volunteerId')}
-                      >
-                        <div className="flex items-center">
-                          Volunteer
-                          {sortBy === 'volunteerId' && (
-                            sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />
-                          )}
-                        </div>
-                      </th>
-                      <th className="py-3 px-2 text-right font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.goals.map(goal => (
-                      <tr key={goal.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-2">
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-3 px-2 text-left w-12">
                           <Checkbox 
-                            checked={state.selectedGoals.includes(goal.id)} 
-                            onCheckedChange={(checked) => handleSelectGoal(goal.id, !!checked)}
+                            checked={state.selectedGoals.length === state.goals.length && state.goals.length > 0} 
+                            onCheckedChange={handleSelectAll}
                           />
-                        </td>
-                        <td className="py-3 px-2 font-medium">
-                          <div className="max-w-[200px] truncate">{goal.title}</div>
-                        </td>
-                        <td className="py-3 px-2">
-                          {renderStatusBadge(goal.status)}
-                        </td>
-                        <td className="py-3 px-2">
-                          {renderPriorityBadge(goal.priority)}
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="max-w-[150px] truncate">{goal.category}</div>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            <Progress value={goal.progress} className="h-2 w-24" />
-                            <span className="text-sm">{goal.progress}%</span>
+                        </th>
+                        <th 
+                          className="py-3 px-2 text-left font-medium cursor-pointer"
+                          onClick={() => handleSort('title')}
+                        >
+                          <div className="flex items-center">
+                            Title
+                            {sortBy === 'title' && (
+                              sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />
+                            )}
                           </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {new Date(goal.dueDate).toLocaleDateString()}
-                            </span>
+                        </th>
+                        <th className="py-3 px-2 text-left font-medium">Status</th>
+                        <th className="py-3 px-2 text-left font-medium">Priority</th>
+                        <th className="py-3 px-2 text-left font-medium">Category</th>
+                        <th className="py-3 px-2 text-left font-medium">Progress</th>
+                        <th 
+                          className="py-3 px-2 text-left font-medium cursor-pointer"
+                          onClick={() => handleSort('dueDate')}
+                        >
+                          <div className="flex items-center">
+                            Due Date
+                            {sortBy === 'dueDate' && (
+                              sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />
+                            )}
                           </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-1">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span className="max-w-[150px] truncate">
-                              {getVolunteerName(goal.volunteerId)}
-                            </span>
+                        </th>
+                        <th 
+                          className="py-3 px-2 text-left font-medium cursor-pointer"
+                          onClick={() => handleSort('volunteerId')}
+                        >
+                          <div className="flex items-center">
+                            Volunteer
+                            {sortBy === 'volunteerId' && (
+                              sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />
+                            )}
                           </div>
-                        </td>
-                        <td className="py-3 px-2 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleViewGoal(goal)}>
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>View Details</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleEditGoal(goal)}>
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit Goal</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteGoal(goal.id)}>
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Delete</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </td>
+                        </th>
+                        <th className="py-3 px-2 text-right font-medium">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {state.goals.map(goal => (
+                        <tr key={goal.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-2">
+                            <Checkbox 
+                              checked={state.selectedGoals.includes(goal.id)} 
+                              onCheckedChange={(checked) => handleSelectGoal(goal.id, !!checked)}
+                            />
+                          </td>
+                          <td className="py-3 px-2 font-medium">
+                            <div className="max-w-[200px] truncate">{goal.title}</div>
+                          </td>
+                          <td className="py-3 px-2">
+                            {renderStatusBadge(goal.status)}
+                          </td>
+                          <td className="py-3 px-2">
+                            {renderPriorityBadge(goal.priority)}
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="max-w-[150px] truncate">{goal.category}</div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-2">
+                              <Progress value={goal.progress} className="h-2 w-24" />
+                              <span className="text-sm">{goal.progress}%</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span>
+                                {new Date(goal.dueDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-1">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="max-w-[150px] truncate">
+                                {getVolunteerName(goal.volunteerId)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => handleViewGoal(goal)}>
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>View Details</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => handleEditGoal(goal)}>
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Edit Goal</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteGoal(goal.id)}>
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Delete</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-4">
+                  {state.goals.map(goal => (
+                    <Card key={goal.id} className="relative">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3 flex-1">
+                            <Checkbox 
+                              checked={state.selectedGoals.includes(goal.id)} 
+                              onCheckedChange={(checked) => handleSelectGoal(goal.id, !!checked)}
+                            />
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg text-left mb-1">{goal.title}</h3>
+                              <div className="flex flex-wrap gap-2 mb-2">
+                                {renderStatusBadge(goal.status)}
+                                {renderPriorityBadge(goal.priority)}
+                              </div>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewGoal(goal)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditGoal(goal)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Goal
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteGoal(goal.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Category</span>
+                            <span className="text-sm font-medium">{goal.category}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Progress</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={goal.progress} className="h-2 w-20" />
+                              <span className="text-sm font-medium">{goal.progress}%</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Due Date</span>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">
+                                {new Date(goal.dueDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Volunteer</span>
+                            <div className="flex items-center gap-1">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">
+                                {getVolunteerName(goal.volunteerId)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
             )}
           </CardContent>
           
           {/* Pagination */}
           {!state.loading && state.goals.length > 0 && totalPages > 1 && (
             <CardFooter>
-              <div className="flex items-center justify-between w-full">
-                <div className="text-sm text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-4">
+                <div className="text-sm text-muted-foreground order-2 sm:order-1">
                   Showing {((currentPage - 1) * itemsPerPage) + 1} to{' '}
                   {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} goals
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 order-1 sm:order-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
+                    className="px-3"
                   >
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Prev</span>
                   </Button>
-                  <div className="flex items-center gap-1">
+                  
+                  {/* Desktop Pagination */}
+                  <div className="hidden sm:flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       let pageNum;
                       if (totalPages <= 5) {
@@ -892,13 +990,23 @@ const AdminGoalManagement: React.FC = () => {
                       );
                     })}
                   </div>
+                  
+                  {/* Mobile Pagination - Simple */}
+                  <div className="sm:hidden flex items-center gap-2">
+                    <span className="text-sm font-medium bg-muted px-2 py-1 rounded">
+                      {currentPage} / {totalPages}
+                    </span>
+                  </div>
+                  
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
+                    className="px-3"
                   >
-                    Next
+                    <span className="hidden sm:inline">Next</span>
+                    <span className="sm:hidden">Next</span>
                   </Button>
                 </div>
               </div>

@@ -58,7 +58,7 @@ const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
         <div className="p-6">
           <div className="mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {user.role === 'admin' ? 'Admin Panel' : 'Volunteer Portal'}
+              X3 Goals
             </h2>
             <p className="text-sm text-gray-600">
               Welcome, {user.firstName}
