@@ -18,7 +18,6 @@ import AdminProfile from './pages/AdminProfile';
 import AdminVolunteerManagement from './pages/AdminVolunteerManagement';
 import AdminGoalManagement from './pages/AdminGoalManagement';
 import UnifiedAdminAnalytics from './pages/UnifiedAdminAnalytics';
-import AdminSettings from './pages/AdminSettings';
 import AdminGoalTemplates from './pages/AdminGoalTemplates';
 
 // Volunteer pages
@@ -94,9 +93,9 @@ function App() {
               </AdminRoute>
             } />
             
-            <Route path="/admin-dashboard/settings" element={
+            <Route path="/admin-dashboard/profile" element={
               <AdminRoute>
-                <AdminSettings />
+                <AdminProfile />
               </AdminRoute>
             } />
 

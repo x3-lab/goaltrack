@@ -276,10 +276,9 @@ class AdminApiService {
     }
   }
 
-  // LEGACY METHODS (for backward compatibility)
 
   /**
-   * Get admin profile (legacy format)
+   * Get admin profile
    */
   async getAdminProfile(): Promise<AdminProfile> {
     const profile = await this.getProfile();
@@ -287,7 +286,7 @@ class AdminApiService {
   }
 
   /**
-   * Update admin profile (legacy format)
+   * Update admin profile
    */
   async updateAdminProfile(updates: { name?: string; email?: string; phone?: string; department?: string; title?: string; }): Promise<AdminProfile> {
     const profileUpdate: UpdateAdminProfileDto = {
@@ -302,7 +301,7 @@ class AdminApiService {
   }
 
   /**
-   * Change admin password (legacy method)
+   * Change admin password
    */
   async changeAdminPassword(currentPassword: string, newPassword: string): Promise<boolean> {
     const result = await this.changePassword({ currentPassword, newPassword });
@@ -310,7 +309,7 @@ class AdminApiService {
   }
 
   /**
-   * Get system stats (legacy format)
+   * Get system stats
    */
   async getSystemStats(): Promise<AdminStats> {
     const [dashboardStats, recentActivity] = await Promise.all([
@@ -337,7 +336,7 @@ class AdminApiService {
     };
   }
 
-  // USER AND GOAL MANAGEMENT (existing methods remain unchanged)
+  // USER AND GOAL MANAGEMENT
   async getAllUsers(filters?: {
     status?: 'active' | 'inactive';
     role?: 'admin' | 'volunteer';
@@ -427,7 +426,7 @@ class AdminApiService {
     }
   }
 
-  // USER MANAGEMENT ACTIONS (existing methods remain unchanged)
+  // USER MANAGEMENT ACTIONS
   async activateUser(userId: string): Promise<void> {
     try {
       await httpClient.put(`${ENDPOINTS.USERS.STATUS(userId)}`, { status: 'active' });
@@ -458,7 +457,7 @@ class AdminApiService {
     }
   }
 
-  // SYSTEM ACTIONS (existing methods remain unchanged)
+  // SYSTEM ACTION
   async processOverdueGoals(): Promise<{ message: string; processed: number }> {
     try {
       console.log('Processing overdue goals...');
@@ -528,35 +527,6 @@ class AdminApiService {
     return new Error(error.message || 'An unexpected error occurred');
   }
 
-  // Development/Debug methods
-  getDebugInfo(): object {
-    return {
-      serviceReady: true,
-      endpoints: {
-        profile: '/admin/profile',
-        preferences: '/admin/preferences',
-        changePassword: '/admin/change-password',
-        dashboardStats: '/admin/dashboard/stats',
-        recentActivity: '/admin/dashboard/activity',
-        upcomingDeadlines: '/admin/dashboard/deadlines',
-        volunteersWithGoals: '/admin/volunteers-with-goals',
-        stats: ENDPOINTS.ADMIN.STATS,
-        users: ENDPOINTS.ADMIN.USERS,
-        goals: ENDPOINTS.ADMIN.GOALS,
-        activityLogs: ENDPOINTS.ADMIN.ACTIVITY_LOGS,
-      },
-      features: [
-        'Complete admin profile management',
-        'Dashboard statistics with real-time updates',
-        'Activity logging and monitoring',
-        'Deadline tracking and alerts',
-        'Volunteer management with goal tracking',
-        'Password management',
-        'Preferences and settings',
-        'System statistics and analytics'
-      ]
-    };
-  }
 }
 
 export const adminApi = new AdminApiService();

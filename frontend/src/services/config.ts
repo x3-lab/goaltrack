@@ -57,9 +57,4 @@ export const ENDPOINTS = {
     POPULAR: '/goal-templates/popular',
     USE: (id: string) => `/goal-templates/${id}/use`,
   },
-  SETTINGS: {
-    BASE: '/settings',
-    BY_ID: (id: string) => `/settings/${id}`,
-    USER_SETTINGS: (userId: string) => `/settings/user/${userId}`,
-  },
 } as const;

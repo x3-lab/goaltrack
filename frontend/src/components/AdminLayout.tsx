@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navigation from './Navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { LoadingSpinner } from './ui/loading-spinner';
-import { Home, Users, Target, BarChart, TrendingUp, FileText, Settings, Menu, X } from 'lucide-react';
+import { Home, Users, Target, BarChart, TrendingUp, FileText, User, Menu, X } from 'lucide-react';
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
@@ -60,9 +60,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: FileText
     },
     {
-      title: "Settings",
-      href: "/admin-dashboard/settings",
-      icon: Settings
+      title: "Profile",
+      href: "/admin-dashboard/profile",
+      icon: User
     }
   ];
 

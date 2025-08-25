@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Users, Target, TrendingUp, AlertTriangle, Plus, FileText, UserPlus, RefreshCw, Activity, Calendar, Bell, Settings, Wifi, WifiOff } from 'lucide-react';
+import { Users, Target, TrendingUp, AlertTriangle, Plus, FileText, UserPlus, RefreshCw, Activity, Calendar, Bell, User, Wifi, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -158,8 +158,8 @@ const AdminDashboard: React.FC = () => {
       case 'view-reports':
         navigate('/admin-dashboard/analytics');
         break;
-      case 'manage-settings':
-        navigate('/admin-dashboard/settings');
+      case 'manage-profile':
+        navigate('/admin-dashboard/profile');
         break;
       default:
         console.log('Unknown action:', action);
@@ -423,7 +423,7 @@ const AdminDashboard: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+              <Activity className="h-5 w-5" />
               Quick Actions
             </CardTitle>
             <CardDescription>Common administrative tasks</CardDescription>
@@ -469,12 +469,12 @@ const AdminDashboard: React.FC = () => {
               <Button 
                 className="justify-start h-auto p-4 transition-all duration-200 hover:scale-105" 
                 variant="outline"
-                onClick={() => handleQuickAction('manage-settings')}
+                onClick={() => handleQuickAction('manage-profile')}
               >
-                <Settings className="h-5 w-5 mr-3" />
+                <User className="h-5 w-5 mr-3" />
                 <div className="text-left">
-                  <p className="font-medium">System Settings</p>
-                  <p className="text-sm text-gray-500">Configure system preferences</p>
+                  <p className="font-medium">Admin Profile</p>
+                  <p className="text-sm text-gray-500">Manage your profile settings</p>
                 </div>
               </Button>
             </div>

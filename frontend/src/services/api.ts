@@ -386,7 +386,6 @@ export const mockApi = {
       'manage_volunteers',
       'manage_goals',
       'view_analytics',
-      'system_settings',
       'export_data',
     ],
     preferences: {
@@ -721,22 +720,6 @@ export const api = {
     exportReport: async (type: string, filters?: any) => {
       const data = await api.analytics.getSystemOverview();
       return { downloadUrl: '#', data };
-    },
-  },
-
-  // Settings
-  settings: {
-    get: async () => {
-      const stored = localStorage.getItem('systemSettings');
-      return stored ? JSON.parse(stored) : {
-        organizationName: 'X3 Lab',
-        weeklyReports: true,
-        autoReminders: true
-      };
-    },
-    update: async (settings: any) => {
-      localStorage.setItem('systemSettings', JSON.stringify(settings));
-      return settings;
     },
   },
 

@@ -47,7 +47,6 @@ const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
     { path: '/admin-dashboard/goal-templates', label: 'Goal Templates', icon: Target },
     { path: '/admin-dashboard/analytics', label: 'System Analytics', icon: TrendingUp },
     { path: '/admin-dashboard/profile', label: 'Profile', icon: User },
-    { path: '/admin-dashboard/settings', label: 'Settings', icon: Settings },
   ];
 
   // Use provided items or fall back to default items based on user role

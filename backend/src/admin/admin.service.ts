@@ -1,4 +1,3 @@
-// src/admin/admin.service.ts
 import {
     Injectable,
     NotFoundException,
@@ -326,7 +325,6 @@ export class AdminService {
             'manage_users',
             'manage_goals',
             'view_analytics',
-            'manage_settings',
             'export_data',
             'send_notifications',
             'manage_templates',
