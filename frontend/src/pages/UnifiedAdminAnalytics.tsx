@@ -87,7 +87,13 @@ const UnifiedAdminAnalytics: React.FC = () => {
         setSummaryData(dashboardKPIsResult);
         setTrendsData(organizationResult?.trends || []);
         setCategoriesData(analyticsResult.categoryBreakdown || []);
-        setPerformanceData(performanceResult || []);
+        // Transform performance data to match chart expectations
+        const transformedPerformanceData = performanceResult?.map((vol: any) => ({
+          ...vol,
+          volunteerName: vol.name,
+          completedGoals: Math.round(vol.goalsCount * vol.completionRate / 100)
+        })) || [];
+        setPerformanceData(transformedPerformanceData);
         setPredictionsData(predictionsResult || []);
         setMilestonesData([]);
         
@@ -98,8 +104,8 @@ const UnifiedAdminAnalytics: React.FC = () => {
         
         if (performanceResult) {
           setVolunteerList(performanceResult.map((vol: any) => ({
-            id: vol.volunteerId,
-            name: vol.volunteerName
+            id: vol.id,
+            name: vol.name
           })));
         }
         

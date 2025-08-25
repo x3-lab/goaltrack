@@ -205,12 +205,12 @@ export const VolunteerPerformanceChart = ({ data, loading, error }: any) => {
         margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="volunteerName" />
+        <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
         <Legend />
-        <Bar dataKey="completedGoals" name="Completed Goals" fill="#8884d8" />
-        <Bar dataKey="completionRate" name="Completion Rate" fill="#82ca9d" />
+        <Bar dataKey="goalsCount" name="Total Goals" fill="#8884d8" />
+        <Bar dataKey="completionRate" name="Completion Rate %" fill="#82ca9d" />
       </BarChart>
     </ResponsiveContainer>
   );

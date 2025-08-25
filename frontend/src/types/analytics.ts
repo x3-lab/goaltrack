@@ -83,16 +83,11 @@ export interface VolunteerActivityDto {
 
 // Volunteer Performance Types
 export interface VolunteerPerformanceDto {
-  volunteerId: string;
-  volunteerName: string;
-  email: string;
-  totalGoals: number;
-  completedGoals: number;
-  inProgressGoals: number;
+  id: string;
+  name: string;
+  performance: number;
   completionRate: number;
-  averageProgress: number;
-  streakCount: number;
-  lastActivityDate: string;
+  goalsCount: number;
 }
 
 // Export Types

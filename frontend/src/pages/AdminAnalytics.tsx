@@ -405,17 +405,16 @@ const AdminAnalytics: React.FC = () => {
                     {volunteerPerformance
                       .sort((a, b) => b.completionRate - a.completionRate)
                       .map((volunteer) => (
-                      <tr key={volunteer.volunteerId} className="border-t hover:bg-gray-50">
+                      <tr key={volunteer.id} className="border-t hover:bg-gray-50">
                         <td className="p-3">
                           <div>
-                            <div className="font-medium">{volunteer.volunteerName}</div>
-                            <div className="text-gray-500 text-xs">{volunteer.email}</div>
+                            <div className="font-medium">{volunteer.name}</div>
                           </div>
                         </td>
-                        <td className="p-3 font-medium">{volunteer.totalGoals}</td>
+                        <td className="p-3 font-medium">{volunteer.goalsCount}</td>
                         <td className="p-3">
                           <Badge variant="outline" className="bg-green-50 text-green-700">
-                            {volunteer.completedGoals}
+                            {Math.round(volunteer.goalsCount * volunteer.completionRate / 100)}
                           </Badge>
                         </td>
                         <td className="p-3">
@@ -429,14 +428,14 @@ const AdminAnalytics: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="p-3">{volunteer.averageProgress}%</td>
+                        <td className="p-3">{volunteer.performance}%</td>
                         <td className="p-3">
                           <Badge variant="secondary">
-                            {volunteer.streakCount} weeks
+                            N/A
                           </Badge>
                         </td>
                         <td className="p-3 text-gray-600">
-                          {new Date(volunteer.lastActivityDate).toLocaleDateString()}
+                          N/A
                         </td>
                       </tr>
                     ))}
