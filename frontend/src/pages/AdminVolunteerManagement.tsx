@@ -529,11 +529,6 @@ const AdminVolunteerManagement: React.FC = () => {
                       <TableCell className="font-medium">
                         <div>
                           <div className="font-medium">{volunteer.name}</div>
-                          {volunteer.skills && (
-                            <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                              {volunteer.skills}
-                            </div>
-                          )}
                         </div>
                       </TableCell>
                       <TableCell>{volunteer.email}</TableCell>
