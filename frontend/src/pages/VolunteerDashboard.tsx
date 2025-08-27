@@ -422,13 +422,7 @@ const VolunteerDashboard: React.FC = () => {
           </Card>
         )}
 
-        {/* Enhanced Weekly Progress Summary */}
-        {/* <WeeklyProgressSummary 
-          volunteerId={user?.id}
-          onSubmitWeeklyReport={refreshData}
-        /> */}
-
-        {/* Enhanced Recent Goals */}
+        {/* Recent Goals */}
         <Card className="border-0 shadow-md">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -477,7 +471,7 @@ const VolunteerDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Enhanced Progress Trends */}
+        {/* Progress Trends */}
         {trends && (
           <Card className="border-0 shadow-md">
             <CardHeader>
