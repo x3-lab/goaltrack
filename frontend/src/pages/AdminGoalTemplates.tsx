@@ -67,7 +67,6 @@ interface AdminGoalTemplatesState {
 const AdminGoalTemplates: React.FC = () => {
   const { toast } = useToast();
   
-  // State management
   const [state, setState] = useState<AdminGoalTemplatesState>({
     templates: [],
     analytics: null,
@@ -138,10 +137,10 @@ const AdminGoalTemplates: React.FC = () => {
         loading: false,
       }));
 
-      console.log(`✅ Loaded ${templatesResponse.templates.length} templates`);
+      console.log(`Loaded ${templatesResponse.templates.length} templates`);
 
     } catch (error: any) {
-      console.error('❌ Error loading templates:', error);
+      console.error('Error loading templates:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to load goal templates",
@@ -153,7 +152,7 @@ const AdminGoalTemplates: React.FC = () => {
 
   const loadAnalyticsData = async () => {
     try {
-      console.log('📊 Loading template analytics...');
+      console.log('Loading template analytics...');
       
       const [analyticsData, categoryStatsData] = await Promise.all([
         goalTemplatesApi.getAnalytics(),
@@ -166,10 +165,10 @@ const AdminGoalTemplates: React.FC = () => {
         categoryStats: categoryStatsData
       }));
 
-      console.log('✅ Template analytics loaded successfully');
+      console.log('Template analytics loaded successfully');
 
     } catch (error: any) {
-      console.error('❌ Error loading analytics:', error);
+      console.error('Error loading analytics:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to load template analytics",
@@ -198,7 +197,7 @@ const AdminGoalTemplates: React.FC = () => {
 
   const handleCreateTemplate = async (templateData: GoalTemplateFormData) => {
     try {
-      console.log('📋 Creating new template...');
+      console.log('Creating new template...');
       
       const createData: CreateGoalTemplateDto = {
         name: templateData.name,
@@ -215,12 +214,12 @@ const AdminGoalTemplates: React.FC = () => {
       setShowCreateModal(false);
       
       toast({
-        title: "Template Created! 📋",
+        title: "Template Created!",
         description: "Goal template created successfully",
       });
 
     } catch (error: any) {
-      console.error('❌ Error creating template:', error);
+      console.error('Error creating template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create goal template",
@@ -233,7 +232,7 @@ const AdminGoalTemplates: React.FC = () => {
     if (!editingTemplate) return;
     
     try {
-      console.log(`📋 Updating template ${editingTemplate.id}...`);
+      console.log(`Updating template ${editingTemplate.id}...`);
       
       const updateData: UpdateGoalTemplateDto = {
         name: templateData.name,
@@ -250,12 +249,12 @@ const AdminGoalTemplates: React.FC = () => {
       setEditingTemplate(null);
       
       toast({
-        title: "Template Updated! ✏️",
+        title: "Template Updated!",
         description: "Goal template updated successfully",
       });
 
     } catch (error: any) {
-      console.error('❌ Error updating template:', error);
+      console.error('Error updating template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update goal template",
@@ -266,18 +265,18 @@ const AdminGoalTemplates: React.FC = () => {
 
   const handleDuplicateTemplate = async (templateId: string) => {
     try {
-      console.log(`📋 Duplicating template ${templateId}...`);
+      console.log(`Duplicating template ${templateId}...`);
       
       await goalTemplatesApi.duplicate(templateId);
       await loadTemplatesData();
       
       toast({
-        title: "Template Duplicated! 📄",
+        title: "Template Duplicated!",
         description: "Goal template duplicated successfully",
       });
 
     } catch (error: any) {
-      console.error('❌ Error duplicating template:', error);
+      console.error('Error duplicating template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to duplicate goal template",
@@ -296,7 +295,7 @@ const AdminGoalTemplates: React.FC = () => {
     }
 
     try {
-      console.log(`📋 Deleting template ${templateId}...`);
+      console.log(`Deleting template ${templateId}...`);
       
       await goalTemplatesApi.delete(templateId);
       await loadTemplatesData();
@@ -307,7 +306,7 @@ const AdminGoalTemplates: React.FC = () => {
       });
 
     } catch (error: any) {
-      console.error('❌ Error deleting template:', error);
+      console.error('Error deleting template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to delete goal template",
@@ -319,13 +318,13 @@ const AdminGoalTemplates: React.FC = () => {
   const handleViewUsageStats = async (template: GoalTemplateResponseDto) => {
     try {
       setViewingUsageStats(template);
-      console.log(`📊 Loading usage stats for template ${template.id}...`);
+      console.log(`Loading usage stats for template ${template.id}...`);
       
       const stats = await goalTemplatesApi.getUsageStats(template.id);
       setUsageStats(stats);
 
     } catch (error: any) {
-      console.error('❌ Error loading usage stats:', error);
+      console.error('Error loading usage stats:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to load usage statistics",
@@ -796,7 +795,6 @@ const AdminGoalTemplates: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            {/* Analytics content will be implemented in the next step */}
             <TemplateAnalytics 
               analytics={state.analytics} 
               categoryStats={state.categoryStats}
@@ -837,7 +835,7 @@ const AdminGoalTemplates: React.FC = () => {
   );
 };
 
-// Enhanced Goal Template Form Component
+// Goal Template Form Component
 const GoalTemplateForm: React.FC<{
   template?: GoalTemplateResponseDto;
   onSubmit: (data: GoalTemplateFormData) => void;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, MessageSquare, Check, TrendingUp, History, Target, AlertCircle, Calendar } from 'lucide-react';
+import { Clock, MessageSquare, Check, TrendingUp, History, Target, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Slider } from './ui/slider';
 import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
@@ -9,23 +9,19 @@ import { LoadingSpinner } from './ui/loading-spinner';
 import { Badge } from './ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { progressHistoryApi, type ProgressHistoryResponseDto } from '../services/progressHistoryApi';
-import { goalsApi } from '../services/goalsApi';
 import { type Goal } from '../types/api';
 
 interface ProgressUpdateProps {
-  // Support both individual props and goal object
   goal?: Goal;
   goalId?: string;
   currentProgress?: number;
   goalTitle?: string;
   goalStatus?: string;
   
-  // Callback functions
   onUpdate: (progress: number, notes: string) => Promise<void>;
   onCancel: () => void;
   onMarkComplete?: (goalId: string) => Promise<void>;
   
-  // Optional props
   showHistory?: boolean;
   compact?: boolean;
 }
@@ -44,7 +40,6 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
 }) => {
   const { toast } = useToast();
   
-  // Extract values from goal object or use individual props
   const goalId = goal?.id || propGoalId || '';
   const currentProgress = goal?.progress || propCurrentProgress || 0;
   const goalTitle = goal?.title || propGoalTitle || '';
@@ -74,7 +69,7 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
     
     setLoadingHistory(true);
     try {
-      console.log(`📊 Loading progress history for goal ${goalId}...`);
+      console.log(`Loading progress history for goal ${goalId}...`);
       
       const result = await progressHistoryApi.getAll({
         goalId,
@@ -127,18 +122,15 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
 
     setSubmitting(true);
     try {
-      console.log(`🎯 Submitting progress update: ${progress[0]}%`);
+      console.log(`Submitting progress update: ${progress[0]}%`);
       
-      // Update the goal progress through the parent component
       await onUpdate(progress[0], notes);
       
-      // Also create a progress history entry if backend is available
       if (goalId) {
         try {
-          // await progressHistoryApi.generateWeeklyEntry(goalId, notes);
-          console.log('✅ Progress history entry created');
+          console.log('Progress history entry created');
         } catch (historyError) {
-          console.warn('⚠️ Failed to create progress history entry:', historyError);
+          console.warn('Failed to create progress history entry:', historyError);
           // Don't fail the entire operation if history creation fails
         }
       }
@@ -161,7 +153,7 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       });
       
     } catch (error: any) {
-      console.error('❌ Error updating progress:', error);
+      console.error('Error updating progress:', error);
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update progress. Please try again.",
@@ -188,7 +180,7 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
         try {
           // await progressHistoryApi.generateWeeklyEntry(
           //   goalId, 
-          //   `Goal marked as complete! 🎉 Final achievement reached.`
+          //   `Goal marked as complete! Final achievement reached.`
           // );
         } catch (historyError) {
           console.warn('Failed to create completion history entry:', historyError);
@@ -225,12 +217,10 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       const quickNote = `Quick progress update to ${newProgress}%`;
       await onUpdate(newProgress, quickNote);
       
-      // Create history entry
       if (goalId) {
         try {
-          // await progressHistoryApi.generateWeeklyEntry(goalId, quickNote);
         } catch (historyError) {
-          console.warn('⚠️ Failed to create quick progress history entry:', historyError);
+          console.warn('Failed to create quick progress history entry:', historyError);
         }
       }
       
@@ -244,7 +234,7 @@ const ProgressUpdate: React.FC<ProgressUpdateProps> = ({
       });
       
     } catch (error: any) {
-      console.error('❌ Error in quick progress update:', error);
+      console.error('Error in quick progress update:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update progress.",

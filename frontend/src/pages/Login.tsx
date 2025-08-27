@@ -209,14 +209,6 @@ const Login: React.FC = () => {
               </Link>
             </p>
           </div>
-
-          {/* Development helper */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-              <p className="font-semibold">Demo Credentials:</p>
-              <p>Admin: admin@test.com / admin123</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

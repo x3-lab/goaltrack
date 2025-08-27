@@ -49,7 +49,6 @@ const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
     { path: '/admin-dashboard/profile', label: 'Profile', icon: User },
   ];
 
-  // Use provided items or fall back to default items based on user role
   const navItems = items || (user.role === 'admin' ? adminNavItems : volunteerNavItems);
 
   return (
@@ -63,7 +62,6 @@ const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
                 alt="X3 Goals Logo" 
                 className="h-8 w-8"
                 onError={(e) => {
-                  // Fallback to a default icon if favicon fails to load
                   e.currentTarget.style.display = 'none';
                 }}
               />

@@ -20,7 +20,6 @@ const ProgressHistoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'history' | 'summary'>('history');
 
-  // Load progress history data from API
   useEffect(() => {
     loadProgressHistory();
   }, [user?.id]);

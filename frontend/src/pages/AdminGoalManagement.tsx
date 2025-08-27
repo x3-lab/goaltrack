@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  Search, Filter, Plus, MoreHorizontal, Target, Calendar, User, AlertCircle, 
+  Search, Plus, MoreHorizontal, Target, Calendar, User, AlertCircle, 
   CheckCircle, Clock, Eye, Edit, Trash2, Download, RefreshCw, BarChart3,
-  FileText, Bell, ArrowUpDown, ArrowUp, ArrowDown, CheckSquare
+  ArrowUp, ArrowDown
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Checkbox } from '../components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
   DropdownMenuTrigger, DropdownMenuSeparator 
@@ -46,7 +45,6 @@ const AdminGoalManagement: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // State management
   const [state, setState] = useState<AdminGoalManagementState>({
     goals: [],
     stats: null,
@@ -77,7 +75,6 @@ const AdminGoalManagement: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
-  // Load goals data
   const loadGoalsData = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true }));
@@ -128,7 +125,6 @@ const AdminGoalManagement: React.FC = () => {
     loadGoalsData();
   }, [loadGoalsData]);
 
-  // Handle refresh
   const handleRefresh = async () => {
     try {
       setState(prev => ({ ...prev, refreshing: true }));
@@ -144,13 +140,11 @@ const AdminGoalManagement: React.FC = () => {
     }
   };
 
-  // Handle search
   const handleSearch = (term: string) => {
     setSearchTerm(term);
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  // Handle filter change
   const handleFilterChange = (filterType: string, value: string) => {
     switch (filterType) {
       case 'status':
@@ -169,7 +163,6 @@ const AdminGoalManagement: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Handle sort
   const handleSort = (field: string) => {
     if (field === sortBy) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -180,7 +173,6 @@ const AdminGoalManagement: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Handle select/deselect goal
   const handleSelectGoal = (goalId: string, selected: boolean) => {
     setState(prev => ({
       ...prev,
@@ -190,7 +182,6 @@ const AdminGoalManagement: React.FC = () => {
     }));
   };
 
-  // Handle select all goals
   const handleSelectAll = (selected: boolean) => {
     setState(prev => ({
       ...prev,
@@ -198,7 +189,6 @@ const AdminGoalManagement: React.FC = () => {
     }));
   };
 
-  // Handle bulk action
   const handleBulkAction = async (action: string, value?: string) => {
     if (state.selectedGoals.length === 0) return;
     
@@ -273,7 +263,6 @@ const AdminGoalManagement: React.FC = () => {
     }
   };
 
-  // Handle goal update
   const handleUpdateGoal = async (id: string, updates: any) => {
     try {
       await goalsApi.update(id, updates);
@@ -293,7 +282,6 @@ const AdminGoalManagement: React.FC = () => {
     }
   };
 
-  // Handle goal deletion
   const handleDeleteGoal = async (goalId: string) => {
     const goal = state.goals.find(g => g.id === goalId);
     if (!goal) return;
@@ -320,7 +308,6 @@ const AdminGoalManagement: React.FC = () => {
     }
   };
 
-  // Handle export
   const handleExport = async (format: 'csv' | 'xlsx' | 'pdf') => {
     try {
       setState(prev => ({ ...prev, exportingData: true }));
@@ -363,7 +350,6 @@ const AdminGoalManagement: React.FC = () => {
     }
   };
 
-  // Handle process weekly goals
   const handleProcessWeeklyGoals = async () => {
     try {
       setState(prev => ({ ...prev, processingWeekly: true }));
@@ -393,18 +379,15 @@ const AdminGoalManagement: React.FC = () => {
     setState(prev => ({ ...prev, viewingGoal: goal }));
   };
 
-  // Edit goal
   const handleEditGoal = (goal: GoalResponseDto) => {
     setState(prev => ({ ...prev, editingGoal: goal }));
   };
 
-  // Get volunteer name
   const getVolunteerName = (volunteerId: string) => {
     const volunteer = state.volunteers.find(v => v.id === volunteerId);
     return volunteer?.name || 'Unknown';
   };
 
-  // Render status badge
   const renderStatusBadge = (status: string) => {
     const statusConfig: Record<string, string> = {
       pending: 'bg-gray-100 text-gray-800',
@@ -421,7 +404,6 @@ const AdminGoalManagement: React.FC = () => {
     );
   };
 
-  // Render priority badge
   const renderPriorityBadge = (priority: string) => {
     const priorityConfig: Record<string, string> = {
       high: 'bg-red-100 text-red-800',

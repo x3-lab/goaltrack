@@ -20,7 +20,6 @@ const AdminAdvancedAnalytics: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // State for analytics data
   const [summaryData, setSummaryData] = useState<any>(null);
   const [trendsData, setTrendsData] = useState<any>([]);
   const [categoriesData, setCategoriesData] = useState<any>([]);
@@ -42,48 +41,40 @@ const AdminAdvancedAnalytics: React.FC = () => {
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [volunteerList, setVolunteerList] = useState<{id: string, name: string}[]>([]);
 
-  // Load analytics data
   const loadAnalyticsData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log('📊 Loading advanced analytics data...');
+      console.log('Loading advanced analytics data...');
       
-      // Load organization-wide analytics
       const orgPerformance = await advancedAnalyticsApi.getOrganizationPerformance({
         startDate: dateRange.start,
         endDate: dateRange.end,
         category: category !== 'all' ? category : undefined
       });
       
-      // Extract available categories for filtering
       setAvailableCategories(['all', ...orgPerformance.categories.map(c => c.name)]);
       
-      // Extract volunteer list for filtering
       const volList = [
         ...orgPerformance.topPerformers.map(v => ({ id: v.volunteerId, name: v.volunteerName })),
         ...orgPerformance.lowPerformers.map(v => ({ id: v.volunteerId, name: v.volunteerName }))
       ];
       setVolunteerList(volList);
 
-      // Load KPIs and predictions for dashboard
       const dashboardKPIs = await advancedAnalyticsApi.getDashboardKPIs();
       
-      // Set dashboard data
       setSummaryData(dashboardKPIs.summary);
       setPredictionsData(dashboardKPIs.predictions);
       setCategoriesData(dashboardKPIs.topCategories);
       setMilestonesData(dashboardKPIs.recentMilestones);
       
-      // Set trends data from organization performance
       setTrendsData(orgPerformance.trends.weeklyActivity.map(week => ({
         period: week.week,
         completionRate: week.completionRate,
         activeVolunteers: week.activeVolunteers
       })));
       
-      // Set performance data from top performers
       setPerformanceData(orgPerformance.topPerformers.map(performer => ({
         volunteerId: performer.volunteerId,
         volunteerName: performer.volunteerName,
@@ -91,9 +82,9 @@ const AdminAdvancedAnalytics: React.FC = () => {
         completionRate: performer.completionRate
       })));
       
-      console.log('✅ Advanced analytics data loaded successfully');
+      console.log('Advanced analytics data loaded successfully');
     } catch (error: any) {
-      console.error('❌ Error loading analytics data:', error);
+      console.error('Error loading analytics data:', error);
       setError(error.message || 'Failed to load analytics data');
       toast({
         title: "Error",
@@ -105,12 +96,10 @@ const AdminAdvancedAnalytics: React.FC = () => {
     }
   }, [dateRange, category, toast]);
 
-  // Initial data load
   useEffect(() => {
     loadAnalyticsData();
   }, [loadAnalyticsData]);
 
-  // Handle data refresh
   const handleRefresh = async () => {
     await loadAnalyticsData();
     toast({
@@ -119,11 +108,10 @@ const AdminAdvancedAnalytics: React.FC = () => {
     });
   };
 
-  // Generate report
   const handleExport = async (reportType: string) => {
     try {
       setExporting(reportType);
-      console.log(`📊 Generating ${reportType} report...`);
+      console.log(`Generating ${reportType} report...`);
       
       const result = await advancedAnalyticsApi.generateReport(
         reportType as any, 
@@ -156,9 +144,9 @@ const AdminAdvancedAnalytics: React.FC = () => {
         description: `${reportType} report has been downloaded successfully`,
       });
       
-      console.log(`✅ ${reportType} report generated and downloaded`);
+      console.log(`${reportType} report generated and downloaded`);
     } catch (error: any) {
-      console.error('❌ Report generation failed:', error);
+      console.error('Report generation failed:', error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to generate report",
@@ -169,7 +157,6 @@ const AdminAdvancedAnalytics: React.FC = () => {
     }
   };
 
-  // Load volunteer-specific analytics
   const loadVolunteerAnalytics = async (volunteerId: string) => {
     if (!volunteerId) return;
     
@@ -179,7 +166,6 @@ const AdminAdvancedAnalytics: React.FC = () => {
       
       const volunteerMetrics = await advancedAnalyticsApi.getVolunteerPerformanceMetrics(volunteerId);
       
-      // Update performance data
       setPerformanceData([{
         volunteerId: volunteerMetrics.volunteerId,
         volunteerName: volunteerMetrics.volunteerName,
@@ -189,14 +175,12 @@ const AdminAdvancedAnalytics: React.FC = () => {
         consistency: volunteerMetrics.metrics.consistencyScore
       }]);
       
-      // Update categories data
       setCategoriesData(volunteerMetrics.metrics.categoriesBreakdown.map(cat => ({
         name: cat.category,
         count: cat.count,
         completionRate: cat.completionRate
       })));
       
-      // Set trends data from volunteer
       setTrendsData([
         { period: 'Last Week', completionRate: volunteerMetrics.metrics.trend.lastWeek },
         { period: 'Last Month', completionRate: volunteerMetrics.metrics.trend.lastMonth },
@@ -208,7 +192,7 @@ const AdminAdvancedAnalytics: React.FC = () => {
         description: `Viewing analytics for ${volunteerMetrics.volunteerName}`
       });
     } catch (error: any) {
-      console.error('❌ Error loading volunteer analytics:', error);
+      console.error('Error loading volunteer analytics:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to load volunteer analytics",
@@ -219,7 +203,6 @@ const AdminAdvancedAnalytics: React.FC = () => {
     }
   };
 
-  // Handle filter changes
   const handleVolunteerChange = (value: string) => {
     setSelectedVolunteerId(value);
     if (value) {
@@ -234,7 +217,7 @@ const AdminAdvancedAnalytics: React.FC = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header with Filters */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Advanced Analytics</h1>

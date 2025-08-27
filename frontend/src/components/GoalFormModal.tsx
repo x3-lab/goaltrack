@@ -21,7 +21,7 @@ export const GoalFormModal: React.FC<GoalFormModalProps> = ({
   const handleSubmit = async (goalData: any) => {
     try {
       await onSubmit(goalData);
-      onClose(); // Close modal after successful submission
+      onClose();
     } catch (error) {
       // Error handling is done in the form component
       console.error('Goal submission error:', error);

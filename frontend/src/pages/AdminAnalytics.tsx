@@ -33,9 +33,8 @@ const AdminAnalytics: React.FC = () => {
   const loadAnalyticsData = async () => {
     setLoading(true);
     try {
-      console.log('📊 Loading admin analytics data...');
+      console.log('Loading admin analytics data...');
       
-      // Load comprehensive analytics data
       const [analyticsResult, performanceResult] = await Promise.all([
         analyticsApi.getAnalyticsData({
           startDate: dateRange.start,
@@ -47,9 +46,9 @@ const AdminAnalytics: React.FC = () => {
       setAnalyticsData(analyticsResult);
       setVolunteerPerformance(performanceResult);
       
-      console.log('✅ Admin analytics data loaded successfully');
+      console.log('Admin analytics data loaded successfully');
     } catch (error: any) {
-      console.error('❌ Error loading analytics data:', error);
+      console.error('Error loading analytics data:', error);
       toast({
         title: "Error",
         description: "Failed to load analytics data. Using fallback data.",
@@ -63,7 +62,7 @@ const AdminAnalytics: React.FC = () => {
   const generateReport = async (type: string) => {
     try {
       setExporting(type);
-      console.log(`📋 Generating ${type} report...`);
+      console.log(`Generating ${type} report...`);
       
       const result = await analyticsApi.exportReport({
         type: type as any,
@@ -91,9 +90,9 @@ const AdminAnalytics: React.FC = () => {
         description: `${type} report has been downloaded successfully`,
       });
       
-      console.log(`✅ ${type} report generated and downloaded`);
+      console.log(`${type} report generated and downloaded`);
     } catch (error: any) {
-      console.error('❌ Report generation failed:', error);
+      console.error('Report generation failed:', error);
       toast({
         title: "Export Failed",
         description: error.message || "Failed to generate report",

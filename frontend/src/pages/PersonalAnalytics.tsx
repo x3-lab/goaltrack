@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, AlertCircle, TrendingUp, Award, Target, BarChart3, Calendar, Clock, PieChart as PieChartIcon } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { LoadingSpinner } from '../components/ui/loading-spinner';
-import { Progress } from '../components/ui/progress';
-import { Badge } from '../components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +25,6 @@ const PersonalAnalyticsPage: React.FC = () => {
 
   const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
 
-  // Load analytics data from API
   useEffect(() => {
     if (user?.id) {
       loadAnalyticsData();
@@ -44,35 +40,31 @@ const PersonalAnalyticsPage: React.FC = () => {
     try {
       console.log('� Loading comprehensive analytics for user:', user.id);
       
-      // Load all data in parallel with proper error handling
       const [analyticsResult, trendsResult, productivityResult] = await Promise.allSettled([
         analyticsApi.getPersonalAnalytics(user.id),
         progressHistoryApi.getVolunteerTrends(user.id),
         progressHistoryApi.getVolunteerMostProductiveDay(user.id)
       ]);
       
-      // Handle analytics data (required)
       if (analyticsResult.status === 'fulfilled') {
         setAnalyticsData(analyticsResult.value);
       } else {
         throw new Error('Failed to load personal analytics');
       }
       
-      // Handle trends data (optional)
       if (trendsResult.status === 'fulfilled') {
         setTrends(trendsResult.value);
       } else {
         console.warn('Trends data not available:', trendsResult.reason);
       }
       
-      // Handle productivity data (optional)  
       if (productivityResult.status === 'fulfilled') {
         setProductivityData(productivityResult.value);
       } else {
         console.warn('Productivity data not available:', productivityResult.reason);
       }
       
-      console.log('✅ Analytics data loaded successfully');
+      console.log('Analytics data loaded successfully');
       
     } catch (err: any) {
       console.error('❌ Error loading analytics data:', err);

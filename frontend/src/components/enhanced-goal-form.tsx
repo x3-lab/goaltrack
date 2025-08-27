@@ -45,7 +45,6 @@ export const EnhancedGoalForm: React.FC<EnhancedGoalFormProps> = ({
   // Determine if this is admin mode (has volunteers list)
   const isAdminMode = volunteers.length > 0;
   
-  // Set initial data from goal prop if provided (for editing)
   const goalData = goal || initialData;
   
   const [formData, setFormData] = useState({

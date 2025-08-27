@@ -36,18 +36,15 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'productivity'>('overview');
 
   useEffect(() => {
-    // If external analytics are provided, use them
     if (externalAnalytics) {
       setAnalytics(externalAnalytics);
       setLoading(false);
     } else {
-      // Otherwise load data ourselves
       loadAnalyticsData();
     }
   }, [volunteerId, externalAnalytics]);
 
   const loadAnalyticsData = async () => {
-    // If onRefresh is provided, use that instead
     if (onRefresh) {
       await onRefresh();
       return;
@@ -55,11 +52,10 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
 
     setLoading(true);
     try {
-      console.log('📊 Loading personal analytics data...');
+      console.log('Loading personal analytics data...');
       
       const currentUserId = volunteerId || localStorage.getItem('currentUserId') || 'current-user';
       
-      // Load all analytics data in parallel
       const [analyticsResult, trendsResult, productivityResult] = await Promise.all([
         analyticsApi.getPersonalAnalytics(currentUserId),
         progressHistoryApi.getVolunteerTrends(currentUserId),
@@ -156,7 +152,6 @@ const PersonalAnalytics: React.FC<PersonalAnalyticsProps> = ({
     Array.isArray(trends.weeklyTrends) &&
     trends.weeklyTrends.length > 0;
 
-  // Normalize weekly trends
   const normalizedWeeklyTrends = hasTrends
     ? trends!.weeklyTrends.map((t: any) => ({
         weekStart: t.weekStart || t.week || t.startDate || t.start || t.date || '',

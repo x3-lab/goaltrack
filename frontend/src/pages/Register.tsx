@@ -41,19 +41,16 @@ const Register: React.FC = () => {
     phoneNumber?: string;
   }>({});
 
-  // Clear error on mount only
   useEffect(() => {
     clearError();
   }, [clearError]);
 
-  // Clear errors when user starts typing
   const handleInputChange = (field: keyof RegisterRequest, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
     
-    // Clear validation error for this field
     if (validationErrors[field as keyof typeof validationErrors]) {
       setValidationErrors(prev => ({
         ...prev,
@@ -61,7 +58,6 @@ const Register: React.FC = () => {
       }));
     }
     
-    // Clear auth error when user starts typing
     if (error) {
       clearError();
     }
@@ -70,7 +66,6 @@ const Register: React.FC = () => {
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
     
-    // Clear validation error when user starts typing
     if (validationErrors.confirmPassword) {
       setValidationErrors(prev => ({
         ...prev,
@@ -78,7 +73,6 @@ const Register: React.FC = () => {
       }));
     }
     
-    // Clear auth error when user starts typing
     if (error) {
       clearError();
     }
@@ -86,7 +80,6 @@ const Register: React.FC = () => {
 
   const handleSkillsChange = (value: string) => {
     setSkillsInput(value);
-    // Convert comma-separated string to array
     const skillsArray = value.split(',').map(skill => skill.trim()).filter(skill => skill);
     handleInputChange('skills', skillsArray);
   };

@@ -30,7 +30,6 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate current week if not provided
   const getCurrentWeek = () => {
     const now = new Date();
     const weekBoundaries = progressHistoryApi.getWeekBoundaries(now);
@@ -56,21 +55,19 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
       let result: VolunteerWeeklyHistoryDto;
       
       if (volunteerId) {
-        // Use getMyWeeklyHistory for current user or getVolunteerWeeklyHistory without date filters
-        // to get all recent weeks, then filter on the frontend
         if (volunteerId === user?.id) {
           result = await progressHistoryApi.getMyWeeklyHistory();
         } else {
           result = await progressHistoryApi.getVolunteerWeeklyHistory(volunteerId);
         }
-        console.log('📊 Weekly history API response:', result);
+        console.log('Weekly history API response:', result);
       } else {
         console.error('No volunteerId provided to WeeklyProgressSummary component');
         throw new Error('Volunteer ID is required to load weekly progress summary');
       }
       
       setWeeklyData(result);
-      console.log('✅ Weekly progress summary loaded successfully:', result);
+      console.log('Weekly progress summary loaded successfully:', result);
       
     } catch (error: any) {
       console.error('Error loading weekly progress summary:', error);
@@ -88,7 +85,6 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
     
     setSubmitting(true);
     try {
-      // Generate weekly progress entry for each goal in the current week
       const currentWeekData = weeklyData.weeks[0];
       
       toast({

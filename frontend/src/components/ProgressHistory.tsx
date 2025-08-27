@@ -193,7 +193,7 @@ const ProgressHistory: React.FC<ProgressHistoryProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Simplified Search and View Controls */}
+      {/* Search and View Controls */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="flex-1 max-w-md">
           <div className="relative">

@@ -5,7 +5,6 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -136,7 +135,7 @@ const AdminProfile: React.FC = () => {
       
       if (!state.profile) return;
 
-      console.log('💾 Saving admin profile...');
+      console.log('Saving admin profile...');
 
       // Validate form data
       if (!profileFormData.name.trim()) {
@@ -227,7 +226,7 @@ const AdminProfile: React.FC = () => {
     try {
       setState(prev => ({ ...prev, saving: true }));
       
-      console.log('🔒 Changing admin password...');
+      console.log('Changing admin password...');
 
       const passwordData: ChangeAdminPasswordDto = {
         currentPassword: passwordFormData.currentPassword,
@@ -245,7 +244,7 @@ const AdminProfile: React.FC = () => {
       setState(prev => ({ ...prev, showPasswordForm: false }));
       
       toast({
-        title: "Password Updated! 🔒",
+        title: "Password Updated!",
         description: "Your password has been changed successfully",
       });
 

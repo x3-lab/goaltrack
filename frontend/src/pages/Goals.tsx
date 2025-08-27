@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { goalsApi, type GoalResponseDto, type GoalFilterDto } from '../services/goalsApi';
 import { usersApi } from '../services/usersApi';
 import AdminLayout from '../components/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -35,12 +35,9 @@ import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { Progress } from '../components/ui/progress';
 import { 
   Search, 
-  Filter, 
   Plus, 
   MoreHorizontal, 
-  Target, 
-  Calendar, 
-  User, 
+  Target,
   AlertCircle, 
   CheckCircle,
   Clock,
@@ -49,8 +46,6 @@ import {
   Trash2,
   Download,
   RefreshCw,
-  Users,
-  BarChart3
 } from 'lucide-react';
 import type { Goal, GoalStatistics } from '../types/api';
 import type { Volunteer } from '../services/usersApi';
@@ -69,7 +64,6 @@ const Goals: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // State management
   const [state, setState] = useState<GoalsPageState>({
     goals: [],
     stats: null,
@@ -116,7 +110,6 @@ const Goals: React.FC = () => {
         limit: itemsPerPage,
       };
 
-      // Use real backend API calls
       const [goalsResponse, statsData, volunteersData, categoriesData] = await Promise.all([
         goalsApi.list(filters),
         goalsApi.getStatistics(),
@@ -136,7 +129,6 @@ const Goals: React.FC = () => {
       setTotalPages(goalsResponse.totalPages);
       setTotalItems(goalsResponse.total);
     } catch (error: any) {
-      // Handle real API errors
       console.error('Error loading goals data:', error);
       toast({
         title: "Error",
@@ -163,7 +155,7 @@ const Goals: React.FC = () => {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
   const handleFilterChange = (filterType: string, value: string) => {

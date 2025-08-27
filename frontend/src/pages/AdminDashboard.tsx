@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Users, Target, TrendingUp, AlertTriangle, Plus, FileText, UserPlus, RefreshCw, Activity, Calendar, Bell, User, Wifi, WifiOff } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Users, Target, TrendingUp, AlertTriangle, Plus, FileText, UserPlus, RefreshCw, Activity, Calendar, User, Wifi, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -47,7 +47,7 @@ const AdminDashboard: React.FC = () => {
       }
     },
     onUpdate: (data) => {
-      console.log('✅ Dashboard data updated:', {
+      console.log('Dashboard data updated:', {
         stats: !!data.stats,
         activityCount: data.recentActivity.length,
         deadlinesCount: data.upcomingDeadlines.length,
@@ -56,7 +56,6 @@ const AdminDashboard: React.FC = () => {
     }
   });
 
-  // Load volunteers data separately (less frequent updates needed)
   const loadVolunteersData = useCallback(async () => {
     try {
       setVolunteersLoading(true);
@@ -65,15 +64,13 @@ const AdminDashboard: React.FC = () => {
       return volunteers;
     } catch (error: any) {
       console.error('Error loading volunteers:', error);
-      // Return error to handle in calling function
       throw error;
     } finally {
       setVolunteersLoading(false);
     }
-  }, []); // Empty dependency array to prevent re-creation
+  }, []);
 
-  // Initialize volunteers data on mount
-  React.useEffect(() => {
+  useEffect(() => {
     loadVolunteersData().catch((error) => {
       toast({
         title: "Error",
@@ -81,14 +78,12 @@ const AdminDashboard: React.FC = () => {
         variant: "destructive"
       });
     });
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
-  // Comprehensive refresh function
   const handleRefresh = async () => {
     try {
       setRefreshing(true);
       
-      // Refresh both real-time and volunteer data
       await Promise.all([
         refreshDashboard(),
         loadVolunteersData()
@@ -109,7 +104,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Auto-refresh control
   const toggleAutoRefresh = () => {
     if (isAutoRefreshEnabled) {
       stopAutoRefresh();
@@ -174,24 +168,24 @@ const AdminDashboard: React.FC = () => {
     
     switch (action) {
       case 'created':
-        return 'bg-green-500'; // Green for creation
+        return 'bg-green-500';
       case 'updated':
       case 'updated progress on':
       case 'updated_progress':
-        return 'bg-blue-500'; // Blue for updates
+        return 'bg-blue-500';
       case 'completed':
-        return 'bg-purple-500'; // Purple for completion
+        return 'bg-purple-500';
       case 'deleted':
-        return 'bg-red-500'; // Red for deletion
+        return 'bg-red-500';
       case 'assigned':
-        return 'bg-orange-500'; // Orange for assignment
+        return 'bg-orange-500';
       case 'logged_in':
       case 'logged in':
       case 'logged_out':
       case 'logged out':
-        return 'bg-gray-500'; // Gray for auth actions
+        return 'bg-gray-500';
       default:
-        return 'bg-blue-500'; // Default blue
+        return 'bg-blue-500';
     }
   };
 
@@ -201,7 +195,6 @@ const AdminDashboard: React.FC = () => {
     const resource = activity.resource?.toLowerCase() || '';
     const goalTitle = activity.details?.goalTitle;
 
-    // Create more natural language descriptions
     switch (action) {
       case 'created':
         if (resource === 'goal') {
@@ -257,7 +250,6 @@ const AdminDashboard: React.FC = () => {
         return `${userName} logged out of the system`;
       
       default:
-        // Fallback to original format but with better grammar
         if (goalTitle) {
           return `${userName} ${action} ${resource} "${goalTitle}"`;
         } else {
@@ -314,7 +306,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Loading state for initial load
   if (dashboardData.loading && !dashboardData.stats) {
     return (
       <AdminLayout>
@@ -329,7 +320,6 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
-  // Error state for critical failures
   if (dashboardData.error && !dashboardData.stats) {
     return (
       <AdminLayout>
@@ -385,7 +375,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <AdminLayout>
       <div className="space-y-4 md:space-y-6" role="main" aria-label="Admin Dashboard">
-        {/* Enhanced Header with Real-time Status */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="min-w-0 flex-1 text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 text-left">Admin Dashboard</h1>
@@ -631,7 +621,7 @@ const AdminDashboard: React.FC = () => {
         )}
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-          {/* Real-time Recent Activity */}
+          {/* Recent Activity */}
           <Card className="h-fit">
             <CardHeader>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -681,7 +671,7 @@ const AdminDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Real-time Upcoming Deadlines */}
+          {/* Upcoming Deadlines */}
           <Card className="h-fit">
             <CardHeader>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">

@@ -49,7 +49,6 @@ const AdminVolunteerManagement: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // State management
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
