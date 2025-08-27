@@ -214,8 +214,7 @@ const Login: React.FC = () => {
           {process.env.NODE_ENV === 'development' && (
             <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
               <p className="font-semibold">Demo Credentials:</p>
-              <p>Admin: admin@example.com / password123</p>
-              <p>Volunteer: volunteer@example.com / password123</p>
+              <p>Admin: admin@test.com / admin123</p>
             </div>
           )}
         </CardContent>

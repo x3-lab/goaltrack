@@ -204,29 +204,33 @@ export class ProgressHistoryService {
             ? weeklyTrends.reduce((best, current) =>
                 current.completionRate > best.completionRate ? current : best, weeklyTrends[0]) : null;
 
-        let improvementTrend: 'improving' | 'declining' | 'stable' = 'stable';
-        if (weeklyTrends.length >= 4) {
-            const lastFourWeeks = weeklyTrends.slice(-4);
-            const first2Average = (lastFourWeeks[0].completionRate + lastFourWeeks[1].completionRate) / 2;
-            const last2Average = (lastFourWeeks[2].completionRate + lastFourWeeks[3].completionRate) / 2;
-
-            if (last2Average > first2Average + 5) improvementTrend = 'improving';
-            else if (last2Average < first2Average - 5) improvementTrend = 'declining';
-        }
+        const worstWeek = weeklyTrends.length > 0
+            ? weeklyTrends.reduce((worst, current) =>
+                current.completionRate < worst.completionRate ? current : worst, weeklyTrends[0]) : null;
 
         return {
             volunteerId: volunteer.id,
             volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
             weeklyTrends,
-            overallStats: {
-                totalEntries,
-                averageProgress: overallAverageProgress,
-                completionRate: overallCompletionRate,
-                bestWeek: bestWeek ? {
-                    weekStart: bestWeek.weekStart,
-                    completionRate: bestWeek.completionRate,
-                } : null,
-                improvementTrend,
+            overallAverageProgress,
+            overallCompletionRate,
+            bestWeek: bestWeek ? {
+                weekStart: bestWeek.weekStart.toISOString(),
+                weekEnd: bestWeek.weekEnd.toISOString(),
+                completionRate: bestWeek.completionRate,
+            } : {
+                weekStart: new Date().toISOString(),
+                weekEnd: new Date().toISOString(),
+                completionRate: 0,
+            },
+            worstWeek: worstWeek ? {
+                weekStart: worstWeek.weekStart.toISOString(),
+                weekEnd: worstWeek.weekEnd.toISOString(),
+                completionRate: worstWeek.completionRate,
+            } : {
+                weekStart: new Date().toISOString(),
+                weekEnd: new Date().toISOString(),
+                completionRate: 0,
             },
         };
     }

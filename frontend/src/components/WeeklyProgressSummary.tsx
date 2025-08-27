@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { LoadingSpinner } from './ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '../contexts/AuthContext';
 import { progressHistoryApi, type VolunteerWeeklyHistoryDto, type HistoricalGoalDto } from '../services/progressHistoryApi';
 
 interface WeeklyProgressSummaryProps {
@@ -20,11 +21,12 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
   weekStart,
   weekEnd,
   onSubmitWeeklyReport,
-  showSubmitButton = true
+  showSubmitButton = true,
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [weeklyData, setWeeklyData] = useState<VolunteerWeeklyHistoryDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,18 +56,21 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
       let result: VolunteerWeeklyHistoryDto;
       
       if (volunteerId) {
-        result = await progressHistoryApi.getVolunteerWeeklyHistory(
-          volunteerId,
-          currentWeek.start,
-          currentWeek.end
-        );
+        // Use getMyWeeklyHistory for current user or getVolunteerWeeklyHistory without date filters
+        // to get all recent weeks, then filter on the frontend
+        if (volunteerId === user?.id) {
+          result = await progressHistoryApi.getMyWeeklyHistory();
+        } else {
+          result = await progressHistoryApi.getVolunteerWeeklyHistory(volunteerId);
+        }
+        console.log('📊 Weekly history API response:', result);
       } else {
         console.error('No volunteerId provided to WeeklyProgressSummary component');
         throw new Error('Volunteer ID is required to load weekly progress summary');
       }
       
       setWeeklyData(result);
-      console.log('Weekly progress summary loaded successfully');
+      console.log('✅ Weekly progress summary loaded successfully:', result);
       
     } catch (error: any) {
       console.error('Error loading weekly progress summary:', error);
@@ -78,9 +83,7 @@ const WeeklyProgressSummary: React.FC<WeeklyProgressSummaryProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSubmitWeeklyReport = async () => {
+  };  const handleSubmitWeeklyReport = async () => {
     if (!weeklyData || !weeklyData.weeks[0]) return;
     
     setSubmitting(true);
