@@ -545,8 +545,8 @@ const AdminDashboard: React.FC = () => {
               >
                 <FileText className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3 text-purple-600 group-hover:text-purple-700" />
                 <div className="text-left min-w-0 flex-1">
-                  <p className="font-medium text-sm md:text-base truncate">View Reports</p>
-                  <p className="text-xs md:text-sm text-gray-500 truncate">Generate analytics reports</p>
+                  <p className="font-medium text-sm md:text-base truncate">View Analytics</p>
+                  <p className="text-xs md:text-sm text-gray-500 truncate">See how your volunteers are doing</p>
                 </div>
               </Button>
 
@@ -558,7 +558,7 @@ const AdminDashboard: React.FC = () => {
                 <User className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3 text-indigo-600 group-hover:text-indigo-700" />
                 <div className="text-left min-w-0 flex-1">
                   <p className="font-medium text-sm md:text-base truncate">Admin Profile</p>
-                  <p className="text-xs md:text-sm text-gray-500 truncate">Manage your profile settings</p>
+                  <p className="text-xs md:text-sm text-gray-500 truncate">Manage your profile</p>
                 </div>
               </Button>
             </div>

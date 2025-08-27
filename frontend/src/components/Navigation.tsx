@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User, LogOut, LucideIcon } from 'lucide-react';
+import { Users, BarChart3, Target, TrendingUp, History, User, LogOut, LucideIcon, LayoutDashboard } from 'lucide-react';
 
 interface NavigationItem {
   path?: string;

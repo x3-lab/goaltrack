@@ -257,7 +257,7 @@ const VolunteerProfile: React.FC = () => {
                   <UserCircle className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{volunteer.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-left">{volunteer.name}</h1>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className={getStatusColor(volunteer.status)}>
                       {getStatusIcon(volunteer.status)}

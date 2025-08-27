@@ -199,19 +199,6 @@ const GoalCard: React.FC<GoalCardProps> = ({
         });
       }
 
-      // Create progress history entry
-      // try {
-      //   await progressHistoryApi.generateWeeklyEntry(goal.id, progressData.notes);
-      //   console.log('Progress history entry created');
-        
-      //   // Refresh history if visible
-      //   if (showProgressHistory) {
-      //     setTimeout(() => loadProgressHistory(), 500);
-      //   }
-      // } catch (historyError) {
-      //   console.warn('Failed to create progress history entry:', historyError);
-      // }
-
       setShowProgressUpdate(false);
       setProgressData({ progress: progressData.progress, notes: '' });
       
@@ -326,7 +313,7 @@ const GoalCard: React.FC<GoalCardProps> = ({
             </div>
             <div className="flex items-center gap-1 ml-2">
               <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-                <Edit3 className="h-3 w-3" />
+                {/* <Edit3 className="h-3 w-3" /> */}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => onDelete(goal.id)}>
                 <Trash2 className="h-3 w-3" />

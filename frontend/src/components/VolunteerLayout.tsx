@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { LoadingSpinner } from './ui/loading-spinner';
-import { Target, BarChart3, History, User, Menu, X } from 'lucide-react';
+import { Target, BarChart3, History, User, Menu, X, Home } from 'lucide-react';
 
 interface VolunteerLayoutProps {
   children?: React.ReactNode;
@@ -36,7 +36,7 @@ const VolunteerLayout: React.FC<VolunteerLayoutProps> = ({ children }) => {
     {
       title: "Dashboard",
       href: "/volunteer-dashboard",
-      icon: Target
+      icon: Home
     },
     {
       title: "My Goals",
