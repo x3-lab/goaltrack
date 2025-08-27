@@ -2,18 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
-  Filter, 
   MoreHorizontal, 
   UserPlus, 
   Users, 
   Eye, 
   Edit, 
   Trash2, 
-  RotateCcw,
   CheckCircle,
   XCircle,
-  Download,
-  Upload
 } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '../components/ui/button';

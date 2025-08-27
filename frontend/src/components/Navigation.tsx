@@ -57,9 +57,20 @@ const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-6">
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              X3 Goals
-            </h2>
+            <div className="flex items-center gap-3 mb-2">
+              <img 
+                src="/favicon.ico" 
+                alt="X3 Goals Logo" 
+                className="h-8 w-8"
+                onError={(e) => {
+                  // Fallback to a default icon if favicon fails to load
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <h2 className="text-xl font-bold text-gray-900">
+                X3 Goals
+              </h2>
+            </div>
             <p className="text-sm text-gray-600">
               Welcome, {user.firstName}
             </p>

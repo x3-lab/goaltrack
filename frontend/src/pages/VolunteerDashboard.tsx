@@ -271,49 +271,50 @@ const VolunteerDashboard: React.FC = () => {
 
   return (
     <VolunteerLayout>
-      <div className="space-y-6">
-        {/* Enhanced Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Target className="h-6 w-6 text-blue-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-4 sm:px-6 py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    Welcome back, {user?.name || 'Volunteer'}!
+                  </h1>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Track your goals and monitor your progress towards success
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-left">
-                  Welcome back, {user?.name || 'Volunteer'}!
-                </h1>
-                <p className="text-gray-600 text-left">
-                  Track your goals and monitor your progress towards success
-                </p>
+              
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={refreshData} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={refreshing}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowCreateGoal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Goal
+                </Button>
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <Button 
-              onClick={refreshData} 
-              variant="outline" 
-              disabled={refreshing}
-              className="flex-1 lg:flex-none"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-              <span className="sm:hidden">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-            </Button>
-            <Button 
-              onClick={() => setShowCreateGoal(true)}
-              className="flex-1 lg:flex-none"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">New Goal</span>
-              <span className="sm:hidden">New</span>
-            </Button>
-          </div>
         </div>
 
-        {/* Enhanced Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Main Content */}
+        <div className="px-4 sm:px-6 py-8">
+          {/* Enhanced Quick Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
             <CardContent className="p-4 md:p-6">
               <div className="flex items-center justify-between">
@@ -548,6 +549,7 @@ const VolunteerDashboard: React.FC = () => {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
 
       {/* Enhanced Create Goal Modal */}

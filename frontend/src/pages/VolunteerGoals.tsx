@@ -413,37 +413,46 @@ const VolunteerGoals: React.FC = () => {
 
   return (
     <VolunteerLayout>
-      <div className="space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Goals</h1>
-            <p className="text-muted-foreground">
-              Track your progress and achieve your objectives
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleRefresh}
-              disabled={state.refreshing}
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${state.refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button 
-              onClick={() => setShowCreateModal(true)}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              New Goal
-            </Button>
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-4 sm:px-6 py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Goals</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  Track your progress and achieve your objectives
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={state.refreshing}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${state.refreshing ? 'animate-spin' : ''}`} />
+                  {state.refreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+                
+                <Button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Goal
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Main Content */}
+        <div className="px-4 sm:px-6 py-8">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -711,6 +720,7 @@ const VolunteerGoals: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+          </div>
         </div>
       </div>
 

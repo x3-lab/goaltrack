@@ -208,12 +208,10 @@ const VolunteerProfile: React.FC = () => {
     return (
       <VolunteerLayout>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading profile...</p>
-              </div>
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading profile...</p>
             </div>
           </div>
         </div>
@@ -225,21 +223,19 @@ const VolunteerProfile: React.FC = () => {
     return (
       <VolunteerLayout>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-md mx-auto">
-              <UserCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-red-900 mb-2">Profile Not Found</h3>
-              <p className="text-red-700 mb-4">{error || 'The requested volunteer profile could not be found.'}</p>
-              <div className="flex gap-2 justify-center">
-                <Button onClick={() => loadVolunteer()} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Try Again
-                </Button>
-                <Button onClick={() => navigate('/volunteer-dashboard')} variant="outline">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Go Back
-                </Button>
-              </div>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-md mx-auto mt-20">
+            <UserCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-red-900 mb-2">Profile Not Found</h3>
+            <p className="text-red-700 mb-4">{error || 'The requested volunteer profile could not be found.'}</p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => loadVolunteer()} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+              <Button onClick={() => navigate('/volunteer-dashboard')} variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Go Back
+              </Button>
             </div>
           </div>
         </div>
@@ -254,7 +250,7 @@ const VolunteerProfile: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="px-4 sm:px-6 py-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-full">
@@ -333,7 +329,7 @@ const VolunteerProfile: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="px-4 sm:px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Personal Information */}
             <div className="lg:col-span-2 space-y-6">
