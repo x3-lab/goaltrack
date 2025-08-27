@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Search, Filter, Plus, Target, Calendar, Clock, TrendingUp, 
   AlertCircle, CheckCircle, Eye, Edit, Trash2, Play, Pause,
-  MoreHorizontal, Award, BookOpen, RefreshCw
+  MoreHorizontal, Award, BookOpen, RefreshCw, Grid, List,
+  ArrowUpDown, SortAsc, SortDesc
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
   DropdownMenuTrigger 
@@ -21,16 +21,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '../contexts/AuthContext';
 import VolunteerLayout from '../components/VolunteerLayout';
 import { EnhancedGoalForm } from '../components/enhanced-goal-form';
-import PersonalAnalytics from '../components/PersonalAnalytics';
 import ProgressUpdate from '../components/ProgressUpdate';
 import { goalsApi, type GoalResponseDto } from '../services/goalsApi';
-import { analyticsApi } from '../services/analyticsApi';
-import { type PersonalAnalyticsDto } from '../types/analytics';
 import { type Goal } from '../types/api';
+
+// Types for enhanced functionality
+type ViewMode = 'grid' | 'list';
+type SortOption = 'title' | 'dueDate' | 'priority' | 'progress' | 'status' | 'createdAt';
+type SortDirection = 'asc' | 'desc';
 
 interface VolunteerGoalsState {
   goals: Goal[];
-  analytics: PersonalAnalyticsDto | null;
   categories: string[];
   loading: boolean;
   refreshing: boolean;
@@ -46,7 +47,6 @@ const VolunteerGoals: React.FC = () => {
   // State management
   const [state, setState] = useState<VolunteerGoalsState>({
     goals: [],
-    analytics: null,
     categories: [],
     loading: true,
     refreshing: false,
@@ -55,22 +55,23 @@ const VolunteerGoals: React.FC = () => {
     progressGoal: null
   });
   
-  // Filters and UI state
+  // Enhanced UI state
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'goals' | 'analytics'>('goals');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [sortBy, setSortBy] = useState<SortOption>('dueDate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  // Load goals and analytics data
+  // Load goals data
   const loadGoalsData = useCallback(async () => {
     if (!user?.id) return;
     
     try {
       setState(prev => ({ ...prev, loading: true }));
       
-
       const filters = {
         status: filterStatus === 'all' ? undefined : filterStatus,
         priority: filterPriority === 'all' ? undefined : filterPriority,
@@ -78,16 +79,14 @@ const VolunteerGoals: React.FC = () => {
         search: searchTerm || undefined,
       };
 
-      const [goalsData, analyticsData, categoriesData] = await Promise.all([
+      const [goalsData, categoriesData] = await Promise.all([
         goalsApi.getMyGoals(filters),
-        analyticsApi.getPersonalAnalytics(user.id).catch(() => null),
         goalsApi.getCategories().catch(() => [])
       ]);
 
       setState(prev => ({
         ...prev,
         goals: goalsData,
-        analytics: analyticsData,
         categories: categoriesData,
         loading: false,
       }));
@@ -299,17 +298,65 @@ const VolunteerGoals: React.FC = () => {
     setState(prev => ({ ...prev, progressGoal: goal }));
   };
 
-  // Filter goals based on current filters
-  const filteredGoals = state.goals.filter(goal => {
-    const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
-    const matchesPriority = filterPriority === 'all' || goal.priority === filterPriority;
-    const matchesCategory = filterCategory === 'all' || goal.category === filterCategory;
-    const matchesSearch = !searchTerm || 
-      goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      goal.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesStatus && matchesPriority && matchesCategory && matchesSearch;
-  });
+  // filtering and sorting
+  const filteredAndSortedGoals = React.useMemo(() => {
+    // First filter the goals
+    let filtered = state.goals.filter(goal => {
+      const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
+      const matchesPriority = filterPriority === 'all' || goal.priority === filterPriority;
+      const matchesCategory = filterCategory === 'all' || goal.category === filterCategory;
+      const matchesSearch = !searchTerm || 
+        goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        goal.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesStatus && matchesPriority && matchesCategory && matchesSearch;
+    });
+
+    // Then sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortBy) {
+        case 'title':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'dueDate':
+          aValue = new Date(a.dueDate).getTime();
+          bValue = new Date(b.dueDate).getTime();
+          break;
+        case 'priority':
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          aValue = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          bValue = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          break;
+        case 'progress':
+          aValue = a.progress;
+          bValue = b.progress;
+          break;
+        case 'status':
+          const statusOrder = { pending: 1, 'in-progress': 2, completed: 3, overdue: 4 };
+          aValue = statusOrder[a.status as keyof typeof statusOrder] || 0;
+          bValue = statusOrder[b.status as keyof typeof statusOrder] || 0;
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt || '').getTime();
+          bValue = new Date(b.createdAt || '').getTime();
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [state.goals, filterStatus, filterPriority, filterCategory, searchTerm, sortBy, sortDirection]);
+
+  // Legacy filtered goals for backward compatibility
+  const filteredGoals = filteredAndSortedGoals;
 
   // Calculate statistics
   const stats = {
@@ -455,16 +502,10 @@ const VolunteerGoals: React.FC = () => {
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'goals' | 'analytics')} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="goals">Goals Management</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
-          </TabsList>
+        {/* Enhanced Main Content */}
+        <div className="space-y-6">
 
-          {/* Goals Tab */}
-          <TabsContent value="goals" className="space-y-6">
-            {/* Filters */}
+          {/* Enhanced Filters and Controls */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col md:flex-row gap-4">
@@ -670,17 +711,7 @@ const VolunteerGoals: React.FC = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <PersonalAnalytics
-              volunteerId={user?.id}
-              analytics={state.analytics}
-              onRefresh={handleRefresh}
-            />
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
 
       {/* Create Goal Dialog */}
