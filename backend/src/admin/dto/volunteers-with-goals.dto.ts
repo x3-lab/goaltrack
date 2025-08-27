@@ -1,13 +1,18 @@
 export class VolunteerWithGoalsDto {
-    id: string;
-    name: string;
-    email: string;
-    status: 'active' | 'inactive';
-    role: string;
-    joinDate: string;
-    lastActive: string;
-    performance: 'high' | 'medium' | 'low';
-    goalsCount: number;
-    completedGoalsCount: number;
+    volunteerId: string;
+    volunteerName: string;
+    volunteerEmail: string;
+    totalGoals: number;
+    completedGoals: number;
+    pendingGoals: number;
+    inProgressGoals: number;
     completionRate: number;
+    lastActivity: string;
+    recentGoals: Array<{
+        id: string;
+        title: string;
+        status: string;
+        progress: number;
+        dueDate: string;
+    }>;
 }

@@ -1,0 +1,79 @@
+### Test Template Usage Count Update - Complete Flow
+### Step 1: Login as admin
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@test.com",
+  "password": "admin123"
+}
+
+###
+### Step 2: Get all templates to find a template ID and check current usage count
+GET http://localhost:3000/goal-templates
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 3: Get specific template details to see current usage count
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 4: Create a goal directly (without using useTemplate endpoint) but include templateId
+### This should now update the template usage count
+POST http://localhost:3000/goals
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Test Goal with Template ID",
+  "description": "Testing template usage count update via direct goal creation",
+  "category": "community-service",
+  "priority": "medium",
+  "startDate": "2025-08-25",
+  "dueDate": "2025-09-25",
+  "volunteerId": "VOLUNTEER_ID_HERE",
+  "templateId": "TEMPLATE_ID_HERE"
+}
+
+###
+### Step 5: Check the template again to verify usage count increased
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 6: Get the created goal to verify templateId was stored
+GET http://localhost:3000/goals
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 7: Test template usage statistics to see updated data
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE/usage-stats
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 8: Create another goal from the same template to test multiple usage
+POST http://localhost:3000/goals
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "Second Test Goal with Template ID",
+  "description": "Testing multiple template usage updates",
+  "category": "community-service",
+  "priority": "high",
+  "startDate": "2025-08-25",
+  "dueDate": "2025-10-25",
+  "volunteerId": "VOLUNTEER_ID_HERE",
+  "templateId": "TEMPLATE_ID_HERE"
+}
+
+###
+### Step 9: Final check - template should now have usage count +2
+GET http://localhost:3000/goal-templates/TEMPLATE_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+### Step 10: Check overall template analytics to see updated statistics
+GET http://localhost:3000/goal-templates/analytics
+Authorization: Bearer YOUR_TOKEN_HERE

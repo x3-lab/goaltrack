@@ -26,7 +26,6 @@ export class GoalTemplate {
     category: string;
 
     @Column({
-        type: 'enum',
         enum: TemplatePriority,
         default: TemplatePriority.MEDIUM
     })
@@ -35,11 +34,16 @@ export class GoalTemplate {
     @Column({ name: 'default_duration', default: 7 })
     defaultDuration: number; // in days
 
+    @Column({ name: 'start_date', nullable: true })
+    startDate: Date;
+
+    @Column({ name: 'due_date', nullable: true })
+    dueDate: Date;
+
     @Column('simple-array', { nullable: true })
     tags: string[];
 
     @Column({
-        type: 'enum',
         enum: TemplateStatus,
         default: TemplateStatus.ACTIVE
     })

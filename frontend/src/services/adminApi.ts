@@ -1,657 +1,533 @@
-import { api, calculateCompletionRate, getOverdueGoals, getMonthlyChanges, calculatePerformanceMetrics, type Goal, type Volunteer, type AdminProfile } from './api';
+import httpClient from './httpClient';
+import { ENDPOINTS } from './config';
+import type { User } from '../types/api';
 
-export interface GoalTemplate {
+// Import types that match backend DTOs exactly
+export interface AdminProfileDto {
   id: string;
   name: string;
-  description: string;
-  category: string;
-  priority: 'High' | 'Medium' | 'Low';
-  defaultDuration: number;
-  usageCount: number;
-  createdAt: string;
-  updatedAt: string;
-  tags: string[];
-  isActive: boolean;
+  email: string;
+  phone?: string;
+  role: string;
+  department?: string;
+  title?: string;
+  lastLogin: string;
+  permissions: string[];
+  preferences: AdminPreferencesDto;
+  stats: AdminStatsDto;
 }
 
-export interface AdminGoal {
+export interface AdminPreferencesDto {
+  weeklyReports: boolean;
+  systemAlerts: boolean;
+  theme: 'light' | 'dark' | 'auto';
+  timezone: string;
+  dashboardRefreshInterval: number;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+}
+
+export interface AdminStatsDto {
+  totalVolunteersManaged: number;
+  totalGoalsOversaw: number;
+  lastSystemMaintenance: string;
+}
+
+export interface UpdateAdminProfileDto {
+  name?: string;
+  email?: string;
+  phone?: string;
+  title?: string;
+}
+
+export interface UpdateAdminPreferencesDto {
+  weeklyReports?: boolean;
+  systemAlerts?: boolean;
+  theme?: 'light' | 'dark' | 'auto';
+  timezone?: string;
+  dashboardRefreshInterval?: number;
+  emailNotifications?: boolean;
+  smsNotifications?: boolean;
+}
+
+export interface ChangeAdminPasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface DashboardStatsDto {
+  activeVolunteers: number;
+  totalGoals: number;
+  completionRate: number;
+  overdueGoals: number;
+  monthlyChanges: MonthlyChangesDto;
+}
+
+export interface MonthlyChangesDto {
+  volunteers: number;
+  goals: number;
+  completion: number;
+  overdue: number;
+}
+
+export interface ActivityDto {
   id: string;
-  title: string;
-  description: string;
+  userId: string;
+  userName: string;
+  action: string;
+  resource: string;
+  resourceId: string;
+  details: Record<string, any>;
+  timestamp: string;
+  timeAgo: string;
+}
+
+export interface DeadlineDto {
+  id: string;
   volunteer: string;
+  volunteerEmail: string;
+  goal: string;
+  deadline: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'pending' | 'in-progress' | 'completed';
+  daysUntilDeadline: number;
+}
+
+export interface VolunteerWithGoalsDto {
+  volunteerId: string;
   volunteerName: string;
   volunteerEmail: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'pending' | 'in-progress' | 'completed' | 'overdue';
-  progress: number;
-  dueDate: string;
-  createdDate: string;
-  updatedAt: string;
-  category: string;
-  tags: string[];
-  notes?: string;
+  totalGoals: number;
+  completedGoals: number;
+  pendingGoals: number;
+  inProgressGoals: number;
+  completionRate: number;
+  lastActivity: string;
+  recentGoals: Array<{
+    id: string;
+    title: string;
+    status: string;
+    progress: number;
+    dueDate: string;
+  }>;
 }
 
-export const adminApi = {
-  // Dashboard data
-  getDashboardStats: async () => {
-    try {
-      const volunteers = await api.volunteers.getAll();
-      const goals = await api.goals.getAll();
-      
-      return {
-        activeVolunteers: volunteers.filter((v: Volunteer) => v.status === 'active').length,
-        totalGoals: goals.length,
-        completionRate: calculateCompletionRate(goals),
-        overdueGoals: getOverdueGoals(goals).length,
-        monthlyChanges: await getMonthlyChanges()
-      };
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      throw error;
-    }
-  },
+// Legacy interfaces for backward compatibility
+export interface AdminProfile extends User {
+  department?: string;
+  title?: string;
+  lastLogin?: string;
+  permissions?: string[];
+  totalVolunteersManaged?: number;
+  totalGoalsCreated?: number;
+  systemRole?: string;
+}
 
-  // Goals management for admin
-  getAllGoals: async (filters?: {
-    status?: string;
-    priority?: string;
-    volunteer?: string;
-    category?: string;
+export interface AdminStats {
+  totalUsers: number;
+  activeUsers: number;
+  inactiveUsers: number;
+  totalGoals: number;
+  completedGoals: number;
+  pendingGoals: number;
+  inProgressGoals: number;
+  recentActivity: Array<{
+    id: string;
+    type: string;
+    description: string;
+    timestamp: string;
+    userId: string;
+    userName: string;
+  }>;
+}
+
+class AdminApiService {
+  // ADMIN PROFILE MANAGEMENT
+
+  /**
+   * Get current admin profile
+   */
+  async getProfile(): Promise<AdminProfileDto> {
+    try {
+      console.log('Getting admin profile...');
+      
+      const response = await httpClient.get<AdminProfileDto>('/admin/profile');
+      
+      console.log('Admin profile loaded successfully');
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed');
+    }
+
+  }
+
+  /**
+   * Update admin profile
+   */
+  async updateProfile(updates: UpdateAdminProfileDto): Promise<AdminProfileDto> {
+    try {
+      console.log('Updating admin profile:', updates);
+      
+      const response = await httpClient.patch<AdminProfileDto>('/admin/profile', updates);
+      
+      console.log('Admin profile updated successfully');
+      return response;
+    } catch (error: any) {
+      throw this.transformError(error);
+    }
+  }
+
+  /**
+   * Update admin preferences
+   */
+  async updatePreferences(preferences: UpdateAdminPreferencesDto): Promise<AdminProfileDto> {
+    try {
+      console.log('Updating admin preferences:', preferences);
+      
+      const response = await httpClient.patch<AdminProfileDto>('/admin/preferences', preferences);
+      
+      console.log('Admin preferences updated successfully');
+      return response;
+    } catch (error: any) {
+      throw this.transformError(error);
+    }
+  }
+
+  /**
+   * Change admin password
+   */
+  async changePassword(passwordData: ChangeAdminPasswordDto): Promise<{ success: boolean }> {
+    try {
+      console.log('Changing admin password...');
+      
+      const response = await httpClient.post<{ success: boolean }>('/admin/change-password', passwordData);
+      
+      console.log('Admin password changed successfully');
+      return response;
+    } catch (error: any) {
+      throw this.transformError(error);
+    }
+  }
+
+  // DASHBOARD STATISTICS
+
+  /**
+   * Get dashboard statistics
+   */
+  async getDashboardStats(): Promise<DashboardStatsDto> {
+    try {
+      console.log('Getting dashboard statistics...');
+      
+      const response = await httpClient.get<DashboardStatsDto>('/admin/dashboard/stats');
+      
+      console.log('Dashboard statistics loaded successfully');
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed');
+    }
+  }
+
+  /**
+   * Get recent activity logs
+   */
+  async getRecentActivity(limit: number = 10): Promise<ActivityDto[]> {
+    try {
+      console.log(`Getting recent activity (limit: ${limit})...`);
+      
+      const response = await httpClient.get<ActivityDto[]>(`/admin/dashboard/activity?limit=${limit}`);
+      
+      console.log(`Recent activity loaded successfully (${response.length} items)`);
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed');
+    }
+  }
+
+  /**
+   * Get upcoming deadlines
+   */
+  async getUpcomingDeadlines(limit: number = 10): Promise<DeadlineDto[]> {
+    try {
+      console.log(`Getting upcoming deadlines (limit: ${limit})...`);
+      
+      const response = await httpClient.get<DeadlineDto[]>(`/admin/dashboard/deadlines?limit=${limit}`);
+      
+      console.log(`Upcoming deadlines loaded successfully (${response.length} items)`);
+      return response;
+    } catch (error: any) {
+      console.warn('Backend failed, using fallback data');
+    }
+  }
+
+  /**
+   * Get volunteers with their goals summary
+   */
+  async getVolunteersWithGoals(): Promise<VolunteerWithGoalsDto[]> {
+    try {
+      console.log('Getting volunteers with goals...');
+      
+      const response = await httpClient.get<VolunteerWithGoalsDto[]>('/admin/volunteers-with-goals');
+      
+      console.log(`Volunteers with goals loaded successfully (${response.length} volunteers)`);
+      return response;
+    } catch (error: any) {
+      console.error('Failed to get volunteers with goals:', error);
+      throw this.transformError(error);
+    }
+  }
+
+
+  /**
+   * Get admin profile
+   */
+  async getAdminProfile(): Promise<AdminProfile> {
+    const profile = await this.getProfile();
+    return this.transformToLegacyProfile(profile);
+  }
+
+  /**
+   * Update admin profile
+   */
+  async updateAdminProfile(updates: { name?: string; email?: string; phone?: string; department?: string; title?: string; }): Promise<AdminProfile> {
+    const profileUpdate: UpdateAdminProfileDto = {
+      name: updates.name,
+      email: updates.email,
+      phone: updates.phone,
+      title: updates.title
+    };
+    
+    const updatedProfile = await this.updateProfile(profileUpdate);
+    return this.transformToLegacyProfile(updatedProfile);
+  }
+
+  /**
+   * Change admin password
+   */
+  async changeAdminPassword(currentPassword: string, newPassword: string): Promise<boolean> {
+    const result = await this.changePassword({ currentPassword, newPassword });
+    return result.success;
+  }
+
+  /**
+   * Get system stats
+   */
+  async getSystemStats(): Promise<AdminStats> {
+    const [dashboardStats, recentActivity] = await Promise.all([
+      this.getDashboardStats(),
+      this.getRecentActivity(10)
+    ]);
+
+    return {
+      totalUsers: dashboardStats.activeVolunteers,
+      activeUsers: dashboardStats.activeVolunteers,
+      inactiveUsers: 0,
+      totalGoals: dashboardStats.totalGoals,
+      completedGoals: Math.round(dashboardStats.totalGoals * (dashboardStats.completionRate / 100)),
+      pendingGoals: dashboardStats.totalGoals - Math.round(dashboardStats.totalGoals * (dashboardStats.completionRate / 100)),
+      inProgressGoals: dashboardStats.totalGoals - dashboardStats.overdueGoals,
+      recentActivity: recentActivity.map(activity => ({
+        id: activity.id,
+        type: activity.action,
+        description: `${activity.userName} ${activity.action} ${activity.resource}`,
+        timestamp: activity.timestamp,
+        userId: activity.userId,
+        userName: activity.userName
+      }))
+    };
+  }
+
+  // USER AND GOAL MANAGEMENT
+  async getAllUsers(filters?: {
+    status?: 'active' | 'inactive';
+    role?: 'admin' | 'volunteer';
     search?: string;
-  }): Promise<AdminGoal[]> => {
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
     try {
-      const [goals, volunteers] = await Promise.all([
-        api.goals.getAll(),
-        api.volunteers.getAll()
-      ]);
-
-      // Create a map for quick volunteer lookup
-      const volunteerMap = new Map(volunteers.map(v => [v.id, v]));
-
-      // Transform goals to admin format with volunteer information
-      let adminGoals: AdminGoal[] = goals.map((goal: Goal) => {
-        const volunteer = volunteerMap.get(goal.volunteer || goal.volunteerId || '');
-        const isOverdue = goal.dueDate && new Date(goal.dueDate) < new Date() && goal.status !== 'completed';
-        
-        return {
-          id: goal.id,
-          title: goal.title,
-          description: goal.description || '',
-          volunteer: goal.volunteer || goal.volunteerId || '',
-          volunteerName: volunteer ? volunteer.name : 'Unknown Volunteer',
-          volunteerEmail: volunteer ? volunteer.email : '',
-          priority: goal.priority,
-          status: isOverdue ? 'overdue' : goal.status,
-          progress: goal.progress,
-          dueDate: goal.dueDate,
-          createdDate: goal.createdDate || goal.createdAt,
-          updatedAt: goal.updatedAt || goal.createdAt,
-          category: goal.category,
-          tags: goal.tags || [],
-          notes: goal.notes
-        };
-      });
-
-      // Apply filters
-      if (filters) {
-        if (filters.status && filters.status !== 'all') {
-          adminGoals = adminGoals.filter(goal => goal.status === filters.status);
-        }
-        if (filters.priority && filters.priority !== 'all') {
-          adminGoals = adminGoals.filter(goal => goal.priority === filters.priority);
-        }
-        if (filters.volunteer && filters.volunteer !== 'all') {
-          adminGoals = adminGoals.filter(goal => goal.volunteer === filters.volunteer);
-        }
-        if (filters.category && filters.category !== 'all') {
-          adminGoals = adminGoals.filter(goal => goal.category === filters.category);
-        }
-        if (filters.search) {
-          const searchLower = filters.search.toLowerCase();
-          adminGoals = adminGoals.filter(goal => 
-            goal.title.toLowerCase().includes(searchLower) ||
-            goal.volunteerName.toLowerCase().includes(searchLower) ||
-            goal.category.toLowerCase().includes(searchLower) ||
-            goal.description.toLowerCase().includes(searchLower)
-          );
-        }
-      }
-
-      return adminGoals;
-    } catch (error) {
-      console.error('Error fetching goals:', error);
-      throw error;
-    }
-  },
-
-  getGoalById: async (goalId: string): Promise<AdminGoal | null> => {
-    try {
-      const goals = await adminApi.getAllGoals();
-      return goals.find(goal => goal.id === goalId) || null;
-    } catch (error) {
-      console.error('Error fetching goal:', error);
-      throw error;
-    }
-  },
-
-  updateGoalStatus: async (goalId: string, status: 'pending' | 'in-progress' | 'completed'): Promise<AdminGoal> => {
-    try {
-      const updates: Partial<Goal> = { 
-        status,
-        updatedAt: new Date().toISOString()
-      };
+      const params = new URLSearchParams();
       
-      // If marking as completed, set progress to 100
-      if (status === 'completed') {
-        updates.progress = 100;
-      }
-      
-      await api.goals.update(goalId, updates);
-      const updatedGoal = await adminApi.getGoalById(goalId);
-      
-      if (!updatedGoal) {
-        throw new Error('Goal not found after update');
-      }
-      
-      return updatedGoal;
-    } catch (error) {
-      console.error('Error updating goal status:', error);
-      throw error;
-    }
-  },
+      if (filters?.status) params.append('status', filters.status);
+      if (filters?.role) params.append('role', filters.role);
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.limit) params.append('limit', filters.limit.toString());
 
-  updateGoalPriority: async (goalId: string, priority: 'High' | 'Medium' | 'Low'): Promise<AdminGoal> => {
-    try {
-      const updates: Partial<Goal> = { 
-        priority,
-        updatedAt: new Date().toISOString()
-      };
-      
-      await api.goals.update(goalId, updates);
-      
-      const updatedGoal = await adminApi.getGoalById(goalId);
-      if (!updatedGoal) {
-        throw new Error('Goal not found after update');
-      }
-      
-      return updatedGoal;
-    } catch (error) {
-      console.error('Error updating goal priority:', error);
-      throw error;
-    }
-  },
+      const response = await httpClient.get<any>(
+        `${ENDPOINTS.ADMIN.USERS}?${params.toString()}`
+      );
 
-  deleteGoal: async (goalId: string): Promise<void> => {
-    try {
-      await api.goals.delete(goalId);
-    } catch (error) {
-      console.error('Error deleting goal:', error);
-      throw error;
-    }
-  },
-
-  getGoalStatistics: async () => {
-    try {
-      const goals = await adminApi.getAllGoals();
-      
-      const total = goals.length;
-      const completed = goals.filter(g => g.status === 'completed').length;
-      const inProgress = goals.filter(g => g.status === 'in-progress').length;
-      const pending = goals.filter(g => g.status === 'pending').length;
-      const overdue = goals.filter(g => g.status === 'overdue').length;
-      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-      return {
-        total,
-        completed,
-        inProgress,
-        pending,
-        overdue,
-        completionRate
-      };
-    } catch (error) {
-      console.error('Error calculating goal statistics:', error);
-      throw error;
-    }
-  },
-
-  getUniqueCategories: async (): Promise<string[]> => {
-    try {
-      const goals = await adminApi.getAllGoals();
-      const categories = [...new Set(goals.map(goal => goal.category))];
-      return categories.filter(Boolean).sort();
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      return [];
-    }
-  },
-
-  getVolunteersWithGoals: async () => {
-    try {
-      const [goals, volunteers] = await Promise.all([
-        adminApi.getAllGoals(),
-        api.volunteers.getAll()
-      ]);
-
-      return volunteers.map(volunteer => ({
-        ...volunteer,
-        goalsCount: goals.filter(goal => goal.volunteer === volunteer.id).length,
-        completedGoalsCount: goals.filter(goal => 
-          goal.volunteer === volunteer.id && goal.status === 'completed'
-        ).length
-      }));
-    } catch (error) {
-      console.error('Error fetching volunteers with goals:', error);
-      throw error;
-    }
-  },
-
-  // Analytics data
-  getAnalyticsData: async (dateRange: { start: string; end: string }) => {
-    try {
-      const volunteers = await api.volunteers.getAll();
-      const goals = await api.goals.getAll();
-      
-      // Filter goals by date range
-      const filteredGoals = goals.filter((goal: Goal) => {
-        const goalDate = new Date(goal.createdDate);
-        const startDate = new Date(dateRange.start);
-        const endDate = new Date(dateRange.end);
-        return goalDate >= startDate && goalDate <= endDate;
-      });
-
-      // Generate analytics data
-      const dailyCompletionTrends = generateDailyCompletionTrends(filteredGoals, dateRange);
-      const weeklyCompletionTrends = generateWeeklyCompletionTrends(filteredGoals, dateRange);
-      const performanceDistribution = generatePerformanceDistribution(volunteers);
-      const categoryBreakdown = generateCategoryBreakdown(filteredGoals);
-      const volunteerActivity = generateVolunteerActivity(volunteers, filteredGoals);
-
-      return {
-        overview: {
-          totalVolunteers: volunteers.length,
-          activeVolunteers: volunteers.filter((v: Volunteer) => v.status === 'active').length,
-          totalGoals: filteredGoals.length,
-          completedGoals: filteredGoals.filter((g: Goal) => g.status === 'completed').length,
-          completionRate: calculateCompletionRate(filteredGoals),
-          overdueGoals: getOverdueGoals(filteredGoals).length
-        },
-        completionTrends: {
-          daily: dailyCompletionTrends,
-          weekly: weeklyCompletionTrends
-        },
-        performanceDistribution,
-        categoryBreakdown,
-        volunteerActivity
-      };
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      throw error;
-    }
-  },
-
-  // Volunteer management
-  getVolunteerPerformance: async (volunteerId: string) => {
-    try {
-      const goals = await api.goals.getAll({ volunteer: volunteerId });
-      return calculatePerformanceMetrics(goals);
-    } catch (error) {
-      console.error('Error fetching volunteer performance:', error);
-      throw error;
-    }
-  },
-
-  // Bulk operations
-  bulkUpdateGoals: async (goalIds: string[], updates: Partial<Goal>) => {
-    try {
-      const updatesWithTimestamp = {
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-      return Promise.all(goalIds.map(id => api.goals.update(id, updatesWithTimestamp)));
-    } catch (error) {
-      console.error('Error bulk updating goals:', error);
-      throw error;
-    }
-  },
-
-  sendBulkReminders: async (volunteerIds: string[]) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`Sent reminders to ${volunteerIds.length} volunteers`);
-      return { success: true, count: volunteerIds.length };
-    } catch (error) {
-      console.error('Error sending bulk reminders:', error);
-      throw error;
-    }
-  },
-
-  exportVolunteerData: async (volunteerIds: string[]) => {
-    try {
-      const volunteers = await api.volunteers.getAll();
-      const selectedVolunteers = volunteers.filter((v: Volunteer) => volunteerIds.includes(v.id));
-      
-      const dataToExport = {
-        volunteers: selectedVolunteers,
-        exportDate: new Date().toISOString(),
-        count: selectedVolunteers.length
-      };
-      
-      const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `volunteers-export-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Error exporting volunteer data:', error);
-      throw error;
-    }
-  },
-
-  // Reporting
-  generateReport: async (type: 'overview' | 'performance' | 'goals', filters?: any) => {
-    try {
-      const volunteers = await api.volunteers.getAll();
-      const goals = await api.goals.getAll();
-      
-      const reportData = {
-        type,
-        generatedAt: new Date().toISOString(),
-        summary: {
-          totalVolunteers: volunteers.length,
-          activeVolunteers: volunteers.filter((v: Volunteer) => v.status === 'active').length,
-          totalGoals: goals.length,
-          completedGoals: goals.filter((g: Goal) => g.status === 'completed').length,
-          completionRate: calculateCompletionRate(goals)
-        },
-        volunteers,
-        goals,
-        filters
-      };
-      
-      return JSON.stringify(reportData, null, 2);
-    } catch (error) {
-      console.error('Error generating report:', error);
-      throw error;
-    }
-  },
-
-  // Goal template management
-  getGoalTemplates: async (): Promise<GoalTemplate[]> => {
-    try {
-      const templates = JSON.parse(localStorage.getItem('goalTemplates') || '[]');
-      
-      // Add some default templates if none exist
-      if (templates.length === 0) {
-        const defaultTemplates: GoalTemplate[] = [
-          {
-            id: '1',
-            name: 'Safety Training',
-            description: 'Complete mandatory safety training course',
-            category: 'Training',
-            priority: 'High' as const,
-            defaultDuration: 7,
-            usageCount: 5,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            tags: ['safety', 'training', 'mandatory'],
-            isActive: true
-          },
-          {
-            id: '2',
-            name: 'Community Outreach',
-            description: 'Organize community outreach event',
-            category: 'Community',
-            priority: 'Medium' as const,
-            defaultDuration: 14,
-            usageCount: 3,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            tags: ['community', 'outreach', 'event'],
-            isActive: true
-          }
-        ];
-        localStorage.setItem('goalTemplates', JSON.stringify(defaultTemplates));
-        return defaultTemplates;
-      }
-      
-      return templates;
-    } catch (error) {
-      console.error('Error fetching goal templates:', error);
-      return [];
-    }
-  },
-
-  createGoalTemplate: async (templateData: Omit<GoalTemplate, 'id' | 'createdAt' | 'updatedAt' | 'usageCount'>): Promise<GoalTemplate> => {
-    try {
-      const templates = await adminApi.getGoalTemplates();
-      const newTemplate: GoalTemplate = {
-        ...templateData,
-        id: Date.now().toString(),
-        usageCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      templates.push(newTemplate);
-      localStorage.setItem('goalTemplates', JSON.stringify(templates));
-      return newTemplate;
-    } catch (error) {
-      console.error('Error creating goal template:', error);
-      throw error;
-    }
-  },
-
-  updateGoalTemplate: async (id: string, updates: Partial<GoalTemplate>): Promise<GoalTemplate> => {
-    try {
-      const templates = await adminApi.getGoalTemplates();
-      const index = templates.findIndex(t => t.id === id);
-      if (index === -1) throw new Error('Template not found');
-      
-      templates[index] = { 
-        ...templates[index], 
-        ...updates, 
-        updatedAt: new Date().toISOString() 
-      };
-      localStorage.setItem('goalTemplates', JSON.stringify(templates));
-      return templates[index];
-    } catch (error) {
-      console.error('Error updating goal template:', error);
-      throw error;
-    }
-  },
-
-  deleteGoalTemplate: async (id: string): Promise<void> => {
-    try {
-      const templates = await adminApi.getGoalTemplates();
-      const filtered = templates.filter(t => t.id !== id);
-      localStorage.setItem('goalTemplates', JSON.stringify(filtered));
-    } catch (error) {
-      console.error('Error deleting goal template:', error);
-      throw error;
-    }
-  },
-
-  duplicateGoalTemplate: async (templateId: string): Promise<GoalTemplate> => {
-    try {
-      const templates = await adminApi.getGoalTemplates();
-      const template = templates.find(t => t.id === templateId);
-      if (!template) throw new Error('Template not found');
-      
-      const duplicated: GoalTemplate = {
-        ...template,
-        id: Date.now().toString(),
-        name: `${template.name} (Copy)`,
-        usageCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      templates.push(duplicated);
-      localStorage.setItem('goalTemplates', JSON.stringify(templates));
-      return duplicated;
-    } catch (error) {
-      console.error('Error duplicating template:', error);
-      throw error;
-    }
-  },
-
-  // Admin Profile Management
-  getAdminProfile: async (): Promise<AdminProfile> => {
-    try {
-      return await api.admin.getProfile();
-    } catch (error) {
-      console.error('Error fetching admin profile:', error);
-      throw error;
-    }
-  },
-
-  updateAdminProfile: async (updates: Partial<AdminProfile>): Promise<AdminProfile> => {
-    try {
-      return await api.admin.updateProfile(updates);
-    } catch (error) {
-      console.error('Error updating admin profile:', error);
-      throw error;
-    }
-  },
-
-  updateAdminPreferences: async (preferences: Partial<AdminProfile['preferences']>): Promise<AdminProfile> => {
-    try {
-      return await api.admin.updatePreferences(preferences);
-    } catch (error) {
-      console.error('Error updating admin preferences:', error);
-      throw error;
-    }
-  },
-
-  changeAdminPassword: async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    try {
-      return await api.admin.changePassword(currentPassword, newPassword);
-    } catch (error) {
-      console.error('Error changing admin password:', error);
-      throw error;
+      return response;
+    } catch (error: any) {
+      console.error('Failed to get users for admin:', error);
+      throw this.transformError(error);
     }
   }
-};
 
-export type { AdminProfile }
+  async getAllGoals(filters?: {
+    status?: string;
+    volunteerId?: string;
+    category?: string;
+    priority?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters?.status) params.append('status', filters.status);
+      if (filters?.volunteerId) params.append('volunteerId', filters.volunteerId);
+      if (filters?.category) params.append('category', filters.category);
+      if (filters?.priority) params.append('priority', filters.priority);
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.limit) params.append('limit', filters.limit.toString());
 
-// Helper functions for analytics
-function generateDailyCompletionTrends(goals: Goal[], dateRange: { start: string; end: string }) {
-  const trends = [];
-  const startDate = new Date(dateRange.start);
-  const endDate = new Date(dateRange.end);
-  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  
-  // Limit to reasonable number of days for daily view
-  const daysToShow = Math.min(totalDays, 30);
-  
-  for (let i = daysToShow - 1; i >= 0; i--) {
-    const date = new Date(endDate);
-    date.setDate(date.getDate() - i);
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
-    
-    const dayGoals = goals.filter(g => {
-      const goalDate = new Date(g.createdDate);
-      return goalDate >= dayStart && goalDate <= dayEnd;
-    });
-    
-    const dayCompletedGoals = goals.filter(g => {
-      const goalDate = new Date(g.createdDate);
-      return goalDate >= dayStart && goalDate <= dayEnd && g.status === 'completed';
-    });
-    
-    trends.push({
-      date: date.toISOString().split('T')[0],
-      completed: dayCompletedGoals.length,
-      total: dayGoals.length,
-      period: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    });
-  }
-  
-  return trends;
-}
+      const response = await httpClient.get<any>(
+        `${ENDPOINTS.ADMIN.GOALS}?${params.toString()}`
+      );
 
-function generateWeeklyCompletionTrends(goals: Goal[], dateRange: { start: string; end: string }) {
-  const trends = [];
-  const startDate = new Date(dateRange.start);
-  const endDate = new Date(dateRange.end);
-  
-  // Get the start of the week (Sunday) for the start date
-  const weekStart = new Date(startDate);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  weekStart.setHours(0, 0, 0, 0);
-  
-  let currentWeekStart = new Date(weekStart);
-  
-  while (currentWeekStart <= endDate) {
-    const currentWeekEnd = new Date(currentWeekStart);
-    currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
-    currentWeekEnd.setHours(23, 59, 59, 999);
-    
-    const weekGoals = goals.filter(g => {
-      const goalDate = new Date(g.createdDate);
-      return goalDate >= currentWeekStart && goalDate <= currentWeekEnd;
-    });
-    
-    const weekCompletedGoals = weekGoals.filter(g => g.status === 'completed');
-    
-    // Format week label
-    const weekLabel = `${currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${currentWeekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    
-    trends.push({
-      date: currentWeekStart.toISOString().split('T')[0],
-      completed: weekCompletedGoals.length,
-      total: weekGoals.length,
-      period: weekLabel
-    });
-    
-    // Move to next week
-    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-  }
-  
-  return trends;
-}
-
-function generatePerformanceDistribution(volunteers: Volunteer[]) {
-  const distribution = { high: 0, medium: 0, low: 0 };
-  
-  volunteers.forEach(v => {
-    if (v.performance) {
-      distribution[v.performance as keyof typeof distribution]++;
+      return response;
+    } catch (error: any) {
+      console.error('Failed to get goals for admin:', error);
+      throw this.transformError(error);
     }
-  });
-  
-  return [
-    { name: 'High Performance', value: distribution.high },
-    { name: 'Medium Performance', value: distribution.medium },
-    { name: 'Low Performance', value: distribution.low }
-  ];
+  }
+
+  async getActivityLogs(filters?: {
+    userId?: string;
+    action?: string;
+    entityType?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      
+      if (filters?.userId) params.append('userId', filters.userId);
+      if (filters?.action) params.append('action', filters.action);
+      if (filters?.entityType) params.append('entityType', filters.entityType);
+      if (filters?.startDate) params.append('startDate', filters.startDate);
+      if (filters?.endDate) params.append('endDate', filters.endDate);
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.limit) params.append('limit', filters.limit.toString());
+
+      const response = await httpClient.get<any>(
+        `${ENDPOINTS.ADMIN.ACTIVITY_LOGS}?${params.toString()}`
+      );
+
+      return response;
+    } catch (error: any) {
+      console.error('Failed to get activity logs:', error);
+      throw this.transformError(error);
+    }
+  }
+
+  // USER MANAGEMENT ACTIONS
+  async activateUser(userId: string): Promise<void> {
+    try {
+      await httpClient.put(`${ENDPOINTS.USERS.STATUS(userId)}`, { status: 'active' });
+      console.log(`User ${userId} activated`);
+    } catch (error: any) {
+      console.error(`Failed to activate user ${userId}:`, error);
+      throw this.transformError(error);
+    }
+  }
+
+  async deactivateUser(userId: string): Promise<void> {
+    try {
+      await httpClient.put(`${ENDPOINTS.USERS.STATUS(userId)}`, { status: 'inactive' });
+      console.log(`User ${userId} deactivated`);
+    } catch (error: any) {
+      console.error(`Failed to deactivate user ${userId}:`, error);
+      throw this.transformError(error);
+    }
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      await httpClient.delete(ENDPOINTS.USERS.BY_ID(userId));
+      console.log(`User ${userId} deleted`);
+    } catch (error: any) {
+      console.error(`Failed to delete user ${userId}:`, error);
+      throw this.transformError(error);
+    }
+  }
+
+  // SYSTEM ACTION
+  async processOverdueGoals(): Promise<{ message: string; processed: number }> {
+    try {
+      console.log('Processing overdue goals...');
+
+      const response = await httpClient.post<{ message: string; processed: number }>(
+        ENDPOINTS.GOALS.PROCESS_OVERDUE
+      );
+
+      console.log('Overdue goals processed:', response.processed);
+      return response;
+    } catch (error: any) {
+      console.error('Failed to process overdue goals:', error);
+      throw this.transformError(error);
+    }
+  }
+
+  async runWeeklyProcessing(): Promise<{ message: string; results: any }> {
+    try {
+      console.log('Running weekly processing...');
+
+      const response = await httpClient.post<{ message: string; results: any }>(
+        ENDPOINTS.GOALS.WEEKLY_PROCESSING
+      );
+
+      console.log('Weekly processing completed');
+      return response;
+    } catch (error: any) {
+      console.error('Failed to run weekly processing:', error);
+      throw this.transformError(error);
+    }
+  }
+
+  // PRIVATE UTILITY METHODS
+
+  private transformToLegacyProfile(profile: AdminProfileDto): AdminProfile {
+    return {
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+      role: 'admin',
+      department: profile.department,
+      title: profile.title,
+      lastLogin: profile.lastLogin,
+      permissions: profile.permissions,
+      totalVolunteersManaged: profile.stats.totalVolunteersManaged,
+      totalGoalsCreated: profile.stats.totalGoalsOversaw,
+      systemRole: profile.role,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+
+  private transformError(error: any): Error {
+    if (error.status === 403) {
+      return new Error('Access denied. Admin privileges required.');
+    } else if (error.status === 404) {
+      return new Error('Resource not found');
+    } else if (error.status === 422) {
+      return new Error(error.message || 'Invalid data provided');
+    } else if (error.status >= 500) {
+      return new Error('Server error. Please try again later.');
+    }
+    
+    return new Error(error.message || 'An unexpected error occurred');
+  }
+
 }
 
-function generateCategoryBreakdown(goals: Goal[]) {
-  const categories: { [key: string]: number } = {};
-  
-  goals.forEach(goal => {
-    categories[goal.category] = (categories[goal.category] || 0) + 1;
-  });
-  
-  return Object.entries(categories).map(([name, value]) => ({ name, value }));
-}
-
-function generateVolunteerActivity(volunteers: Volunteer[], goals: Goal[]) {
-  return volunteers.map(volunteer => ({
-    name: volunteer.name,
-    totalGoals: goals.filter(g => g.volunteer === volunteer.id).length,
-    completedGoals: goals.filter(g => g.volunteer === volunteer.id && g.status === 'completed').length,
-    completionRate: volunteer.completionRate || 0
-  }));
-}
+export const adminApi = new AdminApiService();
+export default adminApi;

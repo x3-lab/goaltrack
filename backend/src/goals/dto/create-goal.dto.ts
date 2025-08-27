@@ -37,10 +37,10 @@ export class CreateGoalDto {
     category: string;
 
     @IsDateString()
-    startDate: Date;
+    startDate: string;
 
     @IsDateString()
-    dueDate: Date;
+    dueDate: string;
 
     @IsOptional()
     @IsArray()
@@ -57,4 +57,8 @@ export class CreateGoalDto {
     @IsArray()
     @IsString({ each: true })
     notes?: string[];
+
+    @IsOptional()
+    @IsUUID('4', { message: 'Template ID must be a valid UUID' })
+    templateId?: string;
 }

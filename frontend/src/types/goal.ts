@@ -18,6 +18,6 @@ export interface Goal {
   dueDate?: string;
   createdAt: string;
   updatedAt: string;
-  notes?: string;
+  notes?: string[];
   progressHistory: ProgressEntry[];
 }

@@ -7,6 +7,7 @@ export class UserResponseDto {
     email: string;
     firstName: string;
     lastName: string;
+    name: string;
     phoneNumber?: string;
     address?: string;
     role: UserRole;
@@ -27,5 +28,15 @@ export class UserResponseDto {
 
     constructor(partial: Partial<UserResponseDto>) {
         Object.assign(this, partial);
+        // Combine firstName and lastName into name field
+        if (this.firstName && this.lastName) {
+            this.name = `${this.firstName} ${this.lastName}`;
+        } else if (this.firstName) {
+            this.name = this.firstName;
+        } else if (this.lastName) {
+            this.name = this.lastName;
+        } else {
+            this.name = '';
+        }
     }
 }

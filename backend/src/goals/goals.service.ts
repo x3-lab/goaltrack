@@ -12,6 +12,7 @@ import { Goal } from '../database/entities/goal.entity';
 import { User } from '../database/entities/user.entity';
 import { ProgressHistory } from '../database/entities/progress-history.entity';
 import { ActivityLog } from '../database/entities/activity-log.entity';
+import { GoalTemplate } from '../database/entities/goal-template.entity';
 import { GoalStatus, GoalPriority } from '../database/enums/goals.enums';
 import { UserRole } from '../database/enums/user.enums';
 import { CreateGoalDto } from './dto/create-goal.dto';
@@ -34,7 +35,9 @@ export class GoalsService {
         @InjectRepository(ProgressHistory)
         private readonly progressHistoryRepository: Repository<ProgressHistory>,
         @InjectRepository(ActivityLog)
-        private readonly activityLogRepository: Repository<ActivityLog>
+        private readonly activityLogRepository: Repository<ActivityLog>,
+        @InjectRepository(GoalTemplate)
+        private readonly goalTemplateRepository: Repository<GoalTemplate>,
     ) {}
 
     async create(
@@ -52,9 +55,19 @@ export class GoalsService {
             throw new ForbiddenException('You can only create goals for yourself');
         }
 
+        const startDateObj = new Date(createGoalDto.startDate);
+        const dueDateObj = new Date(createGoalDto.dueDate);
+        if (isNaN(startDateObj.getTime()) || isNaN(dueDateObj.getTime())) {
+            throw new BadRequestException('Invalid start or due date');
+        }
+        if (startDateObj > dueDateObj) {
+            throw new BadRequestException('Start date cannot be after due date');
+        }
+
         const goal = this.goalRepository.create({
             ...createGoalDto,
-            dueDate: new Date(createGoalDto.dueDate),
+            startDate: startDateObj,
+            dueDate: dueDateObj,
             status: GoalStatus.PENDING,
             progress: createGoalDto.progress || 0,
             priority: createGoalDto.priority || GoalPriority.MEDIUM,
@@ -62,14 +75,25 @@ export class GoalsService {
 
         const savedGoal = await this.goalRepository.save(goal);
 
+        await this.createProgressHistoryEntry(savedGoal, 'Goal created');
+
         await this.updateUserGoalsCount(createGoalDto.volunteerId);
+
+        // Update template usage count if goal was created from a template
+        if (createGoalDto.templateId) {
+            await this.updateTemplateUsageCount(createGoalDto.templateId);
+        }
 
         await this.logActivity(
             currentUserId,
             'CREATE_GOAL',
             'goal',
             savedGoal.id,
-            { goalTitle: savedGoal.title, volunteerId: createGoalDto.volunteerId }
+            { 
+                goalTitle: savedGoal.title, 
+                volunteerId: createGoalDto.volunteerId,
+                templateId: createGoalDto.templateId || undefined
+            }
         );
 
         return new GoalResponseDto(savedGoal);
@@ -153,10 +177,14 @@ export class GoalsService {
             throw new ForbiddenException('You do not have permission to update this goal');
         }
 
+        let dueDate: Date | undefined;
         if (updateGoalDto.dueDate) {
-            updateGoalDto.dueDate = new Date(updateGoalDto.dueDate as any);
+            dueDate = new Date(updateGoalDto.dueDate);
         }
-
+        Object.assign(goal, updateGoalDto);
+        if (dueDate) {
+            goal.dueDate = dueDate;
+        }
         Object.assign(goal, updateGoalDto);
         const updatedGoal = await this.goalRepository.save(goal);
 
@@ -199,6 +227,8 @@ export class GoalsService {
         }
 
         const updatedGoal = await this.goalRepository.save(goal);
+
+        await this.createProgressHistoryEntry(updatedGoal, `Status changed from ${previousStatus} to ${updatedGoal.status}`);
 
         await this.updateUserGoalsCount(goal.volunteerId);
 
@@ -251,6 +281,8 @@ export class GoalsService {
         }
 
         const updatedGoal = await this.goalRepository.save(goal);
+
+        await this.createProgressHistoryEntry(updatedGoal, updateGoalProgressDto.notes);
 
         await this.updateUserGoalsCount(goal.volunteerId);
 
@@ -491,6 +523,59 @@ export class GoalsService {
         return result;
     }
 
+    /**
+     * Create a progress history entry for a goal update
+     */
+    private async createProgressHistoryEntry(goal: Goal, notes?: string): Promise<void> {
+        try {
+            // Calculate current week boundaries
+            const now = new Date();
+            const weekStart = new Date(now);
+            weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+            weekStart.setHours(0, 0, 0, 0);
+
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+            weekEnd.setHours(23, 59, 59, 999);
+
+            // Check if there's already a progress history entry for this goal this week
+            const existingEntry = await this.progressHistoryRepository.findOne({
+                where: {
+                    goalId: goal.id,
+                    weekStart: weekStart,
+                    weekEnd: weekEnd,
+                },
+            });
+
+            if (existingEntry) {
+                // Update existing entry with latest progress
+                existingEntry.progress = goal.progress;
+                existingEntry.status = goal.status;
+                existingEntry.notes = notes || existingEntry.notes;
+                existingEntry.updatedAt = new Date();
+                await this.progressHistoryRepository.save(existingEntry);
+            } else {
+                // Create new progress history entry
+                const progressHistory = this.progressHistoryRepository.create({
+                    goalId: goal.id,
+                    title: goal.title,
+                    volunteerId: goal.volunteerId,
+                    progress: goal.progress,
+                    status: goal.status,
+                    weekStart,
+                    weekEnd,
+                    notes: notes || (goal.notes ? goal.notes.join(', ') : undefined),
+                });
+
+                await this.progressHistoryRepository.save(progressHistory);
+            }
+
+            console.log(`Progress history entry created/updated for goal: ${goal.title}`);
+        } catch (error) {
+            console.error('Error creating progress history entry:', error);
+        }
+    }
+
     async processOverdueGoals(): Promise<{ message: string; processedGoals: number }> {
         const today = new Date();
         today.setHours(23, 59, 59, 999);
@@ -590,5 +675,26 @@ export class GoalsService {
         });
 
         await this.activityLogRepository.save(activityLog);
+    }
+
+    /**
+     * Update template usage count when a goal is created from a template
+     */
+    private async updateTemplateUsageCount(templateId: string): Promise<void> {
+        try {
+            const template = await this.goalTemplateRepository.findOne({
+                where: { id: templateId }
+            });
+
+            if (template) {
+                template.usageCount += 1;
+                await this.goalTemplateRepository.save(template);
+                console.log(`Template ${templateId} usage count updated to ${template.usageCount}`);
+            } else {
+                console.warn(`Template ${templateId} not found for usage count update`);
+            }
+        } catch (error) {
+            console.error(`Error updating template usage count for ${templateId}:`, error);
+        }
     }
 }

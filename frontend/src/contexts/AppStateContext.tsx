@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-// Types for global state
 interface AppState {
   user: any | null;
   goals: any[];
@@ -17,7 +16,6 @@ interface AppState {
   };
 }
 
-// Action types
 type AppAction = 
   | { type: 'SET_USER'; payload: any | null }
   | { type: 'SET_GOALS'; payload: any[] }
@@ -35,7 +33,6 @@ type AppAction =
   | { type: 'SET_LAST_SYNC'; payload: string }
   | { type: 'RESET_STATE' };
 
-// Initial state
 const initialState: AppState = {
   user: null,
   goals: [],
@@ -50,7 +47,6 @@ const initialState: AppState = {
   },
 };
 
-// Reducer function
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_USER':
@@ -149,7 +145,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
   }
 }
 
-// Context
 interface AppStateContextType {
   state: AppState;
   actions: {
@@ -261,7 +256,6 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
     }, []),
   };
 
-  // Selectors
   const selectors = {
     isLoading: useCallback((key: string) => !!state.ui.loading[key], [state.ui.loading]),
     getError: useCallback((key: string) => state.ui.errors[key], [state.ui.errors]),

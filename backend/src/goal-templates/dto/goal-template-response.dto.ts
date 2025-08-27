@@ -7,6 +7,8 @@ export class GoalTemplateResponseDto {
     category: string;
     priority: string;
     defaultDuration: number;
+    startDate?: Date;
+    dueDate?: Date;
     tags: string[];
     status: string;
     usageCount: number;
@@ -23,6 +25,8 @@ export class GoalTemplateResponseDto {
         this.category = template.category;
         this.priority = template.priority;
         this.defaultDuration = template.defaultDuration;
+        this.startDate = template.startDate;
+        this.dueDate = template.dueDate;
         this.tags = template.tags || [];
         this.status = template.status;
         this.usageCount = template.usageCount;

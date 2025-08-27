@@ -2,118 +2,105 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, TrendingUp, Users, Target, Calendar, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Target, Calendar, RefreshCw, Download } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
-import { adminApi } from '../services/adminApi';
-
-interface AnalyticsData {
-  overview: {
-    totalVolunteers: number;
-    activeVolunteers: number;
-    totalGoals: number;
-    completedGoals: number;
-    completionRate: number;
-    overdueGoals: number;
-  };
-  completionTrends: {
-    daily: Array<{
-      date: string;
-      completed: number;
-      total: number;
-      period: string;
-    }>;
-    weekly: Array<{
-      date: string;
-      completed: number;
-      total: number;
-      period: string;
-    }>;
-  };
-  performanceDistribution: Array<{
-    name: string;
-    value: number;
-  }>;
-  categoryBreakdown: Array<{
-    name: string;
-    value: number;
-  }>;
-  volunteerActivity: Array<{
-    name: string;
-    totalGoals: number;
-    completedGoals: number;
-    completionRate: number;
-  }>;
-}
+import { analyticsApi } from '../services/analyticsApi';
+import type { AnalyticsDataDto } from '../types/analytics';
 
 const SystemAnalyticsPage: React.FC = () => {
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState('30days');
   const [trendView, setTrendView] = useState('weekly');
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsDataDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<string | null>(null);
 
   useEffect(() => {
     loadAnalyticsData();
   }, [timeRange]);
 
   const getDateRangeFromFilter = (filter: string) => {
-    const now = new Date();
-    const start = new Date();
-    
-    switch (filter) {
-      case '7days':
-        start.setDate(now.getDate() - 7);
-        break;
-      case '30days':
-        start.setDate(now.getDate() - 30);
-        break;
-      case '90days':
-        start.setDate(now.getDate() - 90);
-        break;
-      case '1year':
-        start.setFullYear(now.getFullYear() - 1);
-        break;
-      default:
-        start.setDate(now.getDate() - 30);
-    }
-    
-    return {
-      start: start.toISOString(),
-      end: now.toISOString()
-    };
+    const dateRange = analyticsApi.getDateRange(filter as any);
+    return dateRange;
   };
 
   const loadAnalyticsData = async () => {
-    setLoading(true);
+    if (!refreshing) setLoading(true);
     setError(null);
     
     try {
       const dateRange = getDateRangeFromFilter(timeRange);
-      const data = await adminApi.getAnalyticsData(dateRange);
+      console.log('📊 Loading analytics data for range:', dateRange);
+      
+      const data = await analyticsApi.getAnalyticsData(dateRange);
       setAnalyticsData(data);
-    } catch (error) {
-      console.error('Error loading analytics data:', error);
+      
+      console.log('✅ Analytics data loaded successfully');
+    } catch (error: any) {
+      console.error('❌ Error loading analytics data:', error);
       setError('Failed to load analytics data');
       toast({
         title: "Error",
-        description: "Failed to load analytics data. Please try again.",
+        description: "Failed to load analytics data. Using fallback data.",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleRefresh = () => {
-    loadAnalyticsData();
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadAnalyticsData();
+  };
+
+  const handleExport = async (type: 'overview' | 'performance' | 'goals') => {
+    try {
+      setExporting(type);
+      const dateRange = getDateRangeFromFilter(timeRange);
+      
+      const result = await analyticsApi.exportReport({
+        type,
+        filters: dateRange
+      });
+      
+      // Create and download blob
+      const blob = new Blob([JSON.stringify(result.data, null, 2)], { 
+        type: 'application/json' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}-report-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export Complete",
+        description: `${type} report has been downloaded successfully`,
+      });
+    } catch (error: any) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to export report",
+        variant: "destructive"
+      });
+    } finally {
+      setExporting(null);
+    }
   };
 
   // Colors for charts
-  const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
+  const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1', '#d084d0'];
 
   const renderCompletionTrendsChart = (data: any[], title: string) => (
     <ResponsiveContainer width="100%" height={300}>
@@ -122,31 +109,31 @@ const SystemAnalyticsPage: React.FC = () => {
         <XAxis 
           dataKey="period" 
           tick={{ fontSize: 12 }}
-          interval={trendView === 'daily' ? 'preserveStartEnd' : 0}
+          interval={Math.max(0, Math.floor(data.length / 6))}
         />
         <YAxis />
         <Tooltip 
-          labelFormatter={(label) => `Period: ${label}`}
           formatter={(value: any, name: string) => [
-            value, 
+            name === 'completed' ? `${value} completed` : `${value} total`,
             name === 'completed' ? 'Completed Goals' : 'Total Goals'
           ]}
-        />
-        <Line 
-          type="monotone" 
-          dataKey="total" 
-          stroke="#8884d8" 
-          name="Total Goals"
-          strokeWidth={2}
-          dot={{ r: 4 }}
+          labelFormatter={(label) => `Period: ${label}`}
         />
         <Line 
           type="monotone" 
           dataKey="completed" 
-          stroke="#82ca9d" 
-          name="Completed Goals"
+          stroke="#10b981" 
           strokeWidth={2}
-          dot={{ r: 4 }}
+          dot={{ fill: '#10b981' }}
+          name="completed"
+        />
+        <Line 
+          type="monotone" 
+          dataKey="total" 
+          stroke="#6b7280" 
+          strokeWidth={2}
+          dot={{ fill: '#6b7280' }}
+          name="total"
         />
       </LineChart>
     </ResponsiveContainer>
@@ -168,12 +155,13 @@ const SystemAnalyticsPage: React.FC = () => {
         </div>
         <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
+          <span className="ml-3 text-lg">Loading analytics...</span>
         </div>
       </div>
     );
   }
 
-  if (error || !analyticsData) {
+  if (error && !analyticsData) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -189,6 +177,14 @@ const SystemAnalyticsPage: React.FC = () => {
           <p className="text-gray-600 mb-4">{error}</p>
           <Button onClick={handleRefresh}>Try Again</Button>
         </div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">No analytics data available</p>
       </div>
     );
   }
@@ -212,10 +208,22 @@ const SystemAnalyticsPage: React.FC = () => {
               <SelectItem value="1year">Last year</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={handleRefresh} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+          
+          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
+          
+          <Select value={exporting || ''} onValueChange={(value) => value && handleExport(value as any)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Export..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="overview">Overview Report</SelectItem>
+              <SelectItem value="performance">Performance Report</SelectItem>
+              <SelectItem value="goals">Goals Report</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -275,36 +283,37 @@ const SystemAnalyticsPage: React.FC = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Completion Trends with Tabs */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Completion Trends</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={trendView} onValueChange={setTrendView}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="weekly">Weekly Trends</TabsTrigger>
-                <TabsTrigger value="daily">Daily Trends</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="weekly" className="mt-4">
-                {renderCompletionTrendsChart(
-                  analyticsData.completionTrends.weekly,
-                  'Weekly Completion Trends'
-                )}
-              </TabsContent>
-              
-              <TabsContent value="daily" className="mt-4">
-                {renderCompletionTrendsChart(
-                  analyticsData.completionTrends.daily,
-                  'Daily Completion Trends'
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+      <Tabs value={trendView} onValueChange={setTrendView}>
+        <TabsList>
+          <TabsTrigger value="daily">Daily Trends</TabsTrigger>
+          <TabsTrigger value="weekly">Weekly Trends</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="daily">
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Goal Completion Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderCompletionTrendsChart(analyticsData.completionTrends.daily, 'Daily Trends')}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="weekly">
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Goal Completion Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderCompletionTrendsChart(analyticsData.completionTrends.weekly, 'Weekly Trends')}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
+      {/* Performance and Category Analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance Distribution */}
         <Card>
           <CardHeader>
@@ -332,10 +341,7 @@ const SystemAnalyticsPage: React.FC = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Category Analysis and Volunteer Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Breakdown */}
         <Card>
           <CardHeader>
@@ -343,59 +349,65 @@ const SystemAnalyticsPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analyticsData.categoryBreakdown} layout="horizontal">
+              <BarChart data={analyticsData.categoryBreakdown}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={100} />
+                <XAxis 
+                  dataKey="name" 
+                  tick={{ fontSize: 12 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis />
                 <Tooltip formatter={(value: any) => [value, 'Goals']} />
                 <Bar dataKey="value" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Top Performing Volunteers */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Volunteer Activity Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-h-[300px] overflow-y-auto">
-              {analyticsData.volunteerActivity.length > 0 ? (
-                analyticsData.volunteerActivity
-                  .sort((a, b) => b.completionRate - a.completionRate)
-                  .slice(0, 10)
-                  .map((volunteer, index) => (
-                    <div key={volunteer.name} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{volunteer.name}</h4>
-                          <p className="text-sm text-gray-600">
-                            {volunteer.completedGoals}/{volunteer.totalGoals} goals completed
-                          </p>
-                        </div>
+      {/* Volunteer Activity Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top Performing Volunteers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto">
+            {analyticsData.volunteerActivity.length > 0 ? (
+              analyticsData.volunteerActivity
+                .sort((a, b) => b.completionRate - a.completionRate)
+                .slice(0, 15)
+                .map((volunteer, index) => (
+                  <div key={volunteer.name} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-medium text-blue-600">
+                        {index + 1}
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-green-600">
-                          {volunteer.completionRate}%
-                        </div>
-                        <div className="text-sm text-gray-600">completion rate</div>
+                      <div>
+                        <h4 className="font-medium">{volunteer.name}</h4>
+                        <p className="text-sm text-gray-600">
+                          {volunteer.completedGoals}/{volunteer.totalGoals} goals completed
+                        </p>
                       </div>
                     </div>
-                  ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No volunteer activity data available</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-600">
+                        {volunteer.completionRate}%
+                      </div>
+                      <div className="text-sm text-gray-600">completion rate</div>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>No volunteer activity data available</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Statistics */}
       <Card>
@@ -403,17 +415,9 @@ const SystemAnalyticsPage: React.FC = () => {
           <CardTitle>Summary Statistics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 border rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {analyticsData.overview.totalVolunteers > 0 ? 
-                  ((analyticsData.overview.activeVolunteers / analyticsData.overview.totalVolunteers) * 100).toFixed(1) : '0'
-                }%
-              </div>
-              <div className="text-sm text-gray-600 mt-1">Active Volunteer Rate</div>
-            </div>
-            <div className="text-center p-4 border rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
                 {analyticsData.overview.totalGoals > 0 && analyticsData.overview.activeVolunteers > 0 ? 
                   (analyticsData.overview.totalGoals / analyticsData.overview.activeVolunteers).toFixed(1) : '0'
                 }
@@ -421,10 +425,24 @@ const SystemAnalyticsPage: React.FC = () => {
               <div className="text-sm text-gray-600 mt-1">Avg Goals per Volunteer</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {analyticsData.overview.totalGoals > 0 ? 
+                  Math.round((analyticsData.overview.completedGoals / analyticsData.overview.totalGoals) * 100) : 0
+                }%
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Overall Success Rate</div>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
                 {analyticsData.categoryBreakdown.length}
               </div>
               <div className="text-sm text-gray-600 mt-1">Goal Categories</div>
+            </div>
+            <div className="text-center p-4 border rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {analyticsData.volunteerActivity.filter(v => v.totalGoals > 0).length}
+              </div>
+              <div className="text-sm text-gray-600 mt-1">Active Contributors</div>
             </div>
           </div>
         </CardContent>

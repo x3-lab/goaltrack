@@ -9,14 +9,16 @@ export class VolunteerTrendsDto {
         averageProgress: number;
         completionRate: number;
     }[];
-    overallStats: {
-        totalEntries: number;
-        averageProgress: number;
+    overallAverageProgress: number;
+    overallCompletionRate: number;
+    bestWeek: {
+        weekStart: string;
+        weekEnd: string;
         completionRate: number;
-        bestWeek: {
-            weekStart: Date;
-            completionRate: number;
-        } | null;
-        improvementTrend: 'improving' | 'declining' | 'stable';
+    };
+    worstWeek: {
+        weekStart: string;
+        weekEnd: string;
+        completionRate: number;
     };
 }

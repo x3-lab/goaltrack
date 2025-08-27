@@ -111,6 +111,27 @@ export class ProgressHistoryController {
         return this.progressHistoryService.getVolunteerTrends(currentUser.id, currentUser);
     }
 
+    @Get('my-weekly-history')
+    async getMyWeeklyHistory(
+        @CurrentUser() currentUser: User,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ): Promise<VolunteerWeeklyHistoryDto> {
+        return this.progressHistoryService.getVolunteerWeeklyHistory(
+            currentUser.id,
+            currentUser,
+            startDate,
+            endDate,
+        );
+    }
+
+    @Get('my-productive-day')
+    async getMyMostProductiveDay(
+        @CurrentUser() currentUser: User,
+    ): Promise<MostProductiveDayDto> {
+        return this.progressHistoryService.getVolunteerMostProductiveDay(currentUser.id, currentUser);
+    }
+
     @Get(':id')
     async findOne(
         @Param('id', ParseUUIDPipe) id: string,
@@ -145,32 +166,11 @@ export class ProgressHistoryController {
     );
     }
 
-    @Get('my-weekly-history')
-    async getMyWeeklyHistory(
-    @CurrentUser() currentUser: User,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    ): Promise<VolunteerWeeklyHistoryDto> {
-    return this.progressHistoryService.getVolunteerWeeklyHistory(
-        currentUser.id,
-        currentUser,
-        startDate,
-        endDate,
-    );
-    }
-
     @Get('volunteer/:volunteerId/productive-day')
     async getVolunteerMostProductiveDay(
     @Param('volunteerId', ParseUUIDPipe) volunteerId: string,
     @CurrentUser() currentUser: User,
     ): Promise<MostProductiveDayDto> {
         return this.progressHistoryService.getVolunteerMostProductiveDay(volunteerId, currentUser);
-    }
-
-    @Get('my-productive-day')
-    async getMyMostProductiveDay(
-    @CurrentUser() currentUser: User,
-    ): Promise<MostProductiveDayDto> {
-        return this.progressHistoryService.getVolunteerMostProductiveDay(currentUser.id, currentUser);
     }
 }

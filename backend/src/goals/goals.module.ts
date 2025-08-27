@@ -6,13 +6,15 @@ import { Goal } from 'src/database/entities';
 import { User } from 'src/database/entities';
 import { ProgressHistory } from 'src/database/entities';
 import { ActivityLog } from 'src/database/entities';
+import { GoalTemplate } from 'src/database/entities';
+import { ProgressHistoryService } from '../progress-history/progress-history.service';
 
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Goal, User, ProgressHistory, ActivityLog])
+    TypeOrmModule.forFeature([Goal, User, ProgressHistory, ActivityLog, GoalTemplate])
   ],
-  providers: [GoalsService],
+  providers: [GoalsService, ProgressHistoryService],
   controllers: [GoalsController],
   exports: [GoalsService],
 })

@@ -1,14 +1,35 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, BarChart3, Target, Settings, TrendingUp, Calendar, History, Award, User } from 'lucide-react';
-import VolunteerProfile from '@/pages/VolunteerProfile';
-import path from 'path';
+import { Users, BarChart3, Target, TrendingUp, History, User, LogOut, LucideIcon, LayoutDashboard } from 'lucide-react';
 
-const Navigation: React.FC = () => {
-  const { user } = useAuth();
+interface NavigationItem {
+  path?: string;
+  href?: string;
+  label?: string;
+  title?: string;
+  icon: LucideIcon;
+}
+
+interface NavigationProps {
+  items?: NavigationItem[];
+  onNavigate?: () => void;
+}
+
+const Navigation: React.FC<NavigationProps> = ({ items, onNavigate }) => {
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      if (onNavigate) onNavigate();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   if (!user) return null;
 
@@ -26,44 +47,69 @@ const Navigation: React.FC = () => {
     { path: '/admin-dashboard/goal-templates', label: 'Goal Templates', icon: Target },
     { path: '/admin-dashboard/analytics', label: 'System Analytics', icon: TrendingUp },
     { path: '/admin-dashboard/profile', label: 'Profile', icon: User },
-    { path: '/admin-dashboard/settings', label: 'Settings', icon: Settings },
   ];
 
-  const navItems = user.role === 'admin' ? adminNavItems : volunteerNavItems;
+  const navItems = items || (user.role === 'admin' ? adminNavItems : volunteerNavItems);
 
   return (
-    <nav className="bg-gray-50 border-r border-gray-200 w-64 min-h-screen">
-      <div className="p-4">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            {user.role === 'admin' ? 'Admin Panel' : 'Volunteer Portal'}
-          </h2>
-          <p className="text-sm text-gray-600">
-            Welcome, {user.name}
-          </p>
+    <nav className="bg-white border-r border-gray-200 h-screen flex flex-col shadow-sm fixed w-64 z-30">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <img 
+                src="/favicon.ico" 
+                alt="X3 Goals Logo" 
+                className="h-8 w-8"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <h2 className="text-xl font-bold text-gray-900">
+                X3 Goals
+              </h2>
+            </div>
+            <p className="text-sm text-gray-600">
+              Welcome, {user.firstName}
+            </p>
+          </div>
+          <ul className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const path = item.path || item.href || '';
+              const label = item.label || item.title || '';
+              const isActive = location.pathname === path;
+              
+              return (
+                <li key={path}>
+                  <Link
+                    to={path}
+                    onClick={onNavigate}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-700'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-600' : 'text-gray-500'}`} />
+                    <span>{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-        <ul className="space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      </div>
+      
+      {/* Logout Button */}
+      <div className="p-6 border-t border-gray-200">
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium w-full text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-200 group"
+        >
+          <LogOut className="h-5 w-5 text-gray-500 group-hover:text-red-600" />
+          <span>Logout</span>
+        </button>
       </div>
     </nav>
   );

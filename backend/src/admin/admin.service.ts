@@ -1,4 +1,3 @@
-// src/admin/admin.service.ts
 import {
     Injectable,
     NotFoundException,
@@ -259,15 +258,19 @@ export class AdminService {
             take: limit,
         });
 
-        return goals.map(goal => ({
-            id: goal.id,
-            volunteer: goal.volunteer ? `${goal.volunteer.firstName} ${goal.volunteer.lastName}` : 'Unknown',
-            volunteerEmail: goal.volunteer?.email || '',
-            goal: goal.title,
-            deadline: goal.dueDate.toISOString().split('T')[0],
-            priority: goal.priority?.toLowerCase() as 'high' | 'medium' | 'low' || 'medium',
-            status: goal.status.toLowerCase() as 'pending' | 'in-progress' | 'completed',
-        }));
+        return goals.map(goal => {
+            const dueDate = goal.dueDate instanceof Date ? goal.dueDate : new Date(goal.dueDate);
+            
+            return {
+                id: goal.id,
+                volunteer: goal.volunteer ? `${goal.volunteer.firstName} ${goal.volunteer.lastName}` : 'Unknown',
+                volunteerEmail: goal.volunteer?.email || '',
+                goal: goal.title,
+                deadline: dueDate.toISOString().split('T')[0],
+                priority: goal.priority?.toLowerCase() as 'high' | 'medium' | 'low' || 'medium',
+                status: goal.status.toLowerCase() as 'pending' | 'in-progress' | 'completed',
+            };
+        });
     }
 
     async getVolunteersWithGoals(): Promise<VolunteerWithGoalsDto[]> {
@@ -277,33 +280,40 @@ export class AdminService {
         });
 
         const volunteersWithGoals = await Promise.all(
-        volunteers.map(async (volunteer) => {
-            const goals = await this.goalRepository.find({
-                where: { volunteerId: volunteer.id },
-            });
+            volunteers.map(async (volunteer) => {
+                const goals = await this.goalRepository.find({
+                    where: { volunteerId: volunteer.id },
+                    order: { createdAt: 'DESC' },
+                    take: 5, // Get recent goals for the recentGoals array
+                });
 
-            const goalsCount = goals.length;
-            const completedGoalsCount = goals.filter(g => g.status === GoalStatus.COMPLETED).length;
-            const completionRate = goalsCount > 0 ? Math.round((completedGoalsCount / goalsCount) * 100) : 0;
+                const totalGoals = goals.length;
+                const completedGoals = goals.filter(g => g.status === GoalStatus.COMPLETED).length;
+                const inProgressGoals = goals.filter(g => g.status === GoalStatus.IN_PROGRESS).length;
+                const pendingGoals = goals.filter(g => g.status === GoalStatus.PENDING).length;
+                const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
-            let performance: 'high' | 'medium' | 'low' = 'low';
-            if (completionRate >= 80) performance = 'high';
-            else if (completionRate >= 60) performance = 'medium';
+                const recentGoals = goals.slice(0, 5).map(goal => ({
+                    id: goal.id,
+                    title: goal.title,
+                    status: goal.status,
+                    progress: goal.progress || 0,
+                    dueDate: goal.dueDate ? (goal.dueDate instanceof Date ? goal.dueDate.toISOString() : String(goal.dueDate)) : '',
+                }));
 
-            return {
-                id: volunteer.id,
-                name: `${volunteer.firstName} ${volunteer.lastName}`,
-                email: volunteer.email,
-                status: volunteer.status as 'active' | 'inactive',
-                role: volunteer.role,
-                joinDate: volunteer.createdAt.toISOString(),
-                lastActive: volunteer.lastLogin?.toISOString() || volunteer.updatedAt.toISOString(),
-                performance,
-                goalsCount,
-                completedGoalsCount,
-                completionRate,
-            };
-        })
+                return {
+                    volunteerId: volunteer.id,
+                    volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
+                    volunteerEmail: volunteer.email,
+                    totalGoals,
+                    completedGoals,
+                    pendingGoals,
+                    inProgressGoals,
+                    completionRate,
+                    lastActivity: volunteer.lastLogin?.toISOString() || volunteer.updatedAt.toISOString(),
+                    recentGoals,
+                };
+            })
         );
 
         return volunteersWithGoals;
@@ -315,7 +325,6 @@ export class AdminService {
             'manage_users',
             'manage_goals',
             'view_analytics',
-            'manage_settings',
             'export_data',
             'send_notifications',
             'manage_templates',

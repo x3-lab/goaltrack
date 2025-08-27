@@ -79,7 +79,7 @@ export class User {
     @Column({ nullable: true })
     profileImage?: string;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'datetime', nullable: true })
     lastLoginAt?: Date;
 
     // Relationships

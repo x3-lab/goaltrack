@@ -1,72 +1,98 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  Users, 
-  Filter, 
+  Search, 
+  MoreHorizontal, 
   UserPlus, 
-  Download, 
-  Mail, 
-  Eye,
-  Edit,
-  Trash2,
-  MoreVertical,
+  Users, 
+  Eye, 
+  Edit, 
+  Trash2, 
   CheckCircle,
   XCircle,
-  TrendingUp,
-  Award
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import AdminLayout from '@/components/AdminLayout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Badge } from '../components/ui/badge';
-import { Checkbox } from '../components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '../components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '../components/ui/dropdown-menu';
-import { useToast } from '../hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { api, type Volunteer } from '../services/api';
-import { adminApi } from '../services/adminApi';
-import AddVolunteerForm from '../components/AddVolunteerForm';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import { Checkbox } from '../components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
-import { SkeletonTable } from '../components/ui/skeleton-loader';
+import AddVolunteerForm from '../components/AddVolunteerForm';
+import { usersApi, type Volunteer, type UserFilters } from '../services/usersApi';
+import type { PaginatedResponse } from '../types/api';
 
 const AdminVolunteerManagement: React.FC = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [filteredVolunteers, setFilteredVolunteers] = useState<Volunteer[]>([]);
-  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [filters, setFilters] = useState({
-    status: 'all',
-    performance: 'all',
-    role: 'all'
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'email' | 'joinDate' | 'lastActivity'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     loadVolunteers();
-  }, []);
-
-  useEffect(() => {
-    filterVolunteers();
-  }, [volunteers, searchTerm, filters]);
+  }, [searchTerm, statusFilter, sortBy, sortOrder, currentPage]);
 
   const loadVolunteers = async () => {
     setLoading(true);
     try {
-      const volunteerData = await api.volunteers.getAll();
-      setVolunteers(volunteerData);
-    } catch (error) {
+      const filters: UserFilters = {
+        role: 'volunteer',
+        search: searchTerm || undefined,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        sortBy,
+        sortOrder,
+        page: currentPage,
+        limit: itemsPerPage,
+      };
+
+      const response: PaginatedResponse<Volunteer> = await usersApi.getAllPaginated(filters);
+      
+      setVolunteers(response.data);
+      setTotalPages(response.totalPages);
+      setTotalItems(response.total);
+      
+      console.log(`Loaded ${response.data.length} volunteers`);
+    } catch (error: any) {
       console.error('Error loading volunteers:', error);
       toast({
         title: "Error",
-        description: "Failed to load volunteers",
+        description: error.message || "Failed to load volunteers",
         variant: "destructive"
       });
     } finally {
@@ -74,81 +100,91 @@ const AdminVolunteerManagement: React.FC = () => {
     }
   };
 
-  const filterVolunteers = () => {
-    let filtered = volunteers;
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(volunteer => 
-        volunteer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        volunteer.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (filters.status !== 'all') {
-      filtered = filtered.filter(volunteer => volunteer.status === filters.status);
-    }
-
-    // Apply performance filter
-    if (filters.performance !== 'all') {
-      filtered = filtered.filter(volunteer => volunteer.performance === filters.performance);
-    }
-
-    // Apply role filter
-    if (filters.role !== 'all') {
-      filtered = filtered.filter(volunteer => volunteer.role === filters.role);
-    }
-
-    setFilteredVolunteers(filtered);
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    setCurrentPage(1);
   };
 
-  const handleBulkAction = async (action: string) => {
+  const handleStatusFilter = (status: 'all' | 'active' | 'inactive') => {
+    setStatusFilter(status);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (field: typeof sortBy) => {
+    if (field === sortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const handleSelectVolunteer = (volunteerId: string, selected: boolean) => {
+    if (selected) {
+      setSelectedVolunteers(prev => [...prev, volunteerId]);
+    } else {
+      setSelectedVolunteers(prev => prev.filter(id => id !== volunteerId));
+    }
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedVolunteers(volunteers.map(v => v.id));
+    } else {
+      setSelectedVolunteers([]);
+    }
+  };
+
+  const handleBulkAction = async (action: 'activate' | 'deactivate' | 'delete') => {
     if (selectedVolunteers.length === 0) {
       toast({
         title: "No Selection",
-        description: "Please select volunteers first",
+        description: "Please select volunteers to perform bulk actions",
         variant: "destructive"
       });
       return;
     }
 
+    const actionText = action === 'activate' ? 'activate' : action === 'deactivate' ? 'deactivate' : 'delete';
+    const confirmMessage = `Are you sure you want to ${actionText} ${selectedVolunteers.length} volunteer(s)?`;
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
     try {
       switch (action) {
-        case 'export-data':
-          await adminApi.exportVolunteerData(selectedVolunteers);
-          toast({
-            title: "Success",
-            description: "Volunteer data exported successfully",
-          });
-          break;
         case 'activate':
-          await Promise.all(selectedVolunteers.map(id => 
-            api.volunteers.update(id, { status: 'active' })
-          ));
-          await loadVolunteers();
+          await usersApi.bulkUpdateStatus(selectedVolunteers, 'active');
           toast({
             title: "Success",
             description: `${selectedVolunteers.length} volunteers activated`,
           });
           break;
         case 'deactivate':
-          await Promise.all(selectedVolunteers.map(id => 
-            api.volunteers.update(id, { status: 'inactive' })
-          ));
-          await loadVolunteers();
+          await usersApi.bulkUpdateStatus(selectedVolunteers, 'inactive');
           toast({
             title: "Success",
             description: `${selectedVolunteers.length} volunteers deactivated`,
           });
           break;
+        case 'delete':
+          await usersApi.bulkDelete(selectedVolunteers);
+          toast({
+            title: "Success",
+            description: `${selectedVolunteers.length} volunteers deleted`,
+          });
+          break;
       }
+      
       setSelectedVolunteers([]);
-    } catch (error) {
+      await loadVolunteers();
+    } catch (error: any) {
       console.error('Bulk action error:', error);
       toast({
         title: "Error",
-        description: "Failed to perform bulk action",
+        description: error.message || "Failed to perform bulk action",
         variant: "destructive"
       });
     }
@@ -158,334 +194,574 @@ const AdminVolunteerManagement: React.FC = () => {
     navigate(`/admin-dashboard/volunteers/${volunteerId}`);
   };
 
+  const handleEditVolunteer = (volunteerId: string) => {
+    navigate(`/admin-dashboard/volunteers/${volunteerId}?edit=true`);
+  };
+
   const handleDeleteVolunteer = async (volunteerId: string) => {
-    if (window.confirm('Are you sure you want to delete this volunteer?')) {
-      try {
-        await api.volunteers.delete(volunteerId);
-        await loadVolunteers();
-        toast({
-          title: "Success",
-          description: "Volunteer deleted successfully",
-        });
-      } catch (error) {
-        console.error('Delete error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete volunteer",
-          variant: "destructive"
-        });
-      }
+    const volunteer = volunteers.find(v => v.id === volunteerId);
+    if (!volunteer) return;
+
+    const confirmMessage = `Are you sure you want to delete ${volunteer.name}? This action cannot be undone.`;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      await usersApi.delete(volunteerId);
+      await loadVolunteers();
+      toast({
+        title: "Success",
+        description: "Volunteer deleted successfully",
+      });
+    } catch (error: any) {
+      console.error('Delete volunteer error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete volunteer",
+        variant: "destructive"
+      });
     }
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedVolunteers(filteredVolunteers.map(v => v.id));
-    } else {
-      setSelectedVolunteers([]);
+  const handleStatusToggle = async (volunteerId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    try {
+      await usersApi.updateStatus(volunteerId, newStatus);
+      await loadVolunteers();
+      toast({
+        title: "Success",
+        description: `Volunteer ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`,
+      });
+    } catch (error: any) {
+      console.error('Status toggle error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update volunteer status",
+        variant: "destructive"
+      });
     }
   };
 
-  const handleSelectVolunteer = (volunteerId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedVolunteers(prev => [...prev, volunteerId]);
-    } else {
-      setSelectedVolunteers(prev => prev.filter(id => id !== volunteerId));
-    }
+  const handleVolunteerAdded = async (newVolunteer: Volunteer) => {
+    setShowAddForm(false);
+    await loadVolunteers();
+    toast({
+      title: "Success",
+      description: "Volunteer added successfully",
+    });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
-  const getPerformanceColor = (performance: string) => {
-    switch (performance) {
-      case 'high':
-        return 'bg-green-100 text-green-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusBadge = (status: string) => {
+    return status === 'active' ? (
+      <Badge variant="default" className="bg-green-100 text-green-800">
+        <CheckCircle className="h-3 w-3 mr-1" />
+        Active
+      </Badge>
+    ) : (
+      <Badge variant="destructive" className="bg-red-100 text-red-800">
+        <XCircle className="h-3 w-3 mr-1" />
+        Inactive
+      </Badge>
+    );
   };
-
-  // Calculate statistics
-  const activeVolunteers = volunteers.filter(v => v.status === 'active').length;
-  const avgCompletionRate = volunteers.length > 0 
-    ? Math.round(volunteers.reduce((sum, v) => sum + v.completionRate, 0) / volunteers.length)
-    : 0;
-  const highPerformers = volunteers.filter(v => v.performance === 'high').length;
-
-  if (loading) {
-      return (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-8 bg-gray-200 rounded animate-pulse" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <SkeletonTable rows={6} />
-        </div>
-      );
-    }
 
   if (showAddForm) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Add New Volunteer</h1>
-          <Button variant="outline" onClick={() => setShowAddForm(false)}>
-            Cancel
-          </Button>
+      <AdminLayout>
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Add New Volunteer</h1>
+              <p className="text-muted-foreground">Create a new volunteer account</p>
+            </div>
+            <Button variant="outline" onClick={() => setShowAddForm(false)} className="w-full sm:w-auto">
+              Back to List
+            </Button>
+          </div>
+          
+          <Card>
+            <CardContent className="p-6">
+              <AddVolunteerForm onSuccess={handleVolunteerAdded} />
+            </CardContent>
+          </Card>
         </div>
-        <AddVolunteerForm 
-          onSuccess={() => {
-            setShowAddForm(false);
-            loadVolunteers();
-          }}
-          onCancel={() => setShowAddForm(false)}
-        />
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Volunteer Management</h1>
-          <p className="text-gray-600 mt-1">Monitor and manage your volunteer team performance.</p>
-        </div>
-        <Button onClick={() => setShowAddForm(true)}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Volunteer
-        </Button>
-      </div>
-
-      {/* Statistics Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Volunteers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeVolunteers}</div>
-            <p className="text-xs text-muted-foreground">
-              out of {volunteers.length} total volunteers
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Volunteer Management</h1>
+            <p className="text-muted-foreground">
+              Manage volunteer accounts, roles, and permissions
             </p>
+          </div>
+          <Button onClick={() => setShowAddForm(true)} className="gap-2 w-full sm:w-auto">
+            <UserPlus className="h-4 w-4" />
+            Add Volunteer
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalItems}</div>
+              <p className="text-xs text-muted-foreground">volunteers</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {volunteers.filter(v => v.status === 'active').length}
+              </div>
+              <p className="text-xs text-muted-foreground">online</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inactive</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {volunteers.filter(v => v.status === 'inactive').length}
+              </div>
+              <p className="text-xs text-muted-foreground">offline</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Selected</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {selectedVolunteers.length}
+              </div>
+              <p className="text-xs text-muted-foreground">chosen</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters and Search */}
+        <Card>
+          <CardHeader>
+            <div className="space-y-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search volunteers by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Filters Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                  <SelectTrigger className="sm:w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active Only</SelectItem>
+                    <SelectItem value="inactive">Inactive Only</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Sort */}
+                <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
+                  const [field, order] = value.split('-');
+                  setSortBy(field as typeof sortBy);
+                  setSortOrder(order as typeof sortOrder);
+                }}>
+                  <SelectTrigger className="sm:w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="email-asc">Email (A-Z)</SelectItem>
+                    <SelectItem value="email-desc">Email (Z-A)</SelectItem>
+                    <SelectItem value="joinDate-desc">Newest First</SelectItem>
+                    <SelectItem value="joinDate-asc">Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Bulk Actions */}
+            {selectedVolunteers.length > 0 && (
+              <div className="pt-4 border-t space-y-3">
+                <div className="text-sm text-muted-foreground">
+                  {selectedVolunteers.length} volunteer(s) selected
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleBulkAction('activate')}
+                    className="gap-1"
+                  >
+                    <CheckCircle className="h-3 w-3" />
+                    Activate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleBulkAction('deactivate')}
+                    className="gap-1"
+                  >
+                    <XCircle className="h-3 w-3" />
+                    Deactivate
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleBulkAction('delete')}
+                    className="gap-1"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardHeader>
+        </Card>
+
+        {/* Volunteers Table/Cards */}
+        <Card>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <LoadingSpinner size="lg" />
+                <span className="ml-2 text-muted-foreground">Loading volunteers...</span>
+              </div>
+            ) : volunteers.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No volunteers found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm || statusFilter !== 'all' 
+                    ? 'No volunteers match your current filters.' 
+                    : 'Get started by adding your first volunteer.'}
+                </p>
+                {!searchTerm && statusFilter === 'all' && (
+                  <Button onClick={() => setShowAddForm(true)} className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Add First Volunteer
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden lg:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[50px]">
+                          <Checkbox
+                            checked={selectedVolunteers.length === volunteers.length}
+                            onCheckedChange={handleSelectAll}
+                          />
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('name')}
+                        >
+                          Name {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('email')}
+                        >
+                          Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleSort('joinDate')}
+                        >
+                          Join Date {sortBy === 'joinDate' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </TableHead>
+                        <TableHead>Goals</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {volunteers.map((volunteer) => (
+                        <TableRow key={volunteer.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedVolunteers.includes(volunteer.id)}
+                              onCheckedChange={(checked) => 
+                                handleSelectVolunteer(volunteer.id, checked as boolean)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <div className="font-medium">{volunteer.name}</div>
+                          </TableCell>
+                          <TableCell>{volunteer.email}</TableCell>
+                          <TableCell>{volunteer.phone || 'N/A'}</TableCell>
+                          <TableCell>{getStatusBadge(volunteer.status)}</TableCell>
+                          <TableCell>{formatDate(volunteer.joinDate || volunteer.createdAt)}</TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{volunteer.goals || 0} total</div>
+                              <div className="text-muted-foreground">
+                                {volunteer.completedGoals || 0} completed
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetails(volunteer.id)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditVolunteer(volunteer.id)}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleStatusToggle(volunteer.id, volunteer.status)}
+                                >
+                                  {volunteer.status === 'active' ? (
+                                    <>
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Deactivate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Activate
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteVolunteer(volunteer.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden space-y-4 p-4">
+                  {volunteers.map((volunteer) => (
+                    <Card key={volunteer.id} className="relative">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={selectedVolunteers.includes(volunteer.id)}
+                              onCheckedChange={(checked) => 
+                                handleSelectVolunteer(volunteer.id, checked as boolean)
+                              }
+                            />
+                            <div>
+                              <h3 className="font-semibold text-lg text-left">{volunteer.name}</h3>
+                              <p className="text-sm text-muted-foreground text-left">{volunteer.email}</p>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewDetails(volunteer.id)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditVolunteer(volunteer.id)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusToggle(volunteer.id, volunteer.status)}
+                              >
+                                {volunteer.status === 'active' ? (
+                                  <>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Activate
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteVolunteer(volunteer.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Status</span>
+                            {getStatusBadge(volunteer.status)}
+                          </div>
+                          
+                          {volunteer.phone && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-muted-foreground">Phone</span>
+                              <span className="text-sm">{volunteer.phone}</span>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Joined</span>
+                            <span className="text-sm">{formatDate(volunteer.joinDate || volunteer.createdAt)}</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Goals</span>
+                            <div className="text-sm text-right">
+                              <div>{volunteer.goals || 0} total</div>
+                              <div className="text-muted-foreground text-xs">
+                                {volunteer.completedGoals || 0} completed
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Completion Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{avgCompletionRate}%</div>
-            <p className="text-xs text-muted-foreground">across all volunteers</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">High Performers</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{highPerformers}</div>
-            <p className="text-xs text-muted-foreground">volunteers excelling</p>
-          </CardContent>
-        </Card>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground order-2 sm:order-1">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+              {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} volunteers
+            </div>
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3"
+              >
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
+              </Button>
+              
+              {/* Desktop Pagination */}
+              <div className="hidden sm:flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              {/* Mobile Pagination - Simple */}
+              <div className="sm:hidden flex items-center gap-2">
+                <span className="text-sm font-medium bg-muted px-2 py-1 rounded">
+                  {currentPage} / {totalPages}
+                </span>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters & Search
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Search volunteers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
-            <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({...prev, status: value}))}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filters.performance} onValueChange={(value) => setFilters(prev => ({...prev, performance: value}))}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Performance" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Performance</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filters.role} onValueChange={(value) => setFilters(prev => ({...prev, role: value}))}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="volunteer">Volunteer</SelectItem>
-                <SelectItem value="coordinator">Coordinator</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Bulk Actions */}
-          {selectedVolunteers.length > 0 && (
-            <div className="flex gap-2 p-3 bg-blue-50 rounded-lg">
-              <span className="text-sm font-medium">{selectedVolunteers.length} volunteers selected</span>
-              <Button size="sm" variant="outline" onClick={() => handleBulkAction('export-data')}>
-                <Download className="h-4 w-4 mr-1" />
-                Export Data
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleBulkAction('activate')}>
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Activate
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleBulkAction('deactivate')}>
-                <XCircle className="h-4 w-4 mr-1" />
-                Deactivate
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Volunteers Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Volunteer Directory ({filteredVolunteers.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">
-                    <Checkbox 
-                      checked={selectedVolunteers.length === filteredVolunteers.length && filteredVolunteers.length > 0}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </th>
-                  <th className="text-left p-2">Name</th>
-                  <th className="text-left p-2">Email</th>
-                  <th className="text-left p-2">Status</th>
-                  <th className="text-left p-2">Role</th>
-                  <th className="text-left p-2">Goals</th>
-                  <th className="text-left p-2">Performance</th>
-                  <th className="text-left p-2">Join Date</th>
-                  <th className="text-left p-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredVolunteers.map((volunteer) => (
-                  <tr key={volunteer.id} className="border-b hover:bg-gray-50">
-                    <td className="p-2">
-                      <Checkbox 
-                        checked={selectedVolunteers.includes(volunteer.id)}
-                        onCheckedChange={(checked) => handleSelectVolunteer(volunteer.id, checked as boolean)}
-                      />
-                    </td>
-                    <td className="p-2 font-medium">{volunteer.name}</td>
-                    <td className="p-2 text-gray-600">{volunteer.email}</td>
-                    <td className="p-2">
-                      <Badge className={getStatusColor(volunteer.status)}>
-                        {volunteer.status}
-                      </Badge>
-                    </td>
-                    <td className="p-2">{volunteer.role}</td>
-                    <td className="p-2">
-                      <div className="text-sm">
-                        <div>{volunteer.goalsCount} total</div>
-                        <div className="text-gray-500">{volunteer.completionRate}% complete</div>
-                      </div>
-                    </td>
-                    <td className="p-2">
-                      <Badge className={getPerformanceColor(volunteer.performance)}>
-                        {volunteer.performance}
-                      </Badge>
-                    </td>
-                    <td className="p-2 text-sm text-gray-600">
-                      {new Date(volunteer.joinDate).toLocaleDateString()}
-                    </td>
-                    <td className="p-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleViewDetails(volunteer.id)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/admin-dashboard/volunteers/${volunteer.id}/edit`)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteVolunteer(volunteer.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {filteredVolunteers.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No volunteers found matching your criteria.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    </AdminLayout>
   );
 };
 

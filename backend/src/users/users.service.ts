@@ -72,7 +72,19 @@ export class UsersService {
 
         const sortBy = filters.sortBy || 'createdAt';
         const sortOrder = filters.sortOrder || 'DESC';
-        queryBuilder.orderBy(`user.${sortBy}`, sortOrder);
+        
+        // Map frontend sort fields to actual database columns
+        const sortFieldMap: Record<string, string> = {
+            'name': 'firstName',
+            'email': 'email',
+            'joinDate': 'joinedAt',
+            'lastActivity': 'updatedAt',
+            'createdAt': 'createdAt',
+            'updatedAt': 'updatedAt'
+        };
+        
+        const actualSortField = sortFieldMap[sortBy] || sortBy;
+        queryBuilder.orderBy(`user.${actualSortField}`, sortOrder);
 
         const page = filters.page || 1;
         const limit = filters.limit || 10;
