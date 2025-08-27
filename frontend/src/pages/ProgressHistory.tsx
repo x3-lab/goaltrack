@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Calendar, Download, RefreshCw, BarChart3 } from 'lucide-react';
+import { TrendingUp, Calendar, RefreshCw, BarChart3, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +20,7 @@ const ProgressHistoryPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<'history' | 'summary' | 'analytics'>('history');
+  const [activeView, setActiveView] = useState<'history' | 'summary'>('history');
 
   // Load progress history data from API
   useEffect(() => {
@@ -58,169 +58,139 @@ const ProgressHistoryPage: React.FC = () => {
     setRefreshing(true);
     await loadProgressHistory();
     setRefreshing(false);
+    toast({
+      title: "Data Refreshed",
+      description: "Your progress history has been updated.",
+    });
   };
 
-  const handleExport = async () => {
-    try {
-      console.log('Exporting progress history...');
-      
-      // Create export data
-      const exportData = {
-        volunteer: {
-          id: user?.id,
-          name: user?.name,
-          email: user?.email
-        },
-        exportDate: new Date().toISOString(),
-        weeklyHistory: weeklyHistory,
-        summary: {
-          totalWeeks: weeklyHistory?.totalWeeks || 0,
-          totalGoals: weeklyHistory?.overallStats.totalGoals || 0,
-          completedGoals: weeklyHistory?.overallStats.completedGoals || 0,
-          averageProgress: weeklyHistory?.overallStats.averageProgress || 0,
-          averageCompletionRate: weeklyHistory?.overallStats.averageCompletionRate || 0
-        }
-      };
-      
-      // Create and download file
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
-        type: 'application/json' 
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `progress-history-${user?.name?.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Export Complete!",
-        description: "Your progress history has been downloaded.",
-      });
-      
-    } catch (error: any) {
-      console.error('Error exporting progress history:', error);
-      toast({
-        title: "Export Failed",
-        description: "Failed to export progress history. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  if (loading) {
-    return (
-      <VolunteerLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <LoadingSpinner size="lg" />
-            <p className="mt-4 text-lg">Loading your progress history...</p>
+  return (
+    <VolunteerLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Progress History</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  {user?.name && `${user.name}'s `}comprehensive goal tracking and progress analysis
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/volunteer-dashboard')}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </VolunteerLayout>
-    );
-  }
 
-  if (error && !weeklyHistory) {
-    return (
-      <VolunteerLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center max-w-md">
-            <div className="text-red-500 mb-4">
-              <TrendingUp className="h-12 w-12 mx-auto" />
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {loading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading your progress history...</p>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold mb-2">Error Loading History</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={handleRefresh}>
+          )}
+
+          {error && !loading && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+              <div className="text-red-600 text-lg font-medium mb-2">Unable to Load Progress History</div>
+              <p className="text-red-700 mb-4">{error}</p>
+              <Button onClick={loadProgressHistory} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Try Again
               </Button>
             </div>
-          </div>
+          )}
+
+          {!loading && !error && (
+            <div className="space-y-8">
+              {/* Navigation Tabs */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+                <div className="border-b border-gray-200">
+                  <nav className="flex">
+                    {[
+                      { key: 'history', label: 'Detailed History', icon: Calendar },
+                      { key: 'summary', label: 'Weekly Summary', icon: BarChart3 }
+                    ].map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveView(tab.key as any)}
+                        className={`flex items-center gap-2 px-6 py-4 font-medium text-sm transition-all relative ${
+                          activeView === tab.key
+                            ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4" />
+                        {tab.label}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+
+                {/* Tab Content */}
+                <div className="p-6">
+                  {activeView === 'history' && (
+                    <ProgressHistory 
+                      volunteerId={user?.id}
+                      onRefresh={handleRefresh}
+                      showAnalytics={true}
+                    />
+                  )}
+
+                  {activeView === 'summary' && (
+                    <WeeklyProgressSummary 
+                      volunteerId={user?.id}
+                      showSubmitButton={false}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* No Data State */}
+              {!weeklyHistory && !loading && !error && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+                  <Calendar className="h-16 w-16 mx-auto mb-6 text-gray-300" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No Progress History Yet</h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    Start creating and tracking goals to see your comprehensive progress history here. 
+                    Your journey begins with your first goal!
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/volunteer-dashboard/goals')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Create Your First Goal
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </VolunteerLayout>
-    );
-  }
-
-  return (
-    <VolunteerLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Progress History</h1>
-            <p className="text-gray-600">
-              {user?.name && `${user.name}'s `}
-              comprehensive goal tracking and progress analysis
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh'}
-            </Button>
-            <Button onClick={handleExport} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="border-b">
-          <nav className="flex space-x-8">
-            {[
-              { key: 'history', label: 'Detailed History', icon: Calendar },
-              { key: 'summary', label: 'Weekly Summary', icon: BarChart3 }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveView(tab.key as any)}
-                className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeView === tab.key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        {activeView === 'history' && (
-          <ProgressHistory 
-            volunteerId={user?.id}
-            onRefresh={handleRefresh}
-            showAnalytics={true}
-          />
-        )}
-
-        {activeView === 'summary' && (
-          <WeeklyProgressSummary 
-            volunteerId={user?.id}
-            showSubmitButton={false}
-          />
-        )}
-
-        {/* No Data State */}
-        {!weeklyHistory && !loading && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Progress History</h3>
-              <p className="text-gray-600 mb-4">
-                Start creating and tracking goals to see your progress history here.
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </VolunteerLayout>
   );
